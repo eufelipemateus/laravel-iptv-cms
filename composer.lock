@@ -587,12 +587,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eufelipemateus/laravel-iptv-core.git",
-                "reference": "291cdb5d263e82d846b5fa5917945d48599f7cf7"
+                "reference": "3394f79707dce6ffb80c50457835eeab94ef9c8b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-core/zipball/291cdb5d263e82d846b5fa5917945d48599f7cf7",
-                "reference": "291cdb5d263e82d846b5fa5917945d48599f7cf7",
+                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-core/zipball/3394f79707dce6ffb80c50457835eeab94ef9c8b",
+                "reference": "3394f79707dce6ffb80c50457835eeab94ef9c8b",
                 "shasum": ""
             },
             "require": {
@@ -652,7 +652,7 @@
                 "issues": "https://github.com/eufelipemateus/laravel-iptv-core/issues",
                 "source": "https://github.com/eufelipemateus/laravel-iptv-core/tree/v1.0.1"
             },
-            "time": "2021-11-07T00:11:49+00:00"
+            "time": "2021-11-09T16:20:56+00:00"
         },
         {
             "name": "felipemateus/iptv-customers",
@@ -1190,16 +1190,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v8.69.0",
+            "version": "v8.70.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "545181da688db64fed6d8427e55f630a90ca0d32"
+                "reference": "f4b69fac9292df1a8afd5eb93e77990444ad5077"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/545181da688db64fed6d8427e55f630a90ca0d32",
-                "reference": "545181da688db64fed6d8427e55f630a90ca0d32",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/f4b69fac9292df1a8afd5eb93e77990444ad5077",
+                "reference": "f4b69fac9292df1a8afd5eb93e77990444ad5077",
                 "shasum": ""
             },
             "require": {
@@ -1358,7 +1358,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2021-11-02T13:53:22+00:00"
+            "time": "2021-11-09T16:50:33+00:00"
         },
         {
             "name": "laravel/sanctum",
@@ -6127,16 +6127,16 @@
         },
         {
             "name": "laravel/sail",
-            "version": "v1.12.3",
+            "version": "v1.12.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/sail.git",
-                "reference": "f335277677188b79d12f4caad88577cf76e54dfa"
+                "reference": "a214b593d50ad4c581c922d5ee604ffe0fab4d01"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/sail/zipball/f335277677188b79d12f4caad88577cf76e54dfa",
-                "reference": "f335277677188b79d12f4caad88577cf76e54dfa",
+                "url": "https://api.github.com/repos/laravel/sail/zipball/a214b593d50ad4c581c922d5ee604ffe0fab4d01",
+                "reference": "a214b593d50ad4c581c922d5ee604ffe0fab4d01",
                 "shasum": ""
             },
             "require": {
@@ -6183,7 +6183,7 @@
                 "issues": "https://github.com/laravel/sail/issues",
                 "source": "https://github.com/laravel/sail"
             },
-            "time": "2021-11-05T13:35:24+00:00"
+            "time": "2021-11-09T17:42:55+00:00"
         },
         {
             "name": "mockery/mockery",
