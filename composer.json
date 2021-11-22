@@ -26,7 +26,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
-        "felipemateus/iptv-channels": "^3.0.1",
+        "felipemateus/iptv-channels": "^3.0",
         "felipemateus/iptv-core": "^1.0",
         "felipemateus/iptv-customers": "^0.1.1",
         "fruitcake/laravel-cors": "^2.0",
