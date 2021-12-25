@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "19c28a435e7dec3b73633ca01cba35d7",
+    "content-hash": "2daad7a2ad0c599763011fb9855c0ce8",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -498,17 +498,63 @@
             "time": "2020-12-29T14:50:06+00:00"
         },
         {
-            "name": "felipemateus/iptv-channels",
-            "version": "3.0.1",
+            "name": "felipemateus/http-build-url",
+            "version": "v0.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/eufelipemateus/laravel-iptv-channels.git",
-                "reference": "3d52b22dde3e7e43c44643d2d6a12acb6a1218c0"
+                "url": "https://github.com/eufelipemateus/http_build_url.git",
+                "reference": "ac1c1e905c2e95c280419e75b464b01bd1d8305e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-channels/zipball/3d52b22dde3e7e43c44643d2d6a12acb6a1218c0",
-                "reference": "3d52b22dde3e7e43c44643d2d6a12acb6a1218c0",
+                "url": "https://api.github.com/repos/eufelipemateus/http_build_url/zipball/ac1c1e905c2e95c280419e75b464b01bd1d8305e",
+                "reference": "ac1c1e905c2e95c280419e75b464b01bd1d8305e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/http_build_url.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Felipe Mateus",
+                    "email": "eu@felipemateus.com",
+                    "homepage": "https://felipemateus.com",
+                    "role": "Developer"
+                }
+            ],
+            "keywords": [
+                "http_build_url",
+                "php",
+                "url"
+            ],
+            "support": {
+                "issues": "https://github.com/eufelipemateus/http_build_url/issues",
+                "source": "https://github.com/eufelipemateus/http_build_url/tree/v0.0.1"
+            },
+            "time": "2021-12-24T04:54:53+00:00"
+        },
+        {
+            "name": "felipemateus/iptv-channels",
+            "version": "3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/eufelipemateus/laravel-iptv-channels.git",
+                "reference": "7da8277cb70196b485258b8853e9434b1063cbaa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-channels/zipball/7da8277cb70196b485258b8853e9434b1063cbaa",
+                "reference": "7da8277cb70196b485258b8853e9434b1063cbaa",
                 "shasum": ""
             },
             "require": {
@@ -563,7 +609,7 @@
             ],
             "support": {
                 "issues": "https://github.com/eufelipemateus/laravel-iptv-channels/issues",
-                "source": "https://github.com/eufelipemateus/laravel-iptv-channels/tree/v3.0.1"
+                "source": "https://github.com/eufelipemateus/laravel-iptv-channels/tree/v3.0.2"
             },
             "funding": [
                 {
@@ -579,7 +625,7 @@
                     "type": "liberapay"
                 }
             ],
-            "time": "2021-11-07T15:21:24+00:00"
+            "time": "2021-12-14T22:20:11+00:00"
         },
         {
             "name": "felipemateus/iptv-core",
@@ -656,21 +702,22 @@
         },
         {
             "name": "felipemateus/iptv-customers",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eufelipemateus/laravel-iptv-customers.git",
-                "reference": "368db6d2c0d233909dc3ab8fb3899502c010ae1e"
+                "reference": "6b95196f6b7d8b065a8e446849ca5abda80b9ca0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-customers/zipball/368db6d2c0d233909dc3ab8fb3899502c010ae1e",
-                "reference": "368db6d2c0d233909dc3ab8fb3899502c010ae1e",
+                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-customers/zipball/6b95196f6b7d8b065a8e446849ca5abda80b9ca0",
+                "reference": "6b95196f6b7d8b065a8e446849ca5abda80b9ca0",
                 "shasum": ""
             },
             "require": {
-                "felipemateus/iptv-channels": "3.0.1",
-                "felipemateus/iptv-core": "^1.0.1",
+                "felipemateus/http-build-url": "^0.0",
+                "felipemateus/iptv-channels": "^3.0.2",
+                "felipemateus/iptv-core": "^1.0",
                 "laravel/framework": "^8.54",
                 "php": "^7.4|^8.0"
             },
@@ -723,9 +770,9 @@
             ],
             "support": {
                 "issues": "https://github.com/eufelipemateus/laravel-iptv-customers/issues",
-                "source": "https://github.com/eufelipemateus/laravel-iptv-customers/tree/v0.1.1"
+                "source": "https://github.com/eufelipemateus/laravel-iptv-customers/tree/v0.1.2"
             },
-            "time": "2021-11-07T15:18:39+00:00"
+            "time": "2021-12-25T20:40:21+00:00"
         },
         {
             "name": "fruitcake/laravel-cors",
