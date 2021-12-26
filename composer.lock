@@ -706,12 +706,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eufelipemateus/laravel-iptv-customers.git",
-                "reference": "6b95196f6b7d8b065a8e446849ca5abda80b9ca0"
+                "reference": "7d7b51918b587a19a6b92852c59e593db107cbd5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-customers/zipball/6b95196f6b7d8b065a8e446849ca5abda80b9ca0",
-                "reference": "6b95196f6b7d8b065a8e446849ca5abda80b9ca0",
+                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-customers/zipball/7d7b51918b587a19a6b92852c59e593db107cbd5",
+                "reference": "7d7b51918b587a19a6b92852c59e593db107cbd5",
                 "shasum": ""
             },
             "require": {
@@ -772,7 +772,7 @@
                 "issues": "https://github.com/eufelipemateus/laravel-iptv-customers/issues",
                 "source": "https://github.com/eufelipemateus/laravel-iptv-customers/tree/v0.1.2"
             },
-            "time": "2021-12-25T20:40:21+00:00"
+            "time": "2021-12-26T03:09:26+00:00"
         },
         {
             "name": "fruitcake/laravel-cors",
