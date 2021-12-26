@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2daad7a2ad0c599763011fb9855c0ce8",
+    "content-hash": "1e6a46da776a4c53c16ab39142aaaf08",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -629,16 +629,16 @@
         },
         {
             "name": "felipemateus/iptv-core",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eufelipemateus/laravel-iptv-core.git",
-                "reference": "3394f79707dce6ffb80c50457835eeab94ef9c8b"
+                "reference": "cfe69ad7b2ac94bcbdd407bdf0bcb4fe90b2543f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-core/zipball/3394f79707dce6ffb80c50457835eeab94ef9c8b",
-                "reference": "3394f79707dce6ffb80c50457835eeab94ef9c8b",
+                "url": "https://api.github.com/repos/eufelipemateus/laravel-iptv-core/zipball/cfe69ad7b2ac94bcbdd407bdf0bcb4fe90b2543f",
+                "reference": "cfe69ad7b2ac94bcbdd407bdf0bcb4fe90b2543f",
                 "shasum": ""
             },
             "require": {
@@ -696,9 +696,9 @@
             ],
             "support": {
                 "issues": "https://github.com/eufelipemateus/laravel-iptv-core/issues",
-                "source": "https://github.com/eufelipemateus/laravel-iptv-core/tree/v1.0.1"
+                "source": "https://github.com/eufelipemateus/laravel-iptv-core/tree/v1.0.2"
             },
-            "time": "2021-11-09T16:20:56+00:00"
+            "time": "2021-12-26T01:30:19+00:00"
         },
         {
             "name": "felipemateus/iptv-customers",
