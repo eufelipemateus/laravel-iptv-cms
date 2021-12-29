@@ -1,5 +1,6 @@
 {
     "name": "felipemateus/iptv-cms",
+    "version": "0.0.1",
     "type": "project",
     "description": "This is a cms control iptv channels.",
     "keywords": ["framework", "laravel",
