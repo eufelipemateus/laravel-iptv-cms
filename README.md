@@ -52,7 +52,7 @@ php artisan migrate --seed
 
 - To add new locale compatibility you need contribute to [iptv-core](https://github.com/eufelipemateus/laravel-iptv-core/blob/main/src/Class/Locale.php) first.
 
-- [Telegram group to discussion about sugestion,Feature and etc.](https://t.me/laravel_iptv)
+- [Discord Channel to discussion about sugestion,Feature and etc.](https://discord.com/channels/885888529845076078/953528360615690270)
 
 ## License
 
