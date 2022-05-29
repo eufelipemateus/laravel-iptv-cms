@@ -28,7 +28,7 @@
     "postcss": "^8.1.14",
     "standard-version": "^9.5.0"
   },
-  "version": "0.0.3",
+  "version": "0.0.2",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
