@@ -34,7 +34,7 @@ services:
             MYSQL_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
         volumes:
-            - 'sailmariadb:/var/lib/mysql'
+            - ./.docker/mysql:/var/lib/mysql
         networks:
             - sail
         healthcheck:
@@ -44,6 +44,3 @@ services:
 networks:
     sail:
         driver: bridge
-volumes:
-    sailmariadb:
-        driver: local
