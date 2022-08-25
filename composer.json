@@ -36,7 +36,7 @@
         "php": "^7.3|^8.0",
         "felipemateus/iptv-channels": "^3.0.4",
         "felipemateus/iptv-core": "^1.1.0",
-        "felipemateus/iptv-customers": "^0.2.2",
+        "felipemateus/laravel-iptv-gateway-paypal": "^0.0.3",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "7.4.3",
         "laravel/framework": "^8.65",
