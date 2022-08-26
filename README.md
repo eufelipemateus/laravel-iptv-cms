@@ -1,8 +1,9 @@
 # Laravel IPTV Cms
 
+![Screenshot Dashboard Feipe Mateus IPTV Channels](/.github/screenshots/dashboard.png?raw=true)
+
 ## Instaling
 
-.
 
 ### Run the command below in root to install the package in your project
   
