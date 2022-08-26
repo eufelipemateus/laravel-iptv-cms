@@ -7,26 +7,13 @@
 ## Instaling
 
 
-### Run the command below in root to install the package in your project
-  
-```bash
-
-git clone https://github.com/eufelipemateus/iptv-cms.git
-```
-
 ### Install
 
 ```bash
-composer install 
+composer create-project felipemateus/iptv-cms  iptv-project
 ```
 
 ### Config
-
-Create new  file .env if not create.
-
-```bash
-    mv .env.exmple .env
-```
 
 generate  app key
 
@@ -34,7 +21,7 @@ generate  app key
     php artisan key:generate
 ```
 
-Replace  .env with bd
+Replace  .env with your database info.
 
 ```env
     DB_CONNECTION=mysql
