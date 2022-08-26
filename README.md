@@ -1,5 +1,7 @@
 # Laravel IPTV Cms
 
+[![Latest Stable Version](http://poser.pugx.org/felipemateus/iptv-cms/v)](https://packagist.org/packages/felipemateus/iptv-cms)  [![Total Downloads](http://poser.pugx.org/felipemateus/iptv-cms/downloads)](https://packagist.org/packages/felipemateus/iptv-cms)  [![Latest Unstable Version](http://poser.pugx.org/felipemateus/iptv-cms/v/unstable)](https://packagist.org/packages/felipemateus/iptv-cms)  [![License](http://poser.pugx.org/felipemateus/iptv-cms/license)](https://packagist.org/packages/felipemateus/iptv-cms)  [![PHP Version Require](http://poser.pugx.org/felipemateus/iptv-cms/require/php)](https://packagist.org/packages/felipemateus/iptv-cms)
+
 ![Screenshot Dashboard Feipe Mateus IPTV Channels](/.github/screenshots/dashboard.png?raw=true)
 
 ## Instaling
@@ -9,7 +11,7 @@
   
 ```bash
 
-git clone https://github.com/eufelipemateus/laravel-iptv-cms.git
+git clone https://github.com/eufelipemateus/iptv-cms.git
 ```
 
 ### Install
@@ -57,7 +59,7 @@ php artisan migrate --seed
 
 ## License
 
-[![License](http://poser.pugx.org/felipemateus/iptv-channels/license)](https://packagist.org/packages/felipemateus/iptv-channels)
+[![License](http://poser.pugx.org/felipemateus/iptv-cms/license)](https://packagist.org/packages/felipemateus/iptv-cms)
 
 ## Author
 
