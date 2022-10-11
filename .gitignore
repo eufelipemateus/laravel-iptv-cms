@@ -17,3 +17,5 @@ yarn-error.log
 package-lock.json
 yarn.lock
 .docker
+.idea
+composer.lock

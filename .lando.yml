@@ -1,0 +1,31 @@
+name: iptv-cms
+recipe: laravel
+config:
+  php: '8.1'
+  webroot: public
+  via: nginx
+  database: mysql
+services:
+  node:
+    type: node:16
+    ssl: 3000
+    scanner: false
+  appserver:
+    type: php:8.1
+tooling:
+  setup:
+    cmd:
+      - appserver: composer install --no-cache
+      - appserver: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - appserver: php artisan key:generate
+      - appserver: php artisan migrate
+      - appserver: php artisan encrypt:generate
+  tinker:
+    service: appserver
+    cmd: php artisan tinker
+  migrate:
+    service: appserver
+    cmd: php artisan migrate
+  rollback:
+    service: appserver
+    cmd: php artisan migrate:rollback --step=1
