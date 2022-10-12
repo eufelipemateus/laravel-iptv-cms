@@ -1,5 +1,5 @@
 {
-    "name": "tschope/iptv-cms",
+    "name": "felipemateus/iptv-cms",
     "type": "project",
     "description": "This is a cms control iptv channels.",
     "authors": [
@@ -34,9 +34,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.0|^8.1",
-        "tschope/iptv-channels": "^4.0",
-        "tschope/iptv-core": "^2.0",
-        "tschope/iptv-customers": "^0.0.3",
+        "felipemateus/iptv-channels": "^3.0",
+        "felipemateus/iptv-core": "^1.1",
+        "felipemateus/iptv-customers": "^0.0.2",
         "felipemateus/laravel-iptv-gateway-paypal": "^v0.0.3",
         "guzzlehttp/guzzle": "^7.5",
         "laravel/framework": "^9.11",
@@ -67,7 +67,7 @@
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
-            "@php artisan vendor:publish --provider=\"Tschope\\IPTVCore\\IPTVProvider\""
+            "@php artisan vendor:publish --provider=\"FelipeMateus\\IPTVCore\\IPTVProvider\""
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi"
