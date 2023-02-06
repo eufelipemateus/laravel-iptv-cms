@@ -1,0 +1,28 @@
+
+name: Release IPTV 
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  releases-matrix:
+    name: Release IPTV-CMS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2    
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /var/www/iptv-cms.felipemateus.com
+            git pull
+            git fetch --all --tags --prune
+            git checkout tags/${{ github.event.release.tag_name }} -b local${{ github.event.release.tag_name }}
+            composer install
+            service nginx restart
+
