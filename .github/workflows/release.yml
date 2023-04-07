@@ -1,5 +1,5 @@
 
-name: Release IPTV 
+name: Release IPTV
 
 on:
   release:
@@ -10,7 +10,7 @@ jobs:
     name: Release IPTV-CMS
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2    
+      - uses: actions/checkout@v2
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -20,6 +20,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /var/www/iptv-cms.felipemateus.com
+            git stash
             git pull
             git fetch --all --tags --prune
             git checkout tags/${{ github.event.release.tag_name }} -b local${{ github.event.release.tag_name }}
