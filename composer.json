@@ -40,15 +40,15 @@
         "felipemateus/laravel-iptv-gateway-paypal": "^0.0.3",
         "microweber-deps/laravel-cors": "^3.1",
         "guzzlehttp/guzzle": "^7.5",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "^11",
         "laravel/sanctum": "^v4.0",
-        "laravel/tinker": "^2.7"
+        "laravel/tinker": "^2.9"
     },
     "require-dev": {
         "spatie/laravel-ignition": "^2.7",
-        "fakerphp/faker": "^1.20",
-        "laravel/sail": "^1.16",
-        "mockery/mockery": "^1.5",
+        "fakerphp/faker": "^1.23",
+        "laravel/sail": "^1.26",
+        "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.1",
         "phpunit/phpunit": "^11"
     },
