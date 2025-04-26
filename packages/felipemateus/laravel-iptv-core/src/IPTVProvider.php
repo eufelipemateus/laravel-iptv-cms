@@ -71,7 +71,7 @@ class IPTVProvider extends IPTVProviderBase {
      * @return void
      */
     private function registerDashboard(){
-        $this->loadDashFrom(ConfigDash::class);
+        // config dash
     }
 
 }
