@@ -1,0 +1,16 @@
+{
+    "title":"Customers",
+    "menus":[
+        {
+            "name":"Customers",
+            "icon": "users",
+            "route": "list_customer"
+        },
+        {
+            "name":"Plans",
+            "icon": "file-contract",
+            "route": "list_plan"
+        }
+    ]
+}
+
