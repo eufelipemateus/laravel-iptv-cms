@@ -1,0 +1,22 @@
+{
+
+    "title":"Channels",
+    "menus":[
+        {
+            "name":"Channels",
+            "icon": "tv",
+            "route": "list_channel"
+        },
+        {
+            "name":"Groups",
+            "icon": "tv",
+            "route": "list_group"
+        },
+        {
+            "name":"CDN",
+            "icon": "server",
+            "route": "list_cdn"
+        }
+    ]
+}
+

@@ -1,0 +1,12 @@
+{
+
+    "title":"Paypal",
+    "menus":[
+        {
+            "name":"Config. Paypal",
+            "icon": "cog",
+            "route": "cofig_paypal"
+        }
+    ]
+}
+

@@ -1,0 +1,32 @@
+{
+    "name": "felipemateus/laravel-iptv-gateway-paypal",
+    "type": "library",
+    "require": {
+        "paypal/paypal-checkout-sdk": "1.0.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Felipe Mateus",
+            "email": "eu@felipemateus.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "FelipeMateus\\IPTVPaypal\\":"src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FelipeMateus\\IPTVPaypal\\IPTVPaymentProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "php artisan db:seed --class=SeedPaypalConfig"
+        ]
+    }
+}
