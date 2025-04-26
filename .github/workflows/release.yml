@@ -27,7 +27,7 @@ jobs:
               echo "APP_ENV=production" >> .env
               echo "APP_KEY=${{secrets.APP_KEY}}" >> .env
               echo "APP_DEBUG=false" >> .env
-              echo "APP_URL=\"${{secrets.APP_URL}}\"" >> .env
+              echo "APP_URL=${{secrets.APP_URL}}" >> .env
 
               echo "DB_CONNECTION=pgsql" >> .env
               echo "DB_HOST=127.0.0.1" >> .env
@@ -56,7 +56,7 @@ jobs:
               echo "MAIL_PASSWORD=null" >> .env
               echo "MAIL_ENCRYPTION=null" >> .env
               echo "MAIL_FROM_ADDRESS=null" >> .env
-              echo "MAIL_FROM_NAME=\"\${APP_NAME}\"" >> .env"
+              echo "MAIL_FROM_NAME=\"${APP_NAME}\"" >> .env
 
 
 
@@ -82,10 +82,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cp -TRv /tmp/iptv/ ${{secrets.WORK_DIR}}/
-            sudo chmod 777 -R ${{secrets.WORK_DIR}}
-            sudo chown www-data:www-data -R ${{secrets.WORK_DIR}}
-            cd ${{secrets.WORK_DIR}}
+            cp -TRv /tmp/iptv/ "${{secrets.WORK_DIR}}/"
+            sudo chmod 777 -R "${{secrets.WORK_DIR}}"
+            sudo chown www-data:www-data -R "${{secrets.WORK_DIR}}"
+            cd "${{secrets.WORK_DIR}}"
             php artisan migrate --force
             php artisan storage:link
             php artisan optimize:clear
