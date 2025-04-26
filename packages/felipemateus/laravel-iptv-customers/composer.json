@@ -1,0 +1,60 @@
+{
+    "name": "felipemateus/iptv-customers",
+    "description": "This package controls the IPTV Customers list and generates an m3u8 file for each customer using laravel.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Felipe Mateus",
+            "email": "eu@felipemateus.com",
+            "homepage": "https://felipemateus.com",
+            "role": "Developer"
+        }
+    ],
+    "keywords":[
+        "Laravel",
+        "IPTV",
+        "IPTVCHannels",
+        "Channels",
+        "iptv-channels",
+        "channels-m3u8",
+        "channels-list",
+        "iptv-laravel",
+        "m3u8-iptv",
+        "channel",
+        "Playlist",
+        "iptv-playlist",
+        "m3u8",
+        "laravel-package",
+        "custormer",
+        "custormers",
+        "manager-custormers",
+        "clients",
+        "clients-channels"
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11",
+        "felipemateus/iptv-core":"^1.3",
+        "felipemateus/iptv-channels": "^3.0.7",
+        "felipemateus/http-build-url": "^0.0.1",
+        "felipemateus/laravel-iptv-gateway-payment":"^0.0.3"
+	},
+	"autoload": {
+        "psr-4": {
+			"FelipeMateus\\IPTVCustomers\\":"src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FelipeMateus\\IPTVCustomers\\IPTVProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "suggest": {
+        "felipemateus/iptv-channels": "Allows you to control channels, groups and cdn."
+    }
+}

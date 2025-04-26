@@ -1,0 +1,12 @@
+{
+
+    "title":"Settings",
+    "menus":[
+        {
+            "name":"Settings",
+            "icon": "cog",
+            "route": "config"
+        }
+    ]
+}
+
