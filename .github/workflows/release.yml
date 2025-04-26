@@ -10,7 +10,70 @@ jobs:
     name: Release IPTV-CMS
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+            set-safe-directory: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Generate .env
+        run: |
+              touch .env
+              echo "APP_NAME=\"IPTV CMS\"" >> .env
+              echo "APP_ENV=production" >> .env
+              echo "APP_KEY=${{secrets.APP_KEY}}" >> .env
+              echo "APP_DEBUG=false" >> .env
+              echo "APP_URL=\"${{secrets.APP_URL}}\"" >> .env
+
+              echo "DB_CONNECTION=pgsql" >> .env
+              echo "DB_HOST=127.0.0.1" >> .env
+              echo "DB_PORT=5432" >> .env
+              echo "DB_DATABASE=\"${{secrets.DB_DATABASE}}\"" >> .env
+              echo "DB_USERNAME=\"${{secrets.DB_USERNAME}}\"" >> .env
+              echo "DB_PASSWORD=\"${{secrets.DB_PASSWORD}}\"" >> .env
+
+              echo "BROADCAST_DRIVER=log" >> .env
+              echo "CACHE_DRIVER=file" >> .env
+              echo "FILESYSTEM_DRIVER=local" >> .env
+              echo "QUEUE_CONNECTION=sync" >> .env
+              echo "SESSION_DRIVER=file" >> .env
+              echo "SESSION_LIFETIME=120" >> .env
+
+              echo "MEMCACHED_HOST=127.0.0.1" >> .env
+
+              echo "REDIS_HOST=127.0.0.1" >> .env
+              echo "REDIS_PASSWORD=null" >> .env
+              echo "REDIS_PORT=6379" >> .env
+
+              echo "MAIL_MAILER=smtp" >> .env
+              echo "MAIL_HOST=mailhog" >> .env
+              echo "MAIL_PORT=1025" >> .env
+              echo "MAIL_USERNAME=null" >> .env
+              echo "MAIL_PASSWORD=null" >> .env
+              echo "MAIL_ENCRYPTION=null" >> .env
+              echo "MAIL_FROM_ADDRESS=null" >> .env
+              echo "MAIL_FROM_NAME=\"\${APP_NAME}\"" >> .env"
+
+
+
+
+      - name: Install Composer dependencies
+        run: composer install
+
+
+      - name: Write SSH keys
+        run: |
+            install -m 600 -D /dev/null ~/.ssh/id_rsa
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{secrets.SSH_HOST}} > ~/.ssh/known_hosts
+
+      - name: 📂 Deploy with rsync
+        run: rsync -rav --delete ./  ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}}:/tmp/iptv   #${{secrets.WORK_DIR}}
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -19,11 +82,16 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /var/www/iptv-cms.felipemateus.com
-            git stash
-            git pull
-            git fetch --all --tags --prune
-            git checkout tags/${{ github.event.release.tag_name }} -b local${{ github.event.release.tag_name }}
-            composer install
-            service nginx restart
+            cp -TRv /tmp/iptv/ ${{secrets.WORK_DIR}}/
+            sudo chmod 777 -R ${{secrets.WORK_DIR}}
+            sudo chown www-data:www-data -R ${{secrets.WORK_DIR}}
+            cd ${{secrets.WORK_DIR}}
+            php artisan migrate --force
+            php artisan storage:link
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan optimize
+            php artisan up
 
