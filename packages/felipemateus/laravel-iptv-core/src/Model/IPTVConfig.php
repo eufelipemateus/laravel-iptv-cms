@@ -68,14 +68,18 @@ class IPTVConfig extends Model {
      * @param string $type
      * @return bool
      */
-    public static function set($key, $val, $type = 'string'){
+    public static function set($key, $val, $type = 'string')
+    {
 
-        if ( $setting = self::all()->where('name', $key)->first() ) {
+        if ($setting = self::all()->where('name', $key)->first() ) {
 
-            return $setting->update([
+            return $setting->update(
+                [
                 'name' => $key,
                 'val' => $val,
-                'type' => $type]) ? $val : false;
+                'type' => $type
+                ]
+            ) ? $val : false;
         }
 
         return self::add($key, $val, $type);
