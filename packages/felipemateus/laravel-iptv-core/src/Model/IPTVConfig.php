@@ -200,8 +200,9 @@ class IPTVConfig extends Model {
      *
      * @return Array
      */
-    public static function getAllBoleanSettings(){
-        return self::all()->where('type', 'bool')->toArray();
+    public static function getAllBoleanSettings()
+    {
+        return self::where('type', 'bool')->get()->toArray();
     }
 
 
@@ -210,7 +211,8 @@ class IPTVConfig extends Model {
      *
      * @return Array
      */
-    public static function getAllStringSettings(){
-        return self::all()->where('type', 'string')->toArray();
+    public static function getAllStringSettings()
+    {
+        return self::where('type', 'string')->get()->toArray();
     }
 }
