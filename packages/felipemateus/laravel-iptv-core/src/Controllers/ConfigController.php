@@ -15,15 +15,14 @@ class ConfigController extends CoreController
      *
      * @return view -> IPTV::config
      */
-	public function config(){
-
+    public function config()
+    {
         $data["config_list"] = IPTVConfig::getAllBoleanSettings();
         $data['locales'] = Locale::getList();
-        $data["current_locate"] = IPTVConfig::get('CURRENT_LOCALE','br');
+        $data["current_locate"] = IPTVConfig::get('CURRENT_LOCALE', 'br');
         $data["inputs"] =  IPTVConfig::getAllStringSettings();
-
-		return view("IPTV::config", $data);
-	}
+        return view("IPTV::config", $data);
+    }
 
     /**
      * Update config .
@@ -32,11 +31,19 @@ class ConfigController extends CoreController
      */
     public function configSave(Request $request ){
         $configs = IPTVConfig::getAllBoleanSettings();
-        foreach($configs as $config){
-            IPTVConfig::set($config['name'], $request->boolean($config['name']),'bool');
+        foreach ($configs as $config) {
+            IPTVConfig::set(
+                $config['name'],
+                $request->boolean($config['name']),
+                'bool'
+            );
         }
 
-        IPTVConfig::set('CURRENT_LOCALE',$request->input('CURRENT_LOCALE'));
+        IPTVConfig::set(
+            'CURRENT_LOCALE',
+            $request->input('CURRENT_LOCALE'),
+            'locale'
+        );
         return redirect()->route('config');
     }
 }
