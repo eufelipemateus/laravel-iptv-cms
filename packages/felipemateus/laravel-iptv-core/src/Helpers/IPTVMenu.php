@@ -11,6 +11,6 @@ class IPTVMenu {
     }
 
     public function view(){
-        return view('IPTV::menu', ['menusList' =>  $this->menusitens]);
+        return view('menu', ['menusList' =>  $this->menusitens]);
     }
 }

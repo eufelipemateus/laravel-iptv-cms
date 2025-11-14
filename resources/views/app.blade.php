@@ -46,8 +46,8 @@
                     <span>Dashboard</span></a>
             </li>
 
-            {{ FelipeMateus\IPTVCore\Facades\IPTVMenu::view(); }}
-           <!-- Divider -->
+            {{ app('iptv-menu')->view() }}
+            <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
             <!-- Sidebar Toggler (Sidebar) -->

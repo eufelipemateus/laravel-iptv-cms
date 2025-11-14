@@ -165,7 +165,10 @@ return [
         /*
          * Package Service Providers...
          */
+
         FelipeMateus\IPTVCore\IPTVProvider::class,
+
+
         FelipeMateus\IPTVChannels\IPTVProvider::class,
         FelipeMateus\IPTVCustomers\IPTVProvider::class,
         FelipeMateus\IPTVGatewayPayment\IPTVProvider::class,
@@ -233,6 +236,7 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+        'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
 
     ],
 

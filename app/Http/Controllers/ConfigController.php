@@ -1,14 +1,13 @@
 <?php
 
-namespace  FelipeMateus\IPTVCore\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use FelipeMateus\IPTVCore\Model\IPTVCdn;
-use FelipeMateus\IPTVCore\Model\IPTVConfig;
-use FelipeMateus\IPTVCore\Helpers\Locale;
+use App\Models\IPTVConfig;
+use App\Helpers\Locale;
 
-class ConfigController extends CoreController
+class ConfigController extends Controller
 {
     /**
      * Show config page.

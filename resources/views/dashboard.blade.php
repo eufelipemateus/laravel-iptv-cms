@@ -1,4 +1,4 @@
-@extends('IPTV::app')
+@extends('app')
 
 
 @section('style')
@@ -18,7 +18,7 @@
 <div class="container">
     <div class="row">
 
-        {{  FelipeMateus\IPTVCore\Facades\IPTVDashboard::view();  }}
+        {{ app('iptv-dashboard')->view() ;  }}
 
     </div>
 </div>

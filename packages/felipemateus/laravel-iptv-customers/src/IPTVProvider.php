@@ -11,6 +11,7 @@ use FelipeMateus\IPTVCustomers\Dashs\Plans;
 use FelipeMateus\IPTVCustomers\Commands\GenerateInvoces;
 use Illuminate\Console\Scheduling\Schedule;
 
+
 class IPTVProvider extends IPTVProviderBase
 {
 

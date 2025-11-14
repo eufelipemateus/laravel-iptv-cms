@@ -12,7 +12,7 @@ class IPTVDashboard {
     }
 
     public function view(){
-        return view('IPTV::dash', ['dashs' =>  $this->dashs]);
+        return view('dash', ['dashs' =>  $this->dashs]);
     }
 
 }

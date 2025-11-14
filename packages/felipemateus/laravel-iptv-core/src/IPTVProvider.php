@@ -2,13 +2,9 @@
 
 namespace FelipeMateus\IPTVCore;
 
-use Illuminate\Routing\Router;
 use FelipeMateus\IPTVCore\Helpers\IPTVProviderBase;
-use FelipeMateus\IPTVCore\Middleware\PublicCdnMiddleware;
-use FelipeMateus\IPTVCore\Middleware\IPTVLocaleMiddleware;
-use FelipeMateus\IPTVCore\Dashs\ConfigDash;
-use FelipeMateus\IPTVCore\Commands\MakeDashCommand;
-
+use FelipeMateus\IPTVCore\Helpers\IPTVMenu;
+use FelipeMateus\IPTVCore\Helpers\IPTVDashboard;
 class IPTVProvider extends IPTVProviderBase {
 
 
@@ -18,26 +14,12 @@ class IPTVProvider extends IPTVProviderBase {
      * @return void
      */
     public function boot(){
-        $this->registerMidleware();
-        $this->loadMigrationsFrom(__DIR__.'/database/migrations/');
-        $this->loadJSONTranslationsFrom(__DIR__.'/resources/translations');
-		$this->loadViewsFrom(__DIR__.'/resources/views', 'IPTV');
-		$this->loadRoutesFrom(__DIR__.'/routes.php');
-        $this->loadMenusFrom(__DIR__.'/resources/menu');
         $this->registerDashboard();
 
         $this->publishes([
             __DIR__.'/resources/assets' => public_path('assets'),
         ],"public");
-
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                MakeDashCommand::class,
-            ]);
-        }
     }
-
-
 
     /**
      * Register the application services.
@@ -48,22 +30,14 @@ class IPTVProvider extends IPTVProviderBase {
     {
         //
         $this->app->singleton('iptv-menu', function(){
-            return new \FelipeMateus\IPTVCore\Helpers\IPTVMenu;
+            return new IPTVMenu();
         });
         $this->app->singleton('iptv-dashboard', function(){
-            return new \FelipeMateus\IPTVCore\Helpers\IPTVDashboard;
+            return new IPTVDashboard();
         });
     }
 
-    /**
-     * Register Midleware
-     *
-     * @return void
-     */
-    private function registerMidleware(){
-        $router = $this->app->make(Router::class);
-        $router->aliasMiddleware('iptv_locale', IPTVLocaleMiddleware::class);
-    }
+
 
     /**
      * Regoster Dashboard card
