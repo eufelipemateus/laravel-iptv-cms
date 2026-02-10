@@ -1,14 +1,14 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Model;
+namespace  App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-use FelipeMateus\IPTVChannels\Model\IPTVCdn;
+use App\Models\IPTVCdn;
 use Illuminate\Support\Facades\DB;
 
 
-class IPTVChannel extends Model
+class Channel extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -26,7 +26,7 @@ class IPTVChannel extends Model
      */
     public function group()
     {
-        return $this->belongsTo('FelipeMateus\IPTVChannels\Model\IPTVChannelGroup');
+        return $this->belongsTo('App\Models\ChannelGroup', 'group_id');
     }
 
     /**

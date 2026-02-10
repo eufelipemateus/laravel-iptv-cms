@@ -1,10 +1,10 @@
-@extends('IPTV::app')
+@extends('app')
 
 @section('content')
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">{{ __('CDN')   }}</h1>
-    <a href="{{ route('add_cdn') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+    <a href="{{ route('add_channel_cdn') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
          class="fas fa-plus fa-sm text-white-50"></i> {{ __('Add CDN')}}</a>
 </div>
 <div class="container">
@@ -41,11 +41,11 @@
                             @endif
 
 							<div class="col-md-2">
-							  <a href="{{  route('show_cdn',$cdn->id) }}">{{ __('edit') }}</a>
+							  <a href="{{  route('show_channel_cdn',$cdn->id) }}">{{ __('edit') }}</a>
 							</div>
                             @if ($cdn->canDelete())
 							<div class="col-md-2">
-							  <a href="{{  route('delete_cdn',$cdn->id) }}">{{ __('delete')}}</a>
+							  <a href="{{  route('delete_channel_cdn',$cdn->id) }}">{{ __('delete')}}</a>
 							</div>
                             @endif
 

@@ -166,13 +166,8 @@ return [
          * Package Service Providers...
          */
 
-        FelipeMateus\IPTVCore\IPTVProvider::class,
 
 
-        FelipeMateus\IPTVChannels\IPTVProvider::class,
-        FelipeMateus\IPTVCustomers\IPTVProvider::class,
-        FelipeMateus\IPTVGatewayPayment\IPTVProvider::class,
-        FelipeMateus\IPTVPaypal\IPTVPaymentProvider::class,
 
         /*
          * Application Service Providers...
@@ -182,6 +177,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        App\Providers\IPTVServiceProvider::class
 
     ],
 

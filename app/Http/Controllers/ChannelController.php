@@ -1,17 +1,17 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use FelipeMateus\IPTVChannels\Model\IPTVChannelGroup;
-use FelipeMateus\IPTVChannels\Model\IPTVChannel;
-use FelipeMateus\IPTVChannels\Model\IPTVUrl;
-use FelipeMateus\IPTVChannels\Model\IPTVCdn;
-use FelipeMateus\IPTVCore\Model\IPTVConfig;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
+use App\Models\ChannelGroup;
+use App\Models\Channel;
+use App\Models\ChannelUrl;
+use App\Models\ChannelCdn;
+use App\Models\IPTVConfig;
+use App\Http\Controllers\Controller;
 
-class ChannelController extends CoreController
+class ChannelController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -29,9 +29,9 @@ class ChannelController extends CoreController
      * @return view -> IPTV:chanel
      */
 	public function new(){
-		$data["Groupslist"] = IPTVChannelGroup::get();
+		$data["Groupslist"] = ChannelGroup::get();
         $data['radio_stream'] = IPTVConfig::get("RADIO_STREAM");
-		return view("IPTV::channel",$data);
+		return view("channel",$data);
 	}
 
     /**
@@ -41,12 +41,12 @@ class ChannelController extends CoreController
      * @return view -> IPTV:chanel
      */
 	public function show($id){
-		$data["Channel"] = IPTVChannel::findOrFail($id);
-        $data["Groupslist"] = IPTVChannelGroup::get();
-        $data['Cdnslist'] = IPTVCdn::all();
-        $data["urls"] = IPTVUrl::where("iptv_channel_id", $id )->get();
+		$data["Channel"] = Channel::findOrFail($id);
+        $data["Groupslist"] = ChannelGroup::get();
+        $data['Cdnslist'] = ChannelCdn::all();
+        $data["urls"] = ChannelUrl::where("iptv_channel_id", $id )->get();
         $data['radio_stream'] = IPTVConfig::get("RADIO_STREAM");
-		return view("IPTV::channel",$data);
+		return view("channel",$data);
 	}
 
     /**
@@ -61,7 +61,7 @@ class ChannelController extends CoreController
 			'group_id' => 'required|exists:iptv_channel_groups,id',
 		]);
 		$data = $request->all();
-		$c = IPTVChannel::create($data);
+		$c = Channel::create($data);
 		// Save Image
 		$c->logo = $request->file('image') ;
 		$c->save();
@@ -75,7 +75,7 @@ class ChannelController extends CoreController
      * @return redirect -> list_channels
      */
 	public function update($id,Request $request){
-		$channel =IPTVChannel::findOrFail($id);
+		$channel =Channel::findOrFail($id);
 
 		$this->validate($request, [
 			'number' => ['required','numeric',Rule::unique('iptv_channels')->ignore($channel->id, 'id')],
@@ -106,8 +106,8 @@ class ChannelController extends CoreController
      * @return redirect -> list_channel
      */
     public function delete($id,Request $request){
-		$group =IPTVChannel::findOrFail($id);
-		$group->delete();
+		$channel =Channel::findOrFail($id);
+		$channel->delete();
 		return redirect()->route('list_channel');
 	}
 
@@ -117,7 +117,7 @@ class ChannelController extends CoreController
      * @return view -> IPTV::channel_list
      */
     public function list(){
-		$data['list'] = IPTVChannel::getList();
-		return view("IPTV::channel_list",$data);
+		$data['list'] = Channel::getList();
+		return view("channel_list",$data);
 	}
 }

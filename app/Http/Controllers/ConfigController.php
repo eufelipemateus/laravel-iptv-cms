@@ -20,7 +20,7 @@ class ConfigController extends Controller
         $data['locales'] = Locale::getList();
         $data["current_locate"] = IPTVConfig::get('CURRENT_LOCALE', 'br');
         $data["inputs"] =  IPTVConfig::getAllStringSettings();
-        return view("IPTV::config", $data);
+        return view("config", $data);
     }
 
     /**

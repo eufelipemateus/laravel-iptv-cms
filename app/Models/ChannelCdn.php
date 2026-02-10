@@ -1,13 +1,12 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Model;
+namespace  App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use FelipeMateus\IPTVChannels\Model\IPTVUrl;
 
 
-class IPTVCdn extends Model
+class ChannelCdn extends Model
 {
     use HasFactory;
 
@@ -26,7 +25,7 @@ class IPTVCdn extends Model
      * The channels that belong to the user.
      */
     public function channels(){
-        return $this->belongsToMany(IPTVChannel::class, 'iptv_urls','iptv_cdn_id', 'iptv_channel_id')->using(IPTVUrl::class);
+        return $this->belongsToMany(Channel::class, 'iptv_urls','iptv_cdn_id', 'iptv_channel_id')->using(ChannelUrl::class);
     }
 
 

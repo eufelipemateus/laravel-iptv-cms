@@ -1,10 +1,10 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Model;
+namespace  App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class IPTVChannelGroup extends Model
+class ChannelGroup extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -18,11 +18,11 @@ class IPTVChannelGroup extends Model
 	protected $table = "iptv_channel_groups";
 
     /**
-     * Get the comments for the blog post.
+     * Get the channels for the group.
      */
     public function channels()
     {
-        return $this->hasMany('FelipeMateus\IPTVChannels\Model\IPTVChannel');
+        return $this->hasMany('App\Models\Channel');
     }
 
 }

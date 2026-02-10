@@ -1,15 +1,14 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use FelipeMateus\IPTVChannels\Model\IPTVCdn;
-use FelipeMateus\IPTVChannels\Model\IPTVUrl;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
+use App\Models\ChannelUrl;
 
 
-class UrlController extends CoreController
+
+class ChannelUrlController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -33,7 +32,7 @@ class UrlController extends CoreController
 			'url_stream' => 'required',
 		]);
 		$data = $request->all();
-		$c = IPTVUrl::create($data);
+		$c = ChannelUrl::create($data);
 		return redirect()->route('show_channel',  ['id' => $data['iptv_channel_id']]);
 	}
 
@@ -44,7 +43,7 @@ class UrlController extends CoreController
      * @return redirect -> list_channels
      */
 	public function update($id,Request $request){
-		$url = IPTVUrl::findOrFail($id);
+		$url = ChannelUrl::findOrFail($id);
 
         $this->validate($request, [
 		    'iptv_cdn_id'=> 'required|exists:iptv_cdns,id',
@@ -65,7 +64,7 @@ class UrlController extends CoreController
      * @return redirect -> list_channel
      */
     public function delete($id,Request $request){
-		$url =IPTVUrl::findOrFail($id);
+		$url =ChannelUrl::findOrFail($id);
 		$url->delete();
 		return redirect()->route('show_channel',['id'=>$url->iptv_channel_id]);
 	}

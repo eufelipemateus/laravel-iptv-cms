@@ -1,15 +1,14 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use FelipeMateus\IPTVChannels\Model\IPTVCdn;
+use App\Models\ChannelCdn;
+use App\Models\IPTVConfig;
 use \FelipeMateus\IPTVCustomers\Models\IPTVCdn as IPTVCdnCustomer;
-use FelipeMateus\IPTVCore\Model\IPTVConfig;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
 
-class CdnController extends CoreController
+class ChannelCdnController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -28,7 +27,7 @@ class CdnController extends CoreController
      */
 	public function new(){
 		#$data["Groupslist"] = IPTVChannelGroup::get();
-		return view("IPTV::cdn");
+		return view("channel_cdn");
 	}
 
     /**
@@ -38,9 +37,9 @@ class CdnController extends CoreController
      * @return view -> IPTV:chanel
      */
 	public function show($id){
-		$data["cdn"] = IPTVCdn::findOrFail($id);
+		$data["cdn"] = ChannelCdn::findOrFail($id);
 		//$data["Groupslist"] = IPTVChannelGroup::get();
-		return view("IPTV::cdn",$data);
+		return view("channel_cdn",$data);
 	}
 
     /**
@@ -54,10 +53,10 @@ class CdnController extends CoreController
 			'name' => 'required',
 		]);
 		$data = $request->all();
-		$c = IPTVCdn::create($data);
+		$c = ChannelCdn::create($data);
 		// Save Image
 		$c->save();
-		return redirect()->route('list_cdn');
+		return redirect()->route('list_channel_cdn');
 	}
 
     /**
@@ -67,7 +66,7 @@ class CdnController extends CoreController
      * @return redirect -> list_channels
      */
 	public function update($id,Request $request){
-		$cdn = IPTVCdn::findOrFail($id);
+		$cdn = ChannelCdn::findOrFail($id);
 
 		$this->validate($request, [
 			'slug' => ['required',Rule::unique('iptv_cdns')->ignore($cdn->id, 'id')],
@@ -77,7 +76,7 @@ class CdnController extends CoreController
 		$data = $request->all();
 		$cdn->update($data);
 
-		return redirect()->route('list_cdn');
+		return redirect()->route('list_channel_cdn');
 	}
 
     /**
@@ -87,9 +86,9 @@ class CdnController extends CoreController
      * @return redirect -> list_channel
      */
     public function delete($id,Request $request){
-		$cdn =IPTVCdn::findOrFail($id);
+		$cdn =ChannelCdn::findOrFail($id);
 		$cdn->delete();
-		return redirect()->route('list_cdn');
+		return redirect()->route('list_channel_cdn');
 	}
 
     /**
@@ -102,11 +101,11 @@ class CdnController extends CoreController
         if(class_exists(IPTVCdnCustomer::class)){
             $data['list'] = IPTVCdnCustomer::all();
         }else {
-            $data['list'] = IPTVCdn::all();
+            $data['list'] = ChannelCdn::all();
         }
 
         $data['url_cdn'] = IPTVConfig::get('URL_CDN');
         $data['donwload'] =  IPTVConfig::get('DOWNLOAD_FILE');
-		return view("IPTV::cdn_list",$data);
+		return view("channel_cdn_list",$data);
 	}
 }

@@ -1,4 +1,4 @@
-@extends('IPTV::app')
+@extends('app')
 
 @section('style')
 <style>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="card-body">
                     @foreach ($urls as $url)
-                    <form class="form-vertical" role="form" method="POST" action="{{ route('update_update',['id'=>$url->id], false)  }}" enctype="multipart/form-data">
+                    <form class="form-vertical" role="form" method="POST" action="{{ route('update_channel_url',['id'=>$url->id], false)  }}" enctype="multipart/form-data">
                     <input type="hidden" id="channel_id_{{$url->id}}" name="iptv_channel_id" value="{{$url->iptv_channel_id}}">
                     {{ csrf_field() }}
 
@@ -152,8 +152,8 @@
                                 @endif
 							</div>
 
-							<div class="col-md-3">
-                                <label for="cdn_id_{{$url->id}}" class="col-md-3 control-label">CDN</label>
+							<div class="col-md-5">
+                                <label for="cdn_id_{{$url->id}}" class="col-md-3  control-label">CDN</label>
 								<select id="cdn_id_{{$url->id}}" class="form-control" name="iptv_cdn_id"   >
 									@foreach($Cdnslist as $cdn)
 										<option  @if( $url->iptv_cdn_id ==  $cdn->id)   selected @endif   value="{{ $cdn->id}}">{{$cdn->name }}</option>
@@ -161,17 +161,17 @@
 								</select>
 							</div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
                             </div>
 
-                            <div class="col-md-2">
-                                <a href="{{  route('delete_url',$url->id) }}"  class="btn btn-primary">{{ __('delete') }}</a>
+                            <div class="col-md-1">
+                                <a href="{{  route('delete_channel_url',$url->id) }}"  class="btn btn-primary">{{ __('delete') }}</a>
                             </div>
                         </div>
                     </form>
                     @endforeach
-                    <form class="form-vertical" role="form" method="POST" action="{{ route('create_url',[], false)  }}" enctype="multipart/form-data">
+                    <form class="form-vertical" role="form" method="POST" action="{{ route('create_channel_url',[], false)  }}" enctype="multipart/form-data">
                         {{ csrf_field() }}
                         <input type="hidden" id="new_channel_id" name="iptv_channel_id" value="{{$Channel->id}}">
                         <div class="row">

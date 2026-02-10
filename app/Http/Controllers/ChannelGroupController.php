@@ -1,12 +1,11 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use FelipeMateus\IPTVChannels\Model\IPTVChannelGroup;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
+use App\Models\ChannelGroup;
 
-class GroupController extends CoreController
+class ChannelGroupController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -24,41 +23,41 @@ class GroupController extends CoreController
      * @return view -> IPTV::group
      */
 	public function new(){
-		return view("IPTV::group");
+		return view("channel_group");
 	}
 
     /**
      * Create new channel in database.
      *
-     * @return redirect -> list_group
+     * @return redirect -> list_channel_group
      */
     public function create(Request $request){
 		$data = $request->all();
-		IPTVChannelGroup::create($data);
-		return redirect()->route('list_group');
+		ChannelGroup::create($data);
+		return redirect()->route('list_channel_group');
 	}
 
     /**
      * Return a page with group from database.
      *
      * @param id -> from group
-     * @return redirect -> list_group
+     * @return redirect -> list_channel_group
      */
     public function show($id){
-		$data["Group"] = IPTVChannelGroup::findOrFail($id);
-		return view("IPTV::group",$data);
+		$data["Group"] = ChannelGroup::findOrFail($id);
+		return view("channel_group",$data);
 	}
 
     /**
      * Update group in database
      *
      * @param id from group
-     * @return redirect -> list_group
+     * @return redirect -> list_channel_group
      */
     public function update($id,Request $request){
-		$group =IPTVChannelGroup::findOrFail($id);
+		$group =ChannelGroup::findOrFail($id);
 		$group->update($request->all());
-		return redirect()->route('list_group');
+		return redirect()->route('list_channel_group');
 	}
 
     /**
@@ -68,9 +67,9 @@ class GroupController extends CoreController
      * @return redirect -> list_group
      */
     public function delete($id,Request $request){
-		$group =IPTVChannelGroup::findOrFail($id);
+		$group =ChannelGroup::findOrFail($id);
 		$group->delete();
-		return redirect()->route('list_group');
+		return redirect()->route('list_channel_group');
 	}
 
     /**
@@ -80,8 +79,8 @@ class GroupController extends CoreController
      * @return redirect -> list_group
      */
     public function list(){
-		$data["list"] = IPTVChannelGroup::get();
-		return view("IPTV::group_list",$data);
+		$data["list"] = ChannelGroup::get();
+		return view("channel_group_list",$data);
 	}
 
 }

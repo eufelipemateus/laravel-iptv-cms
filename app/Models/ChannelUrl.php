@@ -1,13 +1,12 @@
 <?php
 
-namespace  FelipeMateus\IPTVChannels\Model;
+namespace  App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use FelipeMateus\IPTVChannels\Model\IPTVChannel;
 
 
-class IPTVUrl extends Pivot
+class ChannelUrl extends Pivot
 {
     use HasFactory;
 

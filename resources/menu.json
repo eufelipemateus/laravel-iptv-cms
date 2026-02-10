@@ -1,12 +1,34 @@
-{
+[
+    {
+        "title":"Settings",
+        "menus":[
+            {
+                "name":"Settings",
+                "icon": "cog",
+                "route": "config"
+            }
+        ]
+    },
+    {
 
-    "title":"Settings",
-    "menus":[
-        {
-            "name":"Settings",
-            "icon": "cog",
-            "route": "config"
-        }
-    ]
-}
+        "title":"Channels",
+        "menus":[
+            {
+                "name":"Channels",
+                "icon": "tv",
+                "route": "list_channel"
+            },
+            {
+                "name":"Groups",
+                "icon": "tv",
+                "route": "list_channel_group"
+            },
+            {
+                "name":"CDN",
+                "icon": "server",
+                "route": "list_channel_cdn"
+            }
+        ]
+    }
 
+]
