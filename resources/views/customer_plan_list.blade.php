@@ -1,10 +1,10 @@
-@extends('IPTV::app')
+@extends('app')
 
 @section('content')
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">{{ __('Plans') }}</h1>
-    <a href="{{ route('add_plan') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+    <a href="{{ route('add_customer_plan') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
          class="fas fa-plus fa-sm text-white-50"></i> {{ __('Add Plan') }}</a>
 </div>
 <div class="container">
@@ -24,10 +24,10 @@
 						{{ $plan->name }}
 						</div>
 						<div class="col-md-2">
-						  <a href="{{ route('delete_plan',$plan->id)  }}">{{ __('delete')}}</a>
+						  <a href="{{ route('delete_customer_plan',$plan->id)  }}">{{ __('delete')}}</a>
 						</div>
 						<div class="col-md-2">
-						  <a href="{{ route('show_plan',$plan->id)  }}">{{ __('edit') }}</a>
+						  <a href="{{ route('show_customer_plan',$plan->id)  }}">{{ __('edit') }}</a>
 						</div>
 
 					</div>

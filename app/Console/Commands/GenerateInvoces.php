@@ -1,12 +1,12 @@
 <?php
 
-namespace FelipeMateus\IPTVCustomers\Commands;
+namespace App\Console\Commands;
 
 use App\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomer;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomerInvoce;
+use App\Models\Customer;
+use App\Models\CustomerInvoce;
 
 class GenerateInvoces extends Command
 {
@@ -43,12 +43,12 @@ class GenerateInvoces extends Command
     {
 
         $this->info( sprintf('Generating invoices for the month %s.', date('m/Y')) );
-        $customers = IPTVCustomer::where("active",1)->get();
+        $customers = Customer::where("active",1)->get();
 
         foreach($customers as $customer){
             $format = sprintf('Y-m-%d', $customer->due_day);
             $due_day_this_month = date($format);
-            IPTVCustomerInvoce::create(['duedate_at'=>$due_day_this_month,'iptv_customer_id'=> $customer->id]);
+            CustomerInvoce::create(['duedate_at'=>$due_day_this_month,'customer_id'=> $customer->id]);
             $message = sprintf('Generated invoce to %s with due date %s.', $customer->name, $due_day_this_month );
             $this->warn($message);
         }

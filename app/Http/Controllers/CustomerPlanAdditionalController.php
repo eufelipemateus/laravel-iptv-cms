@@ -1,14 +1,13 @@
 <?php
 
-namespace FelipeMateus\IPTVCustomers\Controllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomer;
-use FelipeMateus\IPTVCustomers\Models\IPTVPlan;
+use App\Models\CustomerPlan;
+use App\Models\Customer;
 
-class CustomerPlanAdditionalController extends CoreController
+class CustomerPlanAdditionalController extends Controller
 {
 
     public function add($customer_id, Request $request){
@@ -24,10 +23,10 @@ class CustomerPlanAdditionalController extends CoreController
         ]);
 
 
-        $customer = IPTVCustomer::findOrFail($customer_id);
+        $customer = Customer::findOrFail($customer_id);
         $plan_id  = $request->input('iptv_plan_id');
 
-	    $customer->plans_additional()->save( IPTVPlan::findOrFail($plan_id));
+        $customer->plans_additional()->save( CustomerPlan::findOrFail($plan_id));
         return redirect()->route('show_customer',['id'=>$customer->id]);
     }
 
@@ -42,7 +41,7 @@ class CustomerPlanAdditionalController extends CoreController
             ]
         ]);
 
-        $customer = IPTVCustomer::findOrFail($customer_id);
+        $customer = Customer::findOrFail($customer_id);
         $plan_id  = $request->input('iptv_plan_id');
 
         $customer->plans_additional()->detach($plan_id);

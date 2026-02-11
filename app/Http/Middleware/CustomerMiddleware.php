@@ -1,10 +1,10 @@
 <?php
 
-namespace  FelipeMateus\IPTVCustomers\Middleware;
+namespace  App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomer;
+use App\Models\Customer;
 use FelipeMateus\IPTVChannels\Model\IPTVConfig;
 
 class CustomerMiddleware
@@ -28,7 +28,7 @@ class CustomerMiddleware
         );
 
         if($has_supplied_credentials){
-            $custormer = IPTVCustomer::where("username",$_SERVER['PHP_AUTH_USER'])
+            $custormer = Customer::where("username",$_SERVER['PHP_AUTH_USER'])
             ->where('hash_acess',$_SERVER['PHP_AUTH_PW'])
             ->first();
 

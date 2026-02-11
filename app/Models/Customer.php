@@ -1,12 +1,13 @@
 <?php
 
-namespace FelipeMateus\IPTVCustomers\Models;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use FelipeMateus\IPTVCustomers\Models\IPTVCdn;
+use App\Models\ChannelCdn;
+use App\Models\CustomerInvoce;
 
-class IPTVCustomer extends Model
+class Customer extends Model
 {
     use HasFactory;
      /**
@@ -34,7 +35,7 @@ class IPTVCustomer extends Model
 
     public function getPersonalUrlAttribute(){
 
-        $cdn =  IPTVCdn::findOrFail($this->iptv_cdn_id);
+        $cdn =  ChannelCdn::findOrFail($this->iptv_cdn_id);
 
 
         return http_build_url(route("client-playlist",['slug'=>$cdn->slug]),
@@ -51,7 +52,7 @@ class IPTVCustomer extends Model
      */
     public function plan()
     {
-        return $this->belongsTo(IPTVPlan::class, 'iptv_plan_id');
+        return $this->belongsTo(CustomerPlan::class, 'iptv_plan_id');
     }
 
     /**
@@ -59,7 +60,7 @@ class IPTVCustomer extends Model
      */
     public function plans_additional()
     {
-        return $this->belongsToMany(IPTVPlan::class,'iptv_customer_plan_additionals','iptv_customer_id', 'iptv_plans_id');
+        return $this->belongsToMany(CustomerPlan::class,'iptv_customer_plan_additionals','iptv_customer_id', 'iptv_plans_id');
     }
 
     /**
@@ -76,7 +77,7 @@ class IPTVCustomer extends Model
      */
     public function cdn()
     {
-        return $this->belongsTo(IPTVCdn::class, 'iptv_cdn_id');
+        return $this->belongsTo(ChannelCdn::class, 'iptv_cdn_id');
     }
 
 
@@ -87,7 +88,7 @@ class IPTVCustomer extends Model
     {
         $exclude  = $this->plans_additional()->pluck('iptv_plans_id');
 
-        return IPTVPlan::where('active', 1)->where('additional', 1)->whereNotIn('id', $exclude)->get();
+        return CustomerPlan::where('active', 1)->where('additional', 1)->whereNotIn('id', $exclude)->get();
     }
 
 
@@ -95,7 +96,7 @@ class IPTVCustomer extends Model
      * Customer Invoces List
      */
     public function customer_invoce(){
-        return $this->hasMany(IPTVCustomerInvoce::class,  'iptv_customer_id');
+        return $this->hasMany(CustomerInvoce::class,  'iptv_customer_id');
     }
 
     /**
@@ -109,12 +110,12 @@ class IPTVCustomer extends Model
         $first_day_this_month = date('Y-m-01');
         $last_day_this_month  = date('Y-m-t');
 
-        $this_month_deafeted =  IPTVCustomerInvoce::whereBetween('duedate_at', [$first_day_this_month, $last_day_this_month ])
+        $this_month_deafeted =  CustomerInvoce::whereBetween('duedate_at', [$first_day_this_month, $last_day_this_month ])
         ->where('payment_at','=',null)
         ->where('canceled_at','=',null)
         ->count();
 
-        $before_months = IPTVCustomerInvoce::where('duedate_at', '<', $first_day_this_month)
+        $before_months = CustomerInvoce::where('duedate_at', '<', $first_day_this_month)
         ->where('payment_at','=',null)
         ->where('canceled_at','=',null)
         ->count();

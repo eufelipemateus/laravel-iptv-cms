@@ -1,16 +1,15 @@
 <?php
 
-namespace  FelipeMateus\IPTVCustomers\Controllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use FelipeMateus\IPTVCustomers\Models\IPTVPlan;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomer;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
-use FelipeMateus\IPTVChannels\Model\IPTVCdn;
+use App\Models\ChannelCdn;
+use App\Models\CustomerPlan;
+use App\Models\Customer;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVGateway;
 
-class CustomerController extends CoreController
+class CustomerController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -25,12 +24,12 @@ class CustomerController extends CoreController
     /**
      * Show new customer page.
      *
-     * @return view -> IPTV:customer
+     * @return view -> customer
      */
 	public function new(){
-		$data["Planslist"] = IPTVPlan::activePlanList();
-        $data['Cdnslist'] = IPTVCdn::all();
-		return view("IPTV::customer",$data);
+		$data["Planslist"] = CustomerPlan::activePlanList();
+        $data['Cdnslist'] = ChannelCdn::all();
+		return view("customer",$data);
 	}
 
     /**
@@ -40,15 +39,19 @@ class CustomerController extends CoreController
      * @return view -> IPTV::customer
      */
 	public function show($id){
-		$data["Customer"]  = IPTVCustomer::findOrFail($id);
-        $data["Planslist"] = IPTVPlan::activePlanList();
+		$data["Customer"]  = Customer::findOrFail($id);
+        $data["Planslist"] = CustomerPlan::activePlanList();
         $data["PlansAdditionallist"] = $data["Customer"]->planAditionalList();
-        $data['Cdnslist'] = IPTVCdn::all();
+        $data['Cdnslist'] = ChannelCdn::all();
         $data['CustomerPlansAddionalList'] = $data["Customer"]->plans_additional()->get();
         $data['CustomerInvoceList'] = $data["Customer"]->customer_invoce()->get();
-        $data['GatewaysList'] = IPTVGateway::where('active',1)->get();
+        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVGateway')) {
+            $data['GatewaysList'] = IPTVGateway::where('active',1)->get();
+        } else {
+            $data['GatewaysList'] = [];
+        }
 
-        return view("IPTV::customer",$data);
+        return view("customer",$data);
 	}
 
     /**
@@ -69,7 +72,7 @@ class CustomerController extends CoreController
 		]);
 		$data = $request->all();
         $data['hash_acess'] = md5(now());
-        $customer  = 	IPTVCustomer::create($data);
+        $customer  = 	Customer::create($data);
         return redirect()->route('show_customer',['id'=>$customer->id]);
 	}
 
@@ -80,7 +83,7 @@ class CustomerController extends CoreController
      * @return redirect -> list_customers
      */
 	public function update($id,Request $request){
-		$customer =IPTVCustomer::findOrFail($id);
+		$customer = Customer::findOrFail($id);
 
         $regenerate = $request->input("regenerate");
 
@@ -116,7 +119,7 @@ class CustomerController extends CoreController
      * @return redirect -> list_customer
      */
     public function delete($id,Request $request){
-		$customer =IPTVCustomer::findOrFail($id);
+		$customer = Customer::findOrFail($id);
 		$customer->delete();
 		return redirect()->route('list_customer');
 	}
@@ -127,7 +130,7 @@ class CustomerController extends CoreController
      * @return view -> IPTV::customer_list
      */
     public function list(){
-		$data['list'] = IPTVCustomer::getList();
-		return view("IPTV::customer_list",$data);
+		$data['list'] = Customer::getList();
+		return view("customer_list",$data);
 	}
 }

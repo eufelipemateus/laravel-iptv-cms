@@ -15,5 +15,67 @@
     "Settings": "Configurações",
     "Config":"Configuração",
     "Locale": "Localidade",
-    "Info": "Informações"
+    "Info": "Informações",
+
+
+        "Channel": "Canal",
+    "Channel List": "Lista Canais",
+    "Groups List": "Lista Grupos",
+    "CDN List": "Lista CDN",
+    "Add CDN": "Adicionar CDN",
+
+    "Channels": "Canais",
+    "Channels Total": "Todal de Canais",
+    "Add Channel": "Adicionar Canal",
+
+    "Groups": "Grupos",
+    "Groups Total": "Todal de Grupos",
+
+    "edit": "Editar",
+    "delete": "Excluir",
+
+    "Add Group": "Adicionar Grupo",
+    "Channels Groups": "Grupos de Canais",
+    "Name": "Nome",
+    "Add Cdn": "Adicinar CDN",
+    "Group": "Grupo",
+    "Number": "Número",
+    "Logo": "Logotipo",
+    "is Radio?": "É um Rádio?",
+    "URLs": "CDN URLs",
+    "URl Stream": "URl Video",
+    "Add": "Adicionar",
+
+    "Customers": "Clientes",
+    "Add Customer": "Add Cliente",
+    "Customers List": "Lista de Clientes",
+    "Customer":"Cliente",
+    "Plans": "Planos",
+    "Customers Total": "Total de Clientes",
+    "Plans Total": "Todal de Planos",
+
+    "Username":"Usuário",
+    "Plan": "Plano",
+    "Plans List":"Lista de Planos",
+    "Add Plan": "Adicionar Plano",
+    "Price": "Preço",
+    "Plan Active?": "Plano Ativo?",
+    "Is additional?": "Plano adicional?",
+    "add group": "adicionar grupo",
+    "delete group": "excluir grupo",
+    "Personal URL": "URL Pessoal",
+    "Plans Additional": "Planos Adicionais",
+    "Customer Active": "Cliente Ativo",
+
+    "Add Invoce": "Adicionar Fatura",
+    "Invoce": "Fatura",
+    "Invoces": "Faturas",
+    "Due date": "Vencimento",
+    "Paid": "Pago",
+    "Canceled": "Cancelado",
+    "Due Day":"Dia de Vencimento",
+    "Address": "Endereço",
+    "Industry": "Atividade",
+    "Tax Number": "CNPJ/CPF",
+    "Phone": "Telefone"
 }

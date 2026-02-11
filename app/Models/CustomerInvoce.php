@@ -1,11 +1,11 @@
 <?php
 
-namespace FelipeMateus\IPTVCustomers\Models;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IPTVCustomerInvoce extends Model
+class CustomerInvoce extends Model
 {
     use HasFactory;
 
@@ -63,7 +63,7 @@ class IPTVCustomerInvoce extends Model
      *
     */
     public function customer(){
-        return $this->belongsTo('FelipeMateus\IPTVCustomers\Models\IPTVCustomer', 'iptv_customer_id');
+        return $this->belongsTo('App\Models\Customer', 'iptv_customer_id');
     }
 
 }

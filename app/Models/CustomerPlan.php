@@ -1,12 +1,13 @@
 <?php
 
-namespace FelipeMateus\IPTVCustomers\Models;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVTaxVat;
+use App\Models\ChannelGroup;
 
-class IPTVPlan extends Model
+class CustomerPlan extends Model
 {
     use HasFactory;
 
@@ -26,13 +27,13 @@ class IPTVPlan extends Model
      */
     public function groups()
     {
-        return $this->hasMany(IPTVPlanGroup::class, 'iptv_plan_id');
+        return $this->hasMany(ChannelGroup::class, 'iptv_plan_id');
     }
 
 
     public function groupsList(){
         $exclude  = $this->groups()->pluck('id');
-        return IPTVPlanGroup::whereNotIn('id', $exclude)->get();
+        return ChannelGroup::whereNotIn('id', $exclude)->get();
     }
 
     static public function activePlanList(){

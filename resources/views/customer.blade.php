@@ -1,4 +1,4 @@
-@extends('IPTV::app')
+@extends('app')
 
 
 @section('style')
@@ -349,7 +349,7 @@
                                         <div class="col-md-3">
 
 
-                                            <form id="form-invoce-{{$invoce->id}}" class="form-list-group"  action="{{ route('pay_customer', ['customer_id' => $Customer->id, 'id'=> $invoce->id], false) }}" method="POST">
+                                            <form id="form-invoce-{{$invoce->id}}" class="form-list-group"  action="{{ route('pay_customer_invoce', ['customer_id' => $Customer->id, 'id'=> $invoce->id], false) }}" method="POST">
                                                 {{ csrf_field() }}
                                                 <input type="hidden" id="iptv-invoce-id" name="iptv_invoce_id" value="{{$invoce->id}}">
                                                 <button  id="id-invoce-{{$invoce->id}}"type="submit" class="btn btn-link">Pagar</button>
@@ -357,7 +357,7 @@
 
 
 
-                                            <form id="form-invoce-cancel-{{$invoce->id}}" class="form-list-group"  action="{{ route('cancel_customer', ['customer_id' => $Customer->id, 'id'=> $invoce->id], false) }}" method="POST">
+                                            <form id="form-invoce-cancel-{{$invoce->id}}" class="form-list-group"  action="{{ route('cancel_customer_invoce', ['customer_id' => $Customer->id, 'id'=> $invoce->id], false) }}" method="POST">
                                                 {{ csrf_field() }}
                                                 <input type="hidden" id="iptv-invoce-id" name="iptv_invoce_id" value="{{$invoce->id}}">
                                                 <button  id="id-invoce-cancel-{{$invoce->id}}"type="submit" class="btn btn-link">Cancelar</button>

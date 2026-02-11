@@ -4,6 +4,7 @@ namespace  App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
 class ChannelCdn extends Model
@@ -30,10 +31,20 @@ class ChannelCdn extends Model
 
 
     /**
+     * Costumers to CDN
+     */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class, 'iptv_cdn_id');
+    }
+
+    /**
      *  This function will return always true.
      */
     public function canDelete(){
         return true;
+
+        return self::customers()->count() ? false : true;
     }
 
 }

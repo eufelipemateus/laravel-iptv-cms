@@ -1,4 +1,4 @@
-@extends('IPTV::app')
+@extends('app')
 
 @section('content')
 <!-- Page Heading -->

@@ -233,6 +233,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
+        'client' => App\Http\Middleware\CustomerMiddleware::class,
+        'public_cdn' => App\Http\Middleware\PublicCdnMiddleware::class,
 
     ],
 

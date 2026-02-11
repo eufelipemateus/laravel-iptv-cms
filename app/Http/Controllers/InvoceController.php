@@ -1,18 +1,17 @@
 <?php
 
-namespace FelipeMateus\IPTVCustomers\Controllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomerInvoce;
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomer;
-use FelipeMateus\IPTVCustomers\Requests\IPTVCustomerInvoceCreateInvoceRequest;
+use App\Models\CustomerInvoce;
+use App\Models\Customer;
+use App\Http\Requests\IPTVCustomerInvoceCreateInvoceRequest;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVGateway;
-use FelipeMateus\IPTVCore\Model\IPTVConfig;
+use App\Models\IPTVConfig;
 
 use DateTime;
 
-class InvoceController extends CoreController
+class InvoceController extends Controller
 {
     //
     public function new($customer_id){
@@ -26,15 +25,19 @@ class InvoceController extends CoreController
         $data['duedate_at'] = $input['duedate_at'];
         //$data['payeddate_at'] = $dateTime = (new DateTime($input['payeddate_at']))->getTimestamp();
 
-		IPTVCustomerInvoce::create($data);
+		CustomerInvoce::create($data);
 
         return redirect()->route('show_customer', ['id'=>$customer_id]);
 
     }
 
     public function pay($customer_id, $id){
-        $data['invoce'] = IPTVCustomerInvoce::find($id);
-        $data['GatewaysList'] = IPTVGateway::where('active', true)->get();
+        $data['invoce'] = CustomerInvoce::find($id);
+        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVGateway')) {
+            $data['GatewaysList'] = IPTVGateway::where('active',1)->get();
+        } else {
+            $data['GatewaysList'] = [];
+        }
         $data['ConfigData'] = IPTVConfig::getAllStringSettings();
 
         $data['subtotal'] = 0;
@@ -43,7 +46,7 @@ class InvoceController extends CoreController
         $data['totalTax'] = 0;
         $data['final'] = 0;
 
-        $customer = IPTVCustomer::find($customer_id);
+        $customer = Customer::find($customer_id);
         $index = 0;
         $services[$index ]['service'] = $customer->plan->name;
         $services[$index ]['service_type'] = 'Principal';
@@ -93,11 +96,11 @@ class InvoceController extends CoreController
             $data['final'] = $data['totalTax'] +  $data['total'];
         }
 
-        return view("IPTV::invoce", $data);
+        return view("invoce", $data);
     }
 
     public function cancel($customer_id, $id){
-        $invoce = IPTVCustomerInvoce::find($id);
+        $invoce = CustomerInvoce::find($id);
         $invoce->canceled_at = now();
         $invoce->save();
         return redirect()->route('show_customer', ['id'=>$customer_id]);

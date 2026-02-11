@@ -1,14 +1,13 @@
 <?php
 
-namespace  FelipeMateus\IPTVCustomers\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use FelipeMateus\IPTVCustomers\Models\IPTVCustomerChannel;
-use FelipeMateus\IPTVCore\Model\IPTVConfig;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
+use App\Models\Channel;
+use App\Models\IPTVConfig;
 
-class CustomerChannelsM3UController  extends CoreController{
+class CustomerChannelsM3UController  extends Controller{
 
     /**
      *  This fucntion return file M3U to list to player
@@ -16,9 +15,9 @@ class CustomerChannelsM3UController  extends CoreController{
      * @return response
      */
 	public function show($slug, Request $request){
-        $customer = $request->custormer;
+        $customer = $request->customer;
 
-		$data["list"] = IPTVCustomerChannel::getCustomerChannelListM3u8($slug, $customer->id);
+		$data["list"] = Channel::getCustomerChannelListM3u8($slug, $customer->id);
 
 		$response = response()->view("IPTV::list_M3U",$data, 200);
         $response->header('Content-Type', "text/plain; charset=utf-8");

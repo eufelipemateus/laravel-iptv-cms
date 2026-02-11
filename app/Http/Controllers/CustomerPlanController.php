@@ -1,14 +1,12 @@
 <?php
 
-namespace  FelipeMateus\IPTVCustomers\Controllers;
+namespace  App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use FelipeMateus\IPTVCustomers\Models\IPTVPlan;
-use FelipeMateus\IPTVChannels\Model\IPTVChannelGroup;
-use FelipeMateus\IPTVCore\Controllers\CoreController;
+use App\Models\CustomerPlan;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVTaxVat;
 
-class PlanController extends CoreController
+class CustomerPlanController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -23,48 +21,56 @@ class PlanController extends CoreController
     /**
      * Return new page _blank.
      *
-     * @return view -> IPTV::plan
+     * @return view -> customer_plan
      */
 	public function new(){
-        $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
-		return view("IPTV::plan", $data);
+        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVTaxVat')) {
+            $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
+        } else {
+            $data['TaxVatList'] = [];
+        }
+		return view("customer_plan", $data);
 	}
 
     /**
      * Create new channel in database.
      *
-     * @return redirect -> list_plan
+     * @return redirect -> list_customer_plan
      */
     public function create(Request $request){
 		$data = $request->all();
         $data = $request->except(['iptv_tax_vat_id']);
         $tax_vat = $request->only('iptv_tax_vat_id')['iptv_tax_vat_id'];
-		IPTVPlan::create($data);
-		return redirect()->route('list_plan');
+		CustomerPlan::create($data);
+		return redirect()->route('list_customer_plan');
 	}
 
     /**
      * Return a page with group from database.
      *
-     * @param id -> from group
-     * @return redirect -> list_group
+     * @param id -> from plan
+     * @return redirect -> list_customer_plan
      */
     public function show($id){
-		$data["Plan"] = IPTVPlan::findOrFail($id);
+		$data["Plan"] = CustomerPlan::findOrFail($id);
         $data['GroupList'] = $data["Plan"]->groupsList();
         $data['PlanGroupList'] =$data["Plan"]->groups;
-        $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
-		return view("IPTV::plan",$data);
+        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVTaxVat')) {
+            $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
+        } else {
+            $data['TaxVatList'] = [];
+        }
+        return view("customer_plan",$data);
 	}
 
     /**
      * Update group in database
      *
-     * @param id from group
-     * @return redirect -> list_plan
+     * @param id from plan
+     * @return redirect -> list_customer_plan
      */
     public function update($id,Request $request){
-		$plan =IPTVPlan::findOrFail($id);
+		$plan =CustomerPlan::findOrFail($id);
         $data = $request->except(['iptv_tax_vat_id']);
         $tax_vat = $request->only('iptv_tax_vat_id')['iptv_tax_vat_id'];
 
@@ -91,30 +97,30 @@ class PlanController extends CoreController
 		}
 
         $plan->save();
-		return redirect()->route('list_plan');
+		return redirect()->route('list_customer_plan');
 	}
 
     /**
-     * Delete group from database
+     * Delete plan from database
      *
-     * @param id from group
-     * @return redirect -> list_plan
+     * @param id from plan
+     * @return redirect -> list_customer_plan
      */
     public function delete($id,Request $request){
-		$group =IPTVPlan::findOrFail($id);
-		$group->delete();
-		return redirect()->route('list_plan');
+		$plan =CustomerPlan::findOrFail($id);
+		$plan->delete();
+		return redirect()->route('list_customer_plan');
 	}
 
     /**
      * Return list group from database
      *
      * @param id from group
-     * @return redirect -> list_group
+     * @return redirect -> list_customer_plan
      */
     public function list(){
-		$data["list"] = IPTVPlan::get();
-		return view("IPTV::plan_list",$data);
+		$data["list"] = CustomerPlan::get();
+		return view("customer_plan_list",$data);
 	}
 
 }
