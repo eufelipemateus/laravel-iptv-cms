@@ -5,8 +5,8 @@ namespace App\Providers;
 
 use App\Helpers\IPTVProviderBase;
 use Illuminate\Routing\Router;
-use App\Helpers\IPTVMenu;
-use App\Helpers\IPTVDashboard;
+use App\Helpers\Menu;
+use App\Helpers\Dashboard;
 use App\Dashs\Channels;
 use App\Dashs\ChannelGroups;
 use App\Dashs\ChannelCdns;
@@ -29,10 +29,10 @@ class IPTVServiceProvider extends IPTVProviderBase
     {
         //
         $this->app->singleton('iptv-menu', function () {
-            return new IPTVMenu;
+            return new Menu;
         });
         $this->app->singleton('iptv-dashboard', function () {
-            return new IPTVDashboard;
+            return new Dashboard;
         });
     }
 

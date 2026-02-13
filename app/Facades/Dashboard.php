@@ -1,9 +1,9 @@
 <?php
-namespace FelipeMateus\IPTVCore\Facades;
+namespace App\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class IPTVDashboard extends Facade {
+class Dashboard extends Facade {
 
     protected static function getFacadeAccessor() { return 'iptv-dashboard'; }
 

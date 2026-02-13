@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-class IPTVMenu {
+class Menu {
 
     private $menusitens = [];
 

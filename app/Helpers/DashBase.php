@@ -4,7 +4,7 @@ namespace App\Helpers;
 
 use App\Interfaces\Dash;
 
-class IPTVDashBase implements Dash {
+class DashBase implements Dash {
     public static function view(){
         return "No data!";
     }

@@ -39,7 +39,7 @@
         "@types/node": "^24.10.1",
         "@vue/eslint-config-typescript": "^14.6.0",
         "axios": "^1.13.2",
-        "commitizen": "^4.3.1",
+        "commitizen": "^4.2.4",
         "cz-conventional-changelog": "^3.3.0",
         "eslint": "^9.39.1",
         "eslint-config-prettier": "^10.1.8",

@@ -1,8 +1,8 @@
 <?php
 
-namespace FelipeMateus\IPTVCore\Helpers;
+namespace App\Helpers;
 
-class IPTVDashboard {
+class Dashboard {
 
     private $dashs = [];
 
