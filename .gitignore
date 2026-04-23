@@ -15,7 +15,6 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
-package-lock.json
 yarn.lock
 .docker
 laravel

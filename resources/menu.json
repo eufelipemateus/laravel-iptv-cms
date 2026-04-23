@@ -1,0 +1,48 @@
+[
+    {
+        "title":"Settings",
+        "menus":[
+            {
+                "name":"Settings",
+                "icon": "cog",
+                "route": "config"
+            }
+        ]
+    },
+    {
+
+        "title":"Channels",
+        "menus":[
+            {
+                "name":"Channels",
+                "icon": "tv",
+                "route": "list_channel"
+            },
+            {
+                "name":"Groups",
+                "icon": "tv",
+                "route": "list_channel_group"
+            },
+            {
+                "name":"CDN",
+                "icon": "server",
+                "route": "list_channel_cdn"
+            }
+        ]
+    },
+    {
+        "title":"Customers",
+        "menus":[
+            {
+                "name":"Customers",
+                "icon": "users",
+                "route": "list_customer"
+            },
+            {
+                "name":"Plans",
+                "icon": "file-contract",
+                "route": "list_customer_plan"
+            }
+        ]
+    }
+]

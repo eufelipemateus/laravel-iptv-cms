@@ -38,7 +38,8 @@
         "guzzlehttp/guzzle": "^7.5",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^v4.0",
-        "laravel/tinker": "^2.9"
+        "laravel/tinker": "^2.9",
+        "felipemateus/http-build-url": "^0.0.1"
     },
     "require-dev": {
         "spatie/laravel-ignition": "^2.7",
@@ -51,11 +52,6 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
-            "FelipeMateus\\IPTVCore\\":"packages/felipemateus/laravel-iptv-core/src/",
-            "FelipeMateus\\IPTVChannels\\":"packages/felipemateus/laravel-iptv-channels/src/",
-            "FelipeMateus\\IPTVCustomers\\":"packages/felipemateus/laravel-iptv-customers/src/",
-            "FelipeMateus\\IPTVGatewayPayment\\":"packages/felipemateus/laravel-iptv-gateway-payment/src/",
-            "FelipeMateus\\IPTVPaypal\\":"packages/felipemateus/laravel-iptv-gateway-paypal/src/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
@@ -68,8 +64,7 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi",
-            "@php artisan vendor:publish --provider=\"FelipeMateus\\IPTVCore\\IPTVProvider\""
+            "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi"
