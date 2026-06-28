@@ -1,93 +1,178 @@
-
 name: Release IPTV
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: write
+  contents: write
+  deployments: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
 
 jobs:
-  releases-matrix:
-    name: Release IPTV-CMS
+  quality:
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  test:
+    needs: quality
+    uses: ./.github/workflows/tests.yml
+    secrets: inherit
+
+  build:
+    name: Build APP
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
-            set-safe-directory: false
+          fetch-depth: 1
 
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          tools: composer:v2
+          extensions: bcmath, curl, dom, fileinfo, gd, intl, mbstring, pdo, pdo_mysql, pdo_pgsql, pdo_sqlite, sqlite, xml, zip
 
-      - name: Generate .env
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Generate production environment
         run: |
-              touch .env
-              echo "APP_NAME=\"IPTV CMS\"" >> .env
-              echo "APP_ENV=production" >> .env
-              echo "APP_KEY=${{secrets.APP_KEY}}" >> .env
-              echo "APP_DEBUG=false" >> .env
-              echo "APP_URL=${{secrets.APP_URL}}" >> .env
+          cat > .env <<'ENV'
+          APP_NAME="IPTV CMS"
+          APP_ENV=production
+          APP_KEY=${{ secrets.APP_KEY }}
+          APP_DEBUG=false
+          APP_URL=${{ secrets.APP_URL }}
 
-              echo "DB_CONNECTION=pgsql" >> .env
-              echo "DB_HOST=127.0.0.1" >> .env
-              echo "DB_PORT=5432" >> .env
-              echo "DB_DATABASE=\"${{secrets.DB_DATABASE}}\"" >> .env
-              echo "DB_USERNAME=\"${{secrets.DB_USERNAME}}\"" >> .env
-              echo "DB_PASSWORD=\"${{secrets.DB_PASSWORD}}\"" >> .env
+          LOG_CHANNEL=stack
+          LOG_DEPRECATIONS_CHANNEL=null
+          LOG_LEVEL=error
 
-              echo "BROADCAST_DRIVER=log" >> .env
-              echo "CACHE_DRIVER=file" >> .env
-              echo "FILESYSTEM_DRIVER=local" >> .env
-              echo "QUEUE_CONNECTION=sync" >> .env
-              echo "SESSION_DRIVER=file" >> .env
-              echo "SESSION_LIFETIME=120" >> .env
+          DB_CONNECTION=pgsql
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE="${{ secrets.DB_DATABASE }}"
+          DB_USERNAME="${{ secrets.DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
 
-              echo "MEMCACHED_HOST=127.0.0.1" >> .env
+          BROADCAST_DRIVER=log
+          CACHE_DRIVER=file
+          FILESYSTEM_DRIVER=local
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=file
+          SESSION_LIFETIME=120
 
-              echo "REDIS_HOST=127.0.0.1" >> .env
-              echo "REDIS_PASSWORD=null" >> .env
-              echo "REDIS_PORT=6379" >> .env
+          MEMCACHED_HOST=127.0.0.1
 
-              echo "MAIL_MAILER=smtp" >> .env
-              echo "MAIL_HOST=mailhog" >> .env
-              echo "MAIL_PORT=1025" >> .env
-              echo "MAIL_USERNAME=null" >> .env
-              echo "MAIL_PASSWORD=null" >> .env
-              echo "MAIL_ENCRYPTION=null" >> .env
-              echo "MAIL_FROM_ADDRESS=null" >> .env
-              echo "MAIL_FROM_NAME=\"${APP_NAME}\"" >> .env
+          REDIS_HOST=127.0.0.1
+          REDIS_PASSWORD=null
+          REDIS_PORT=6379
 
+          MAIL_MAILER=smtp
+          MAIL_HOST=mailhog
+          MAIL_PORT=1025
+          MAIL_USERNAME=null
+          MAIL_PASSWORD=null
+          MAIL_ENCRYPTION=null
+          MAIL_FROM_ADDRESS=null
+          MAIL_FROM_NAME="IPTV CMS"
 
+          AWS_ACCESS_KEY_ID=
+          AWS_SECRET_ACCESS_KEY=
+          AWS_DEFAULT_REGION=us-east-1
+          AWS_BUCKET=
+          AWS_USE_PATH_STYLE_ENDPOINT=false
 
+          PUSHER_APP_ID=
+          PUSHER_APP_KEY=
+          PUSHER_APP_SECRET=
+          PUSHER_APP_CLUSTER=mt1
+
+          MIX_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+          MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+          ENV
 
       - name: Install Composer dependencies
-        run: composer install
+        run: composer install --no-ansi --no-dev --no-interaction --no-progress --optimize-autoloader --prefer-dist
 
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Remove development files
+        run: |
+          rm -rf node_modules
+          rm -rf .git
+
+      - name: Archive build artifacts
+        run: tar -cvf ${{ github.event.repository.name }}.tar ./
+        shell: bash
+
+      - name: Release build artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: app-build
+          path: ${{ github.event.repository.name }}.tar
+          retention-days: 3
+
+  deploy_web:
+    name: Deploy Web
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: app-build
 
       - name: Write SSH keys
         run: |
-            install -m 600 -D /dev/null ~/.ssh/id_rsa
-            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-            ssh-keyscan -H ${{secrets.SSH_HOST}} > ~/.ssh/known_hosts
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H -p "${{ env.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: 📂 Deploy with rsync
-        run: rsync -rav --delete ./  ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}}:/tmp/iptv   #${{secrets.WORK_DIR}}
+      - name: Deploy artifact with rsync
+        run: rsync -rav --delete -e "ssh -p ${{ env.SSH_PORT }}" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/${{ github.event.repository.name }}
 
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.7
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          port: ${{ env.SSH_PORT }}
           script: |
-            cp -TRv /tmp/iptv/ "${{secrets.WORK_DIR}}/"
-            sudo chmod 777 -R "${{secrets.WORK_DIR}}"
-            sudo chown www-data:www-data -R "${{secrets.WORK_DIR}}"
-            cd "${{secrets.WORK_DIR}}"
+            WORK_DIR="${{ secrets.WORK_DIR }}"
+            RELEASE_DIR="/tmp/${{ github.event.repository.name }}"
+            EXTRACT_DIR="/tmp/${{ github.event.repository.name }}-extracted"
+
+            rm -rf "$EXTRACT_DIR"
+            mkdir -p "$EXTRACT_DIR"
+            tar -xvf "$RELEASE_DIR/${{ github.event.repository.name }}.tar" -C "$EXTRACT_DIR"
+
+            rm -rf "$WORK_DIR"/*
+            cp -TRv "$EXTRACT_DIR/" "$WORK_DIR/"
+            sudo chmod 777 -R "$WORK_DIR"
+            sudo chown www-data:www-data -R "$WORK_DIR"
+
+            cd "$WORK_DIR"
+
             php artisan migrate --force
-            php artisan storage:link
+            php artisan storage:link || true
             php artisan optimize:clear
             php artisan config:cache
             php artisan route:cache
@@ -95,3 +180,27 @@ jobs:
             php artisan optimize
             php artisan up
 
+            rm -rf "$RELEASE_DIR" "$EXTRACT_DIR"
+
+  create_release:
+    name: Create GitHub Release
+    needs: deploy_web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION="$(date +'%Y.%m.%d')+${{ github.run_number }}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: Automated release for version ${{ steps.version.outputs.version }}.

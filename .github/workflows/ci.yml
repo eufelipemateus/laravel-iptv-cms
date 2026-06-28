@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+      - main
+
+jobs:
+  quality:
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  test:
+    needs: quality
+    uses: ./.github/workflows/tests.yml
+    secrets: inherit

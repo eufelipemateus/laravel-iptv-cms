@@ -1,12 +1,12 @@
 {
     "private": true,
     "scripts": {
-        "build": "vite build",
-        "build:ssr": "vite build && vite build --ssr",
-        "dev": "vite",
+        "build": "mix --production",
+        "build:ssr": "mix --production",
+        "dev": "mix watch",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
-        "lint": "eslint . --fix",
+        "lint": "eslint resources/js --fix",
         "prepare": "husky install",
         "release": "standard-version",
         "release:minor": "standard-version --release-as minor",
