@@ -3,7 +3,7 @@ name: Release IPTV
 on:
   push:
     branches:
-      - main
+      - master
 
 permissions:
   actions: write
