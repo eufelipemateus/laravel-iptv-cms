@@ -2,11 +2,11 @@
 
 namespace App\Dashs;
 
-use App\Helpers\IPTVDashBase;
+use App\Helpers\DashBase;
 use App\Models\Channel;
 
 
-class Channels extends IPTVDashBase {
+class Channels extends DashBase {
     public static  $title = "Channels Total";
 
     public static function view(){

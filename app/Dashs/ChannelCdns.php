@@ -2,10 +2,10 @@
 
 namespace App\Dashs;
 
-use App\Helpers\IPTVDashBase;
+use App\Helpers\DashBase;
 use App\Models\ChannelCdn;
 
-class ChannelCdns extends IPTVDashBase {
+class ChannelCdns extends DashBase {
     public static  $title = "CDNs Total";
 
     public static function view(){

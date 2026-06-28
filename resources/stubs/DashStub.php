@@ -1,8 +1,8 @@
 <?php
 
-use FelipeMateus\IPTVCore\Helpers\IPTVDashBase;
+use FelipeMateus\IPTVCore\Helpers\DashBase;
 
-class DummyClass extends IPTVDashBase {
+class DummyClass extends DashBase {
 
     public static  $title = "Example Dash";
 

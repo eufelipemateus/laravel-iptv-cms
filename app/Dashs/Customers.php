@@ -2,10 +2,10 @@
 
 namespace App\Dashs;
 
-use App\Helpers\IPTVDashBase;
+use App\Helpers\DashBase;
 use App\Models\Customer;
 
-class Customers extends IPTVDashBase {
+class Customers extends DashBase {
     public static  $title = "Customers Total";
 
     public static function view(){

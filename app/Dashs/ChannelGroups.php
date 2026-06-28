@@ -2,11 +2,11 @@
 
 namespace App\Dashs;
 
-use App\Helpers\IPTVDashBase;
+use App\Helpers\DashBase;
 use App\Models\ChannelGroup;
 
 
-class ChannelGroups extends IPTVDashBase {
+class ChannelGroups extends DashBase {
     public static  $title = "Groups Total";
 
     public static function view(){
