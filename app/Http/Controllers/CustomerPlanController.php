@@ -1,10 +1,14 @@
 <?php
 
-namespace  App\Http\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Actions\CustomerPlans\DeleteCustomerPlanAction;
+use App\Actions\CustomerPlans\StoreCustomerPlanAction;
+use App\Actions\CustomerPlans\UpdateCustomerPlanAction;
+use App\Http\Requests\CustomerPlanRequest;
 use App\Models\CustomerPlan;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVTaxVat;
+use Illuminate\Http\RedirectResponse;
 
 class CustomerPlanController extends Controller
 {
@@ -15,7 +19,7 @@ class CustomerPlanController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('auth');
+        // $this->middleware('auth');
     }
 
     /**
@@ -23,27 +27,32 @@ class CustomerPlanController extends Controller
      *
      * @return view -> customer_plan
      */
-	public function new(){
+    public function new()
+    {
         if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVTaxVat')) {
             $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
         } else {
             $data['TaxVatList'] = [];
         }
-		return view("customer_plan", $data);
-	}
+
+        return view('customer_plan', $data);
+    }
 
     /**
      * Create new channel in database.
      *
      * @return redirect -> list_customer_plan
      */
-    public function create(Request $request){
-		$data = $request->all();
-        $data = $request->except(['iptv_tax_vat_id']);
-        $tax_vat = $request->only('iptv_tax_vat_id')['iptv_tax_vat_id'];
-		CustomerPlan::create($data);
-		return redirect()->route('list_customer_plan');
-	}
+    public function create(CustomerPlanRequest $request): RedirectResponse
+    {
+        StoreCustomerPlanAction::run(
+            $request->validated(),
+            $request->boolean('active'),
+            $request->boolean('additional'),
+        );
+
+        return redirect()->route('list_customer_plan');
+    }
 
     /**
      * Return a page with group from database.
@@ -51,17 +60,19 @@ class CustomerPlanController extends Controller
      * @param id -> from plan
      * @return redirect -> list_customer_plan
      */
-    public function show($id){
-		$data["Plan"] = CustomerPlan::findOrFail($id);
-        $data['GroupList'] = $data["Plan"]->groupsList();
-        $data['PlanGroupList'] =$data["Plan"]->groups;
+    public function show($id)
+    {
+        $data['Plan'] = CustomerPlan::findOrFail($id);
+        $data['GroupList'] = $data['Plan']->groupsList();
+        $data['PlanGroupList'] = $data['Plan']->groups;
         if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVTaxVat')) {
             $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
         } else {
             $data['TaxVatList'] = [];
         }
-        return view("customer_plan",$data);
-	}
+
+        return view('customer_plan', $data);
+    }
 
     /**
      * Update group in database
@@ -69,36 +80,18 @@ class CustomerPlanController extends Controller
      * @param id from plan
      * @return redirect -> list_customer_plan
      */
-    public function update($id,Request $request){
-		$plan =CustomerPlan::findOrFail($id);
-        $data = $request->except(['iptv_tax_vat_id']);
-        $tax_vat = $request->only('iptv_tax_vat_id')['iptv_tax_vat_id'];
+    public function update($id, CustomerPlanRequest $request): RedirectResponse
+    {
+        $plan = CustomerPlan::findOrFail($id);
+        UpdateCustomerPlanAction::run(
+            $plan,
+            $request->validated(),
+            $request->boolean('active'),
+            $request->boolean('additional'),
+        );
 
-		$plan->update($data);
-
-        if(!isset($data['active'])){
-			$plan->active=false;
-		}else{
-			$plan->active=true;
-		}
-
-        if(!isset($data['additional'])){
-			$plan->additional=false;
-		}else{
-			$plan->additional=true;
-		}
-
-        if(isset($tax_vat)  ){
-			$plan->iptv_tax_vat_id= ($tax_vat == 'null')?
-                null
-            :
-                $tax_vat
-            ;
-		}
-
-        $plan->save();
-		return redirect()->route('list_customer_plan');
-	}
+        return redirect()->route('list_customer_plan');
+    }
 
     /**
      * Delete plan from database
@@ -106,11 +99,12 @@ class CustomerPlanController extends Controller
      * @param id from plan
      * @return redirect -> list_customer_plan
      */
-    public function delete($id,Request $request){
-		$plan =CustomerPlan::findOrFail($id);
-		$plan->delete();
-		return redirect()->route('list_customer_plan');
-	}
+    public function delete($id): RedirectResponse
+    {
+        DeleteCustomerPlanAction::run(CustomerPlan::findOrFail($id));
+
+        return redirect()->route('list_customer_plan');
+    }
 
     /**
      * Return list group from database
@@ -118,9 +112,10 @@ class CustomerPlanController extends Controller
      * @param id from group
      * @return redirect -> list_customer_plan
      */
-    public function list(){
-		$data["list"] = CustomerPlan::get();
-		return view("customer_plan_list",$data);
-	}
+    public function list()
+    {
+        $data['list'] = CustomerPlan::get();
 
+        return view('customer_plan_list', $data);
+    }
 }

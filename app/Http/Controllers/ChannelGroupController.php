@@ -1,9 +1,13 @@
 <?php
 
-namespace  App\Http\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Actions\ChannelGroups\DeleteChannelGroupAction;
+use App\Actions\ChannelGroups\StoreChannelGroupAction;
+use App\Actions\ChannelGroups\UpdateChannelGroupAction;
+use App\Http\Requests\ChannelGroupRequest;
 use App\Models\ChannelGroup;
+use Illuminate\Http\RedirectResponse;
 
 class ChannelGroupController extends Controller
 {
@@ -14,7 +18,7 @@ class ChannelGroupController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('auth');
+        // $this->middleware('auth');
     }
 
     /**
@@ -22,20 +26,22 @@ class ChannelGroupController extends Controller
      *
      * @return view -> IPTV::group
      */
-	public function new(){
-		return view("channel_group");
-	}
+    public function new()
+    {
+        return view('channel_group');
+    }
 
     /**
      * Create new channel in database.
      *
      * @return redirect -> list_channel_group
      */
-    public function create(Request $request){
-		$data = $request->all();
-		ChannelGroup::create($data);
-		return redirect()->route('list_channel_group');
-	}
+    public function create(ChannelGroupRequest $request): RedirectResponse
+    {
+        StoreChannelGroupAction::run($request->validated());
+
+        return redirect()->route('list_channel_group');
+    }
 
     /**
      * Return a page with group from database.
@@ -43,10 +49,12 @@ class ChannelGroupController extends Controller
      * @param id -> from group
      * @return redirect -> list_channel_group
      */
-    public function show($id){
-		$data["Group"] = ChannelGroup::findOrFail($id);
-		return view("channel_group",$data);
-	}
+    public function show($id)
+    {
+        $data['Group'] = ChannelGroup::findOrFail($id);
+
+        return view('channel_group', $data);
+    }
 
     /**
      * Update group in database
@@ -54,11 +62,13 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_channel_group
      */
-    public function update($id,Request $request){
-		$group =ChannelGroup::findOrFail($id);
-		$group->update($request->all());
-		return redirect()->route('list_channel_group');
-	}
+    public function update($id, ChannelGroupRequest $request): RedirectResponse
+    {
+        $group = ChannelGroup::findOrFail($id);
+        UpdateChannelGroupAction::run($group, $request->validated());
+
+        return redirect()->route('list_channel_group');
+    }
 
     /**
      * Delete group from database
@@ -66,11 +76,12 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_group
      */
-    public function delete($id,Request $request){
-		$group =ChannelGroup::findOrFail($id);
-		$group->delete();
-		return redirect()->route('list_channel_group');
-	}
+    public function delete($id): RedirectResponse
+    {
+        DeleteChannelGroupAction::run(ChannelGroup::findOrFail($id));
+
+        return redirect()->route('list_channel_group');
+    }
 
     /**
      * Return list group from database
@@ -78,9 +89,10 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_group
      */
-    public function list(){
-		$data["list"] = ChannelGroup::get();
-		return view("channel_group_list",$data);
-	}
+    public function list()
+    {
+        $data['list'] = ChannelGroup::get();
 
+        return view('channel_group_list', $data);
+    }
 }

@@ -1,12 +1,13 @@
 <?php
 
-namespace  App\Http\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use App\Actions\ChannelUrls\DeleteChannelUrlAction;
+use App\Actions\ChannelUrls\StoreChannelUrlAction;
+use App\Actions\ChannelUrls\UpdateChannelUrlAction;
+use App\Http\Requests\ChannelUrlRequest;
 use App\Models\ChannelUrl;
-
-
+use Illuminate\Http\RedirectResponse;
 
 class ChannelUrlController extends Controller
 {
@@ -17,7 +18,7 @@ class ChannelUrlController extends Controller
      */
     public function __construct()
     {
-        ////$this->middleware('auth');
+        // //$this->middleware('auth');
     }
 
     /**
@@ -25,16 +26,13 @@ class ChannelUrlController extends Controller
      *
      * @return redirect -> list_channels
      */
-    public function create( Request $request){
-		$this->validate($request, [
-		    'iptv_cdn_id'=> 'required|exists:iptv_cdns,id',
-            'iptv_channel_id' => 'required|exists:iptv_channels,id',
-			'url_stream' => 'required',
-		]);
-		$data = $request->all();
-		$c = ChannelUrl::create($data);
-		return redirect()->route('show_channel',  ['id' => $data['iptv_channel_id']]);
-	}
+    public function create(ChannelUrlRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        StoreChannelUrlAction::run($data);
+
+        return redirect()->route('show_channel', ['id' => $data['iptv_channel_id']]);
+    }
 
     /**
      * Save new data from new channel in database.
@@ -42,20 +40,15 @@ class ChannelUrlController extends Controller
      * @param id from channel
      * @return redirect -> list_channels
      */
-	public function update($id,Request $request){
-		$url = ChannelUrl::findOrFail($id);
+    public function update($id, ChannelUrlRequest $request): RedirectResponse
+    {
+        $url = ChannelUrl::findOrFail($id);
 
-        $this->validate($request, [
-		    'iptv_cdn_id'=> 'required|exists:iptv_cdns,id',
-            'iptv_channel_id' => 'required|exists:iptv_channels,id',
-			'url_stream' => 'required',
-		]);
+        $data = $request->validated();
+        UpdateChannelUrlAction::run($url, $data);
 
-		$data = $request->all();
-		$url->update($data);
-
-		return redirect()->route('show_channel',['id'=>$data['iptv_channel_id']]);
-	}
+        return redirect()->route('show_channel', ['id' => $data['iptv_channel_id']]);
+    }
 
     /**
      * Delete channel form database.
@@ -63,10 +56,12 @@ class ChannelUrlController extends Controller
      * @param id from channel
      * @return redirect -> list_channel
      */
-    public function delete($id,Request $request){
-		$url =ChannelUrl::findOrFail($id);
-		$url->delete();
-		return redirect()->route('show_channel',['id'=>$url->iptv_channel_id]);
-	}
+    public function delete($id): RedirectResponse
+    {
+        $url = ChannelUrl::findOrFail($id);
+        $channelId = $url->iptv_channel_id;
+        DeleteChannelUrlAction::run($url);
 
+        return redirect()->route('show_channel', ['id' => $channelId]);
+    }
 }
