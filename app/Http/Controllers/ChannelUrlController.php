@@ -29,9 +29,9 @@ class ChannelUrlController extends Controller
 		$this->validate($request, [
 		    'iptv_cdn_id'=> 'required|exists:iptv_cdns,id',
             'iptv_channel_id' => 'required|exists:iptv_channels,id',
-			'url_stream' => 'required',
+			'url_stream' => 'required|string|max:2048',
 		]);
-		$data = $request->all();
+		$data = $request->only(['iptv_cdn_id', 'iptv_channel_id', 'url_stream']);
 		$c = ChannelUrl::create($data);
 		return redirect()->route('show_channel',  ['id' => $data['iptv_channel_id']]);
 	}
@@ -48,10 +48,10 @@ class ChannelUrlController extends Controller
         $this->validate($request, [
 		    'iptv_cdn_id'=> 'required|exists:iptv_cdns,id',
             'iptv_channel_id' => 'required|exists:iptv_channels,id',
-			'url_stream' => 'required',
+			'url_stream' => 'required|string|max:2048',
 		]);
 
-		$data = $request->all();
+		$data = $request->only(['iptv_cdn_id', 'iptv_channel_id', 'url_stream']);
 		$url->update($data);
 
 		return redirect()->route('show_channel',['id'=>$data['iptv_channel_id']]);
@@ -65,8 +65,9 @@ class ChannelUrlController extends Controller
      */
     public function delete($id,Request $request){
 		$url =ChannelUrl::findOrFail($id);
+        $channelId = $url->iptv_channel_id;
 		$url->delete();
-		return redirect()->route('show_channel',['id'=>$url->iptv_channel_id]);
+		return redirect()->route('show_channel',['id'=>$channelId]);
 	}
 
 }

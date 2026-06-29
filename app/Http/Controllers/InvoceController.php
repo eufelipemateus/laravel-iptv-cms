@@ -20,7 +20,7 @@ class InvoceController extends Controller
     }
 
     public function create($customer_id, IPTVCustomerInvoceCreateInvoceRequest $request){
-        $input = $request->all();
+        $input = $request->validated();
         $data['iptv_customer_id'] = $customer_id;
         $data['duedate_at'] = $input['duedate_at'];
         //$data['payeddate_at'] = $dateTime = (new DateTime($input['payeddate_at']))->getTimestamp();

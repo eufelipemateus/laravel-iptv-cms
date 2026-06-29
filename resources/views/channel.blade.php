@@ -166,7 +166,7 @@
                             </div>
 
                             <div class="col-md-1">
-                                <a href="{{  route('delete_channel_url',$url->id) }}"  class="btn btn-primary">{{ __('delete') }}</a>
+                                <button type="submit" formaction="{{ route('delete_channel_url', $url->id) }}" formmethod="POST" class="btn btn-primary">{{ __('delete') }}</button>
                             </div>
                         </div>
                     </form>

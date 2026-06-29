@@ -49,10 +49,10 @@ class ChannelCdnController extends Controller
      */
     public function create(Request $request){
 		$this->validate($request, [
-			'slug' => 'required|unique:iptv_cdns',
-			'name' => 'required',
+			'slug' => 'required|string|alpha_dash|max:50|unique:iptv_cdns',
+			'name' => 'required|string|max:90',
 		]);
-		$data = $request->all();
+		$data = $request->only(['slug', 'name']);
 		$c = ChannelCdn::create($data);
 		// Save Image
 		$c->save();
@@ -69,11 +69,11 @@ class ChannelCdnController extends Controller
 		$cdn = ChannelCdn::findOrFail($id);
 
 		$this->validate($request, [
-			'slug' => ['required',Rule::unique('iptv_cdns')->ignore($cdn->id, 'id')],
-			'name' => 'required',
+			'slug' => ['required', 'string', 'alpha_dash', 'max:50', Rule::unique('iptv_cdns')->ignore($cdn->id, 'id')],
+			'name' => 'required|string|max:90',
 		]);
 
-		$data = $request->all();
+		$data = $request->only(['slug', 'name']);
 		$cdn->update($data);
 
 		return redirect()->route('list_channel_cdn');
