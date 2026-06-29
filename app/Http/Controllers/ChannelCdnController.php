@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\ChannelCdn;
 use App\Models\IPTVConfig;
-use \FelipeMateus\IPTVCustomers\Models\IPTVCdn as IPTVCdnCustomer;
+use App\Models\CustomerCdn;
+use Illuminate\Http\RedirectResponse;
 
 class ChannelCdnController extends Controller
 {
@@ -98,9 +99,9 @@ class ChannelCdnController extends Controller
      */
     public function list(){
 
-        if(class_exists(IPTVCdnCustomer::class)){
-            $data['list'] = IPTVCdnCustomer::all();
-        }else {
+        if (class_exists(CustomerCdn::class)) {
+            $data['list'] = CustomerCdn::all();
+        } else {
             $data['list'] = ChannelCdn::all();
         }
 
