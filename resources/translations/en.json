@@ -1,0 +1,12 @@
+{
+    "RADIO_STREAM": "Enable urls for radio? ",
+    "DOWNLOAD_FILE": "Force download m3u8 file? ",
+    "URL_CDN": "Enable url of CDN playlist?",
+
+    "BSINESS_NAME": "Business name",
+    "BSINESS_INDUSTRY": "Industry",
+    "BSINESS_ADDRESS": "Address",
+    "BSINESS_PHONE": "Phone",
+    "BSINESS_EMAIL": "E-mail",
+    "BSINESS_TAX_NO": "Tax number"
+}

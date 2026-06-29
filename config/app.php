@@ -165,11 +165,9 @@ return [
         /*
          * Package Service Providers...
          */
-        FelipeMateus\IPTVCore\IPTVProvider::class,
-        FelipeMateus\IPTVChannels\IPTVProvider::class,
-        FelipeMateus\IPTVCustomers\IPTVProvider::class,
-        FelipeMateus\IPTVGatewayPayment\IPTVProvider::class,
-        FelipeMateus\IPTVPaypal\IPTVPaymentProvider::class,
+
+
+
 
         /*
          * Application Service Providers...
@@ -179,6 +177,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        App\Providers\IPTVServiceProvider::class
 
     ],
 
@@ -233,6 +232,9 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+        'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
+        'client' => App\Http\Middleware\CustomerMiddleware::class,
+        'public_cdn' => App\Http\Middleware\PublicCdnMiddleware::class,
 
     ],
 

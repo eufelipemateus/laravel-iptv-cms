@@ -1,0 +1,42 @@
+name: linter
+
+on:
+  workflow_call:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          extensions: bcmath, curl, dom, fileinfo, gd, intl, mbstring, pdo, pdo_mysql, pdo_pgsql, pdo_sqlite, sqlite, xml, zip
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run Pint
+        run: vendor/bin/pint
+
+      - name: Check frontend format
+        run: npm run format:check
+
+      - name: Lint frontend
+        run: npm run lint
