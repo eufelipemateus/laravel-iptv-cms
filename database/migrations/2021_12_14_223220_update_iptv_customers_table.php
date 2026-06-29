@@ -13,12 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        //
         Schema::table('iptv_customers', function (Blueprint $table) {
 
             $table->foreignId('iptv_cdn_id')
                 ->nullable()
-                ->constrained();
+                ->constrained('iptv_cdns');
         });
     }
 
@@ -29,9 +28,9 @@ return new class extends Migration
      */
     public function down()
     {
-        //
         Schema::table('iptv_customers', function (Blueprint $table) {
-             $table->dropColumn('iptv_cdn_id');
+            $table->dropForeign(['iptv_cdn_id']);
+            $table->dropColumn('iptv_cdn_id');
         });
     }
 };

@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('iptv_customer_plan');
+        Schema::dropIfExists('iptv_customer_plan_additionals');
     }
 };

@@ -13,15 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('iptv_urls', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('iptv_cdn_id')->constrained('iptv_cdns');
-            $table->unsignedInteger('iptv_channel_id');
+        Schema::create('iptv_tax_vat', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->double('porcent', 8, 2)->default(0);
+            $table->boolean('active')->default(true);
             $table->timestamps();
-
-            $table->text('url_stream');
-
-            $table->foreign('iptv_channel_id')->references('id')->on('iptv_channels');
         });
     }
 
@@ -32,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('iptv_urls');
+        Schema::dropIfExists('iptv_tax_vat');
     }
 };

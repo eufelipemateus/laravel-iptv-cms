@@ -13,9 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        //
         Schema::table('iptv_plans', function (Blueprint $table) {
-            $table->foreignId('iptv_tax_vat_id')->nullable()->constrained('iptv_tax_vat');
+            $table->unsignedInteger('iptv_tax_vat_id')->nullable();
+            $table->foreign('iptv_tax_vat_id')->references('id')->on('iptv_tax_vat');
         });
     }
 
@@ -26,9 +26,9 @@ return new class extends Migration
      */
     public function down()
     {
-        //
         Schema::table('iptv_plans', function (Blueprint $table) {
+            $table->dropForeign(['iptv_tax_vat_id']);
             $table->dropColumn('iptv_tax_vat_id');
-       });
+        });
     }
 };
