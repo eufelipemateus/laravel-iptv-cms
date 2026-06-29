@@ -8,7 +8,7 @@ export default [
         files: ['resources/js/**/*.js'],
         languageOptions: {
             ecmaVersion: 'latest',
-            sourceType: 'commonjs',
+            sourceType: 'module',
             globals: {
                 console: 'readonly',
                 document: 'readonly',
