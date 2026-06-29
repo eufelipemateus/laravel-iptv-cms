@@ -37,7 +37,10 @@
 							  <a href="{{  route('show_channel',$channel->id) }}">{{ __('edit') }}</a>
 							</div>
 							<div class="col-md-2">
-							  <a href="{{  route('delete_channel',$channel->id) }}">{{ __('delete')}}</a>
+                                <form action="{{ route('delete_channel', $channel->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link p-0 align-baseline">{{ __('delete')}}</button>
+                                </form>
 							</div>
 						</div>
 					@endforeach
