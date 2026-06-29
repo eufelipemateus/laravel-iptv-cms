@@ -38,9 +38,7 @@ class CustomerPlanController extends Controller
      * @return redirect -> list_customer_plan
      */
     public function create(Request $request){
-		$data = $request->all();
-        $data = $request->except(['iptv_tax_vat_id']);
-        $tax_vat = $request->only('iptv_tax_vat_id')['iptv_tax_vat_id'];
+		$data = $this->validatedPlanData($request);
 		CustomerPlan::create($data);
 		return redirect()->route('list_customer_plan');
 	}
@@ -71,32 +69,9 @@ class CustomerPlanController extends Controller
      */
     public function update($id,Request $request){
 		$plan =CustomerPlan::findOrFail($id);
-        $data = $request->except(['iptv_tax_vat_id']);
-        $tax_vat = $request->only('iptv_tax_vat_id')['iptv_tax_vat_id'];
+        $data = $this->validatedPlanData($request);
 
 		$plan->update($data);
-
-        if(!isset($data['active'])){
-			$plan->active=false;
-		}else{
-			$plan->active=true;
-		}
-
-        if(!isset($data['additional'])){
-			$plan->additional=false;
-		}else{
-			$plan->additional=true;
-		}
-
-        if(isset($tax_vat)  ){
-			$plan->iptv_tax_vat_id= ($tax_vat == 'null')?
-                null
-            :
-                $tax_vat
-            ;
-		}
-
-        $plan->save();
 		return redirect()->route('list_customer_plan');
 	}
 
@@ -122,5 +97,25 @@ class CustomerPlanController extends Controller
 		$data["list"] = CustomerPlan::get();
 		return view("customer_plan_list",$data);
 	}
+
+    private function validatedPlanData(Request $request): array
+    {
+        if ($request->input('iptv_tax_vat_id') === 'null') {
+            $request->merge(['iptv_tax_vat_id' => null]);
+        }
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0|max:999999.99',
+            'active' => 'sometimes|boolean',
+            'additional' => 'sometimes|boolean',
+            'iptv_tax_vat_id' => 'nullable|exists:iptv_tax_vat,id',
+        ]);
+
+        $data['active'] = $request->boolean('active');
+        $data['additional'] = $request->boolean('additional');
+
+        return $data;
+    }
 
 }

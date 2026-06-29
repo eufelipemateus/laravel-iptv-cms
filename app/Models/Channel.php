@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 use App\Models\IPTVCdn;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 
 class Channel extends Model
@@ -81,9 +82,15 @@ class Channel extends Model
 
     public function setLogoAttribute($image)
     {
-        $nameLogo = md5($image->getClientOriginalName()) . '.' . $image->getClientOriginalExtension();
+        $extension = $image->guessExtension() ?: $image->getClientOriginalExtension();
+        $nameLogo = Str::random(40) . '.' . strtolower($extension);
         $path = "logos/";
         $destinationPath = public_path('/' . $path);
+
+        if (! is_dir($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
         $image->move($destinationPath, $nameLogo);
         $this->attributes['logo'] =  $path . $nameLogo;
     }

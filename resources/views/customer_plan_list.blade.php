@@ -24,7 +24,10 @@
 						{{ $plan->name }}
 						</div>
 						<div class="col-md-2">
-						  <a href="{{ route('delete_customer_plan',$plan->id)  }}">{{ __('delete')}}</a>
+                            <form action="{{ route('delete_customer_plan', $plan->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-link p-0 align-baseline">{{ __('delete')}}</button>
+                            </form>
 						</div>
 						<div class="col-md-2">
 						  <a href="{{ route('show_customer_plan',$plan->id)  }}">{{ __('edit') }}</a>

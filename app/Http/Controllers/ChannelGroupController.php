@@ -32,7 +32,9 @@ class ChannelGroupController extends Controller
      * @return redirect -> list_channel_group
      */
     public function create(Request $request){
-		$data = $request->all();
+		$data = $request->validate([
+            'name' => 'required|string|max:60',
+        ]);
 		ChannelGroup::create($data);
 		return redirect()->route('list_channel_group');
 	}
@@ -56,7 +58,10 @@ class ChannelGroupController extends Controller
      */
     public function update($id,Request $request){
 		$group =ChannelGroup::findOrFail($id);
-		$group->update($request->all());
+        $data = $request->validate([
+            'name' => 'required|string|max:60',
+        ]);
+		$group->update($data);
 		return redirect()->route('list_channel_group');
 	}
 

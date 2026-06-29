@@ -57,10 +57,13 @@ class ChannelController extends Controller
     public function create(Request $request){
 		$this->validate($request, [
 			'number' => 'numeric|required|unique:iptv_channels',
+			'name' => 'required|string|max:60',
 			'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
 			'group_id' => 'required|exists:iptv_channel_groups,id',
+            'radio' => 'sometimes|boolean',
 		]);
-		$data = $request->all();
+		$data = $request->only(['number', 'name', 'group_id']);
+        $data['radio'] = $request->boolean('radio');
 		$c = Channel::create($data);
 		// Save Image
 		$c->logo = $request->file('image') ;
@@ -79,21 +82,19 @@ class ChannelController extends Controller
 
 		$this->validate($request, [
 			'number' => ['required','numeric',Rule::unique('iptv_channels')->ignore($channel->id, 'id')],
-			'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+			'name' => 'required|string|max:60',
+			'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
 			'group_id' => 'required|exists:iptv_channel_groups,id',
+            'radio' => 'sometimes|boolean',
 		]);
 
-		$data = $request->all();
+		$data = $request->only(['number', 'name', 'group_id']);
+        $data['radio'] = $request->boolean('radio');
 		$channel->update($data);
 		$image = $request->file('image');
 
 		if(isset($image)){
 			$channel->logo=$image;
-		}
-		if(!isset($data['radio'])){
-			$channel->radio=false;
-		}else{
-			$channel->radio=true;
 		}
 		$channel->save();
 		return redirect()->route('list_channel');

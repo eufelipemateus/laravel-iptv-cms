@@ -8,6 +8,7 @@ use App\Models\ChannelCdn;
 use App\Models\CustomerPlan;
 use App\Models\Customer;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVGateway;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
@@ -61,17 +62,31 @@ class CustomerController extends Controller
      */
     public function create(Request $request){
 		$this->validate($request, [
-			'name' => 'string|required',
-			'username' => 'required|string',
+			'name' => 'string|required|max:255',
+			'username' => 'required|string|max:255|unique:iptv_customers,username',
 			'iptv_plan_id' => 'required|exists:iptv_plans,id',
-            'industry'=>'string|nullable',
-            'address'=>'string|nullable',
-            'phone'=>'string|nullable',
-            'email'=>'string|nullable',
-            'tax_no'=>'string|nullable',
+            'iptv_cdn_id' => 'nullable|exists:iptv_cdns,id',
+            'due_day' => 'required|in:5,10,15,20,25',
+            'industry'=>'string|nullable|max:255',
+            'address'=>'string|nullable|max:255',
+            'phone'=>'string|nullable|max:255',
+            'email'=>'email|nullable|max:255',
+            'tax_no'=>'string|nullable|max:255',
 		]);
-		$data = $request->all();
-        $data['hash_acess'] = md5(now());
+		$data = $request->only([
+            'name',
+            'username',
+            'iptv_plan_id',
+            'iptv_cdn_id',
+            'due_day',
+            'industry',
+            'address',
+            'phone',
+            'email',
+            'tax_no',
+        ]);
+        $data['active'] = false;
+        $data['hash_acess'] = Str::random(40);
         $customer  = 	Customer::create($data);
         return redirect()->route('show_customer',['id'=>$customer->id]);
 	}
@@ -88,25 +103,37 @@ class CustomerController extends Controller
         $regenerate = $request->input("regenerate");
 
         if(!empty($regenerate)){
-            $data['hash_acess'] = md5(now());
-            $customer->update($data);
+            $customer->update(['hash_acess' => Str::random(40)]);
             return redirect()->route('show_customer',['id'=>$customer->id]);
         }
 
 		$this->validate($request, [
-			'name' => 'string|required',
-			'username' => 'required|string',
+			'name' => 'string|required|max:255',
+			'username' => ['required', 'string', 'max:255', Rule::unique('iptv_customers', 'username')->ignore($customer->id, 'id')],
 			'iptv_plan_id' => 'required|exists:iptv_plans,id',
-            'industry'=>'string|nullable',
-            'address'=>'string|nullable',
-            'phone'=>'string|nullable',
-            'email'=>'string|nullable',
-            'tax_no'=>'string|nullable',
+            'iptv_cdn_id' => 'nullable|exists:iptv_cdns,id',
+            'due_day' => 'required|in:5,10,15,20,25',
+            'industry'=>'string|nullable|max:255',
+            'address'=>'string|nullable|max:255',
+            'phone'=>'string|nullable|max:255',
+            'email'=>'email|nullable|max:255',
+            'tax_no'=>'string|nullable|max:255',
             'active'=>'boolean',
 		]);
 
-		$data = $request->all();
-        $data['active'] = $request->boolean('active','bool');
+		$data = $request->only([
+            'name',
+            'username',
+            'iptv_plan_id',
+            'iptv_cdn_id',
+            'due_day',
+            'industry',
+            'address',
+            'phone',
+            'email',
+            'tax_no',
+        ]);
+        $data['active'] = $request->boolean('active');
 		$customer->update($data);
 
         return redirect()->route('show_customer',['id'=>$customer->id]);
