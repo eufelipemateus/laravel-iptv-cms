@@ -17,7 +17,7 @@ class ChannelListM3UController  extends Controller{
 	public function show($slug){
 		$data["list"] = Channel::getListM3u8($slug);
 
-		$response = response()->view("IPTV::list_M3U",$data, 200);
+		$response = response()->view("list_M3U",$data, 200);
         $response->header('Content-Type', "text/plain; charset=utf-8");
 
         if(IPTVConfig::get('DOWNLOAD_FILE')){
