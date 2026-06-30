@@ -9,7 +9,6 @@ use App\Http\Requests\DeleteChannelCdnRequest;
 use App\Http\Requests\StoreChannelCdnRequest;
 use App\Http\Requests\UpdateChannelCdnRequest;
 use App\Models\ChannelCdn;
-use App\Models\CustomerCdn;
 use App\Models\IPTVConfig;
 use Illuminate\Http\RedirectResponse;
 
@@ -98,11 +97,7 @@ class ChannelCdnController extends Controller
     public function list()
     {
 
-        if (class_exists(CustomerCdn::class)) {
-            $data['list'] = CustomerCdn::all();
-        } else {
-            $data['list'] = ChannelCdn::all();
-        }
+        $data['list'] = ChannelCdn::all();
 
         $data['url_cdn'] = IPTVConfig::get('URL_CDN');
         $data['donwload'] = IPTVConfig::get('DOWNLOAD_FILE');
