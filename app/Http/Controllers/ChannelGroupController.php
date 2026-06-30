@@ -6,6 +6,7 @@ use App\Actions\ChannelGroups\DeleteChannelGroupAction;
 use App\Actions\ChannelGroups\StoreChannelGroupAction;
 use App\Actions\ChannelGroups\UpdateChannelGroupAction;
 use App\Http\Requests\ChannelGroupRequest;
+use App\Http\Requests\DeleteChannelGroupRequest;
 use App\Models\ChannelGroup;
 use Illuminate\Http\RedirectResponse;
 
@@ -76,9 +77,9 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_group
      */
-    public function delete($id): RedirectResponse
+    public function delete(DeleteChannelGroupRequest $request): RedirectResponse
     {
-        DeleteChannelGroupAction::run(ChannelGroup::findOrFail($id));
+        DeleteChannelGroupAction::run(ChannelGroup::findOrFail($request->id()));
 
         return redirect()->route('list_channel_group');
     }

@@ -6,6 +6,7 @@ use App\Actions\ChannelUrls\DeleteChannelUrlAction;
 use App\Actions\ChannelUrls\StoreChannelUrlAction;
 use App\Actions\ChannelUrls\UpdateChannelUrlAction;
 use App\Http\Requests\ChannelUrlRequest;
+use App\Http\Requests\DeleteChannelUrlRequest;
 use App\Models\ChannelUrl;
 use Illuminate\Http\RedirectResponse;
 
@@ -56,9 +57,9 @@ class ChannelUrlController extends Controller
      * @param id from channel
      * @return redirect -> list_channel
      */
-    public function delete($id): RedirectResponse
+    public function delete(DeleteChannelUrlRequest $request): RedirectResponse
     {
-        $url = ChannelUrl::findOrFail($id);
+        $url = ChannelUrl::findOrFail($request->id());
         $channelId = $url->iptv_channel_id;
         DeleteChannelUrlAction::run($url);
 

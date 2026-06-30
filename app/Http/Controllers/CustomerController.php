@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Customers\DeleteCustomerAction;
 use App\Actions\Customers\StoreCustomerAction;
 use App\Actions\Customers\UpdateCustomerAction;
+use App\Http\Requests\DeleteCustomerRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\ChannelCdn;
@@ -99,9 +100,9 @@ class CustomerController extends Controller
      * @param id from customer
      * @return redirect -> list_customer
      */
-    public function delete($id): RedirectResponse
+    public function delete(DeleteCustomerRequest $request): RedirectResponse
     {
-        DeleteCustomerAction::run(Customer::findOrFail($id));
+        DeleteCustomerAction::run(Customer::findOrFail($request->id()));
 
         return redirect()->route('list_customer');
     }

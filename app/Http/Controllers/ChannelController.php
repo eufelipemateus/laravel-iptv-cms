@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Channels\DeleteChannelAction;
 use App\Actions\Channels\StoreChannelAction;
 use App\Actions\Channels\UpdateChannelAction;
+use App\Http\Requests\DeleteChannelRequest;
 use App\Http\Requests\StoreChannelRequest;
 use App\Http\Requests\UpdateChannelRequest;
 use App\Models\Channel;
@@ -98,9 +99,9 @@ class ChannelController extends Controller
      * @param id from channel
      * @return redirect -> list_channel
      */
-    public function delete($id): RedirectResponse
+    public function delete(DeleteChannelRequest $request): RedirectResponse
     {
-        DeleteChannelAction::run(Channel::findOrFail($id));
+        DeleteChannelAction::run(Channel::findOrFail($request->id()));
 
         return redirect()->route('list_channel');
     }

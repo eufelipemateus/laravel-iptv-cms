@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Actions\ChannelCdns\DeleteChannelCdnAction;
 use App\Actions\ChannelCdns\StoreChannelCdnAction;
 use App\Actions\ChannelCdns\UpdateChannelCdnAction;
+use App\Http\Requests\DeleteChannelCdnRequest;
 use App\Http\Requests\StoreChannelCdnRequest;
 use App\Http\Requests\UpdateChannelCdnRequest;
 use App\Models\ChannelCdn;
-use App\Models\IPTVConfig;
 use App\Models\CustomerCdn;
+use App\Models\IPTVConfig;
 use Illuminate\Http\RedirectResponse;
 
 class ChannelCdnController extends Controller
@@ -82,9 +83,9 @@ class ChannelCdnController extends Controller
      * @param id from channel
      * @return redirect -> list_channel
      */
-    public function delete($id): RedirectResponse
+    public function delete(DeleteChannelCdnRequest $request): RedirectResponse
     {
-        DeleteChannelCdnAction::run(ChannelCdn::findOrFail($id));
+        DeleteChannelCdnAction::run(ChannelCdn::findOrFail($request->id()));
 
         return redirect()->route('list_channel_cdn');
     }

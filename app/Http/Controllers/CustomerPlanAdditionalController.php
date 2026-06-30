@@ -10,9 +10,9 @@ use Illuminate\Http\RedirectResponse;
 
 class CustomerPlanAdditionalController extends Controller
 {
-    public function add($customer_id, CustomerPlanAdditionalRequest $request): RedirectResponse
+    public function add(CustomerPlanAdditionalRequest $request): RedirectResponse
     {
-        $customer = Customer::findOrFail($customer_id);
+        $customer = Customer::findOrFail($request->customerId());
         $data = $request->validated();
 
         AddCustomerPlanAdditionalAction::run($customer, (int) $data['iptv_plan_id']);
@@ -20,9 +20,9 @@ class CustomerPlanAdditionalController extends Controller
         return redirect()->route('show_customer', ['id' => $customer->id]);
     }
 
-    public function del($customer_id, CustomerPlanAdditionalRequest $request): RedirectResponse
+    public function del(CustomerPlanAdditionalRequest $request): RedirectResponse
     {
-        $customer = Customer::findOrFail($customer_id);
+        $customer = Customer::findOrFail($request->customerId());
         $data = $request->validated();
 
         RemoveCustomerPlanAdditionalAction::run($customer, (int) $data['iptv_plan_id']);

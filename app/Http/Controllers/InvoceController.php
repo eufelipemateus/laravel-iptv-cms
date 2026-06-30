@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\CustomerInvoces\CancelCustomerInvoceAction;
 use App\Actions\CustomerInvoces\StoreCustomerInvoceAction;
+use App\Http\Requests\CancelCustomerInvoceRequest;
 use App\Http\Requests\IPTVCustomerInvoceCreateInvoceRequest;
+use App\Http\Requests\PayCustomerInvoceRequest;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
 use App\Models\IPTVConfig;
@@ -20,17 +22,17 @@ class InvoceController extends Controller
         return view('IPTV::customer_invoce');
     }
 
-    public function create($customer_id, IPTVCustomerInvoceCreateInvoceRequest $request): RedirectResponse
+    public function create(IPTVCustomerInvoceCreateInvoceRequest $request): RedirectResponse
     {
-        StoreCustomerInvoceAction::run((int) $customer_id, $request->validated());
+        StoreCustomerInvoceAction::run($request->customerId(), $request->validated());
 
-        return redirect()->route('show_customer', ['id' => $customer_id]);
+        return redirect()->route('show_customer', ['id' => $request->customerId()]);
 
     }
 
-    public function pay($customer_id, $id)
+    public function pay(PayCustomerInvoceRequest $request)
     {
-        $data['invoce'] = CustomerInvoce::find($id);
+        $data['invoce'] = CustomerInvoce::findOrFail($request->invoceId());
         if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVGateway')) {
             $data['GatewaysList'] = IPTVGateway::where('active', 1)->get();
         } else {
@@ -44,7 +46,7 @@ class InvoceController extends Controller
         $data['totalTax'] = 0;
         $data['final'] = 0;
 
-        $customer = Customer::find($customer_id);
+        $customer = Customer::findOrFail($request->customerId());
         $index = 0;
         $services[$index]['service'] = $customer->plan->name;
         $services[$index]['service_type'] = 'Principal';
@@ -97,10 +99,10 @@ class InvoceController extends Controller
         return view('invoce', $data);
     }
 
-    public function cancel($customer_id, $id): RedirectResponse
+    public function cancel(CancelCustomerInvoceRequest $request): RedirectResponse
     {
-        CancelCustomerInvoceAction::run(CustomerInvoce::findOrFail($id));
+        CancelCustomerInvoceAction::run(CustomerInvoce::findOrFail($request->invoceId()));
 
-        return redirect()->route('show_customer', ['id' => $customer_id]);
+        return redirect()->route('show_customer', ['id' => $request->customerId()]);
     }
 }

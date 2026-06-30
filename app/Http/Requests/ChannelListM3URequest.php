@@ -4,12 +4,12 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CustomerPlanGroupRequest extends FormRequest
+class ChannelListM3URequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'plan_id' => $this->route('plan_id'),
+            'slug' => $this->route('slug'),
         ]);
     }
 
@@ -24,13 +24,12 @@ class CustomerPlanGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'plan_id' => ['required', 'integer', 'exists:iptv_plans,id'],
-            'iptv_group_id' => ['required', 'integer', 'exists:iptv_channel_groups,id'],
+            'slug' => ['required', 'string', 'exists:iptv_cdns,slug'],
         ];
     }
 
-    public function planId(): int
+    public function slug(): string
     {
-        return $this->integer('plan_id');
+        return (string) $this->input('slug');
     }
 }

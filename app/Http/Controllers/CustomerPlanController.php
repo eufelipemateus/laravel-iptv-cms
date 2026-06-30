@@ -6,6 +6,7 @@ use App\Actions\CustomerPlans\DeleteCustomerPlanAction;
 use App\Actions\CustomerPlans\StoreCustomerPlanAction;
 use App\Actions\CustomerPlans\UpdateCustomerPlanAction;
 use App\Http\Requests\CustomerPlanRequest;
+use App\Http\Requests\DeleteCustomerPlanRequest;
 use App\Models\CustomerPlan;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVTaxVat;
 use Illuminate\Http\RedirectResponse;
@@ -99,9 +100,9 @@ class CustomerPlanController extends Controller
      * @param id from plan
      * @return redirect -> list_customer_plan
      */
-    public function delete($id): RedirectResponse
+    public function delete(DeleteCustomerPlanRequest $request): RedirectResponse
     {
-        DeleteCustomerPlanAction::run(CustomerPlan::findOrFail($id));
+        DeleteCustomerPlanAction::run(CustomerPlan::findOrFail($request->id()));
 
         return redirect()->route('list_customer_plan');
     }
