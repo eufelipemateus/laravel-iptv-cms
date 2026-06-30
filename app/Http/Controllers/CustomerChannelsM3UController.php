@@ -19,8 +19,8 @@ class CustomerChannelsM3UController  extends Controller{
 
 		$data["list"] = Channel::getCustomerChannelListM3u8($slug, $customer->id);
 
-		$response = response()->view("IPTV::list_M3U",$data, 200);
-        $response->header('Content-Type', "text/plain; charset=utf-8");
+        $response = response()->view('list_M3U', $data, 200);
+        $response->header('Content-Type', 'text/plain; charset=utf-8');
 
         if(IPTVConfig::get('DOWNLOAD_FILE')){
             $response->header('Cache-Control', 'public');
