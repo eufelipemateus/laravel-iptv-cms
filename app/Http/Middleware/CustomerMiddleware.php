@@ -1,19 +1,17 @@
 <?php
 
-namespace  App\Http\Middleware;
+namespace App\Http\Middleware;
 
+use App\Models\Customer;
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\Customer;
-use FelipeMateus\IPTVChannels\Model\IPTVConfig;
 
 class CustomerMiddleware
 {
-   /**
+    /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  Request  $request
      * @return mixed
      */
     public function handle($request, Closure $next)
@@ -22,41 +20,41 @@ class CustomerMiddleware
         $AUTH_PASS = 'admin';
         header('Cache-Control: no-cache, must-revalidate, max-age=0');
 
-        $has_supplied_credentials = !(
+        $has_supplied_credentials = ! (
             empty($_SERVER['PHP_AUTH_USER']) &&
             empty($_SERVER['PHP_AUTH_PW'])
         );
 
-        if($has_supplied_credentials){
-            $custormer = Customer::where("username",$_SERVER['PHP_AUTH_USER'])
-            ->where('hash_acess',$_SERVER['PHP_AUTH_PW'])
-            ->first();
+        if ($has_supplied_credentials) {
+            $customer = Customer::where('username', $_SERVER['PHP_AUTH_USER'])
+                ->where('hash_acess', $_SERVER['PHP_AUTH_PW'])
+                ->first();
 
-            $request->custormer = $custormer;
+            $request->attributes->set('customer', $customer);
+            $request->attributes->set('custormer', $customer);
         }
 
         $is_not_authenticated = (
-            !$has_supplied_credentials ||
-            !isset($custormer)
+            ! $has_supplied_credentials ||
+            ! isset($customer)
         );
 
         if ($is_not_authenticated) {
             header('HTTP/1.1 401 Authorization Required');
             header('WWW-Authenticate: Basic realm="Access denied"');
-            echo "This operation is unthorizated!";
+            echo 'This operation is unthorizated!';
             exit();
         }
 
-        if(!$custormer->active){
+        if (! $customer->active) {
             header('HTTP/1.1 401 CUSTOMER INACTIVE');
-            echo "This Customer is not Active!";
+            echo 'This Customer is not Active!';
             exit();
         }
 
-
-        if($custormer->defeated){
+        if ($customer->defeated) {
             header('HTTP/1.1 401 CUSTOMER INVOCE DEFEATED');
-            echo "This Customer is defeated!";
+            echo 'This Customer is defeated!';
             exit();
         }
 

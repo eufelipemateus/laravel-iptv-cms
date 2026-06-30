@@ -1,11 +1,12 @@
 <?php
 
-namespace  App\Http\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use App\Models\IPTVConfig;
+use App\Actions\Config\UpdateConfigAction;
 use App\Helpers\Locale;
+use App\Http\Requests\UpdateConfigRequest;
+use App\Models\IPTVConfig;
+use Illuminate\Http\RedirectResponse;
 
 class ConfigController extends Controller
 {
@@ -16,11 +17,12 @@ class ConfigController extends Controller
      */
     public function config()
     {
-        $data["config_list"] = IPTVConfig::getAllBoleanSettings();
+        $data['config_list'] = IPTVConfig::getAllBoleanSettings();
         $data['locales'] = Locale::getList();
-        $data["current_locate"] = IPTVConfig::get('CURRENT_LOCALE', 'br');
-        $data["inputs"] =  IPTVConfig::getAllStringSettings();
-        return view("config", $data);
+        $data['current_locate'] = IPTVConfig::get('CURRENT_LOCALE', 'br');
+        $data['inputs'] = IPTVConfig::getAllStringSettings();
+
+        return view('config', $data);
     }
 
     /**
@@ -28,21 +30,10 @@ class ConfigController extends Controller
      *
      * @return redirect -> show configs
      */
-    public function configSave(Request $request ){
-        $configs = IPTVConfig::getAllBoleanSettings();
-        foreach ($configs as $config) {
-            IPTVConfig::set(
-                $config['name'],
-                $request->boolean($config['name']),
-                'bool'
-            );
-        }
+    public function configSave(UpdateConfigRequest $request): RedirectResponse
+    {
+        UpdateConfigAction::run($request);
 
-        IPTVConfig::set(
-            'CURRENT_LOCALE',
-            $request->input('CURRENT_LOCALE'),
-            'locale'
-        );
         return redirect()->route('config');
     }
 }

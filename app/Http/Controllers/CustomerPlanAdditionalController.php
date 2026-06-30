@@ -2,52 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use App\Models\CustomerPlan;
+use App\Actions\CustomerPlanAdditionals\AddCustomerPlanAdditionalAction;
+use App\Actions\CustomerPlanAdditionals\RemoveCustomerPlanAdditionalAction;
+use App\Http\Requests\CustomerPlanAdditionalRequest;
 use App\Models\Customer;
+use Illuminate\Http\RedirectResponse;
 
 class CustomerPlanAdditionalController extends Controller
 {
+    public function add(CustomerPlanAdditionalRequest $request): RedirectResponse
+    {
+        $customer = Customer::findOrFail($request->customerId());
+        $data = $request->validated();
 
-    public function add($customer_id, Request $request){
+        AddCustomerPlanAdditionalAction::run($customer, (int) $data['iptv_plan_id']);
 
-        $this->validate($request, [
-			'iptv_plan_id' => [
-                'string',
-                'required',
-                Rule::exists('iptv_plans', 'id')->where(function ($query) {
-                    return $query->where('additional', 1);
-                }),
-            ]
-        ]);
-
-
-        $customer = Customer::findOrFail($customer_id);
-        $plan_id  = $request->input('iptv_plan_id');
-
-        $customer->plans_additional()->save( CustomerPlan::findOrFail($plan_id));
-        return redirect()->route('show_customer',['id'=>$customer->id]);
+        return redirect()->route('show_customer', ['id' => $customer->id]);
     }
 
-    public function del($customer_id, Request $request){
-        $this->validate($request, [
-			'iptv_plan_id' => [
-                'string',
-                'required',
-                Rule::exists('iptv_plans', 'id')->where(function ($query) {
-                    return $query->where('additional', 1);
-                }),
-            ]
-        ]);
+    public function del(CustomerPlanAdditionalRequest $request): RedirectResponse
+    {
+        $customer = Customer::findOrFail($request->customerId());
+        $data = $request->validated();
 
-        $customer = Customer::findOrFail($customer_id);
-        $plan_id  = $request->input('iptv_plan_id');
+        RemoveCustomerPlanAdditionalAction::run($customer, (int) $data['iptv_plan_id']);
 
-        $customer->plans_additional()->detach($plan_id);
-        $customer->save();
-
-        return redirect()->route('show_customer',['id'=>$customer->id]);
-
+        return redirect()->route('show_customer', ['id' => $customer->id]);
     }
 }
