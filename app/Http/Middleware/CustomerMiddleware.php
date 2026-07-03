@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Customer;
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CustomerMiddleware
 {
@@ -16,18 +17,13 @@ class CustomerMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $AUTH_USER = 'admin';
-        $AUTH_PASS = 'admin';
-        header('Cache-Control: no-cache, must-revalidate, max-age=0');
-
-        $has_supplied_credentials = ! (
-            empty($_SERVER['PHP_AUTH_USER']) &&
-            empty($_SERVER['PHP_AUTH_PW'])
-        );
+        $username = $request->getUser() ?: $request->query('user');
+        $password = $request->getPassword() ?: $request->query('pass');
+        $has_supplied_credentials = filled($username) && filled($password);
 
         if ($has_supplied_credentials) {
-            $customer = Customer::where('username', $_SERVER['PHP_AUTH_USER'])
-                ->where('hash_acess', $_SERVER['PHP_AUTH_PW'])
+            $customer = Customer::where('username', $username)
+                ->where('hash_acess', $password)
                 ->first();
 
             $request->attributes->set('customer', $customer);
@@ -40,22 +36,19 @@ class CustomerMiddleware
         );
 
         if ($is_not_authenticated) {
-            header('HTTP/1.1 401 Authorization Required');
-            header('WWW-Authenticate: Basic realm="Access denied"');
-            echo 'This operation is unthorizated!';
-            exit();
+            return response('This operation is unauthorized!', Response::HTTP_UNAUTHORIZED)
+                ->header('Cache-Control', 'no-cache, must-revalidate, max-age=0')
+                ->header('WWW-Authenticate', 'Basic realm="Access denied"');
         }
 
         if (! $customer->active) {
-            header('HTTP/1.1 401 CUSTOMER INACTIVE');
-            echo 'This Customer is not Active!';
-            exit();
+            return response('This Customer is not Active!', Response::HTTP_UNAUTHORIZED)
+                ->header('Cache-Control', 'no-cache, must-revalidate, max-age=0');
         }
 
         if ($customer->defeated) {
-            header('HTTP/1.1 401 CUSTOMER INVOCE DEFEATED');
-            echo 'This Customer is defeated!';
-            exit();
+            return response('This Customer is defeated!', Response::HTTP_UNAUTHORIZED)
+                ->header('Cache-Control', 'no-cache, must-revalidate, max-age=0');
         }
 
         return $next($request);

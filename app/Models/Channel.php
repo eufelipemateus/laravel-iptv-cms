@@ -1,16 +1,16 @@
 <?php
 
-namespace  App\Models;
+namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-use App\Models\IPTVCdn;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-
 class Channel extends Model
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -24,7 +24,7 @@ class Channel extends Model
         'radio',
     ];
 
-    protected $table = "iptv_channels";
+    protected $table = 'iptv_channels';
 
     /**
      * Get the group that this channel.
@@ -51,7 +51,7 @@ class Channel extends Model
                 'iptv_channels.name',
                 'iptv_channels.logo',
                 'iptv_channels.radio',
-                DB::raw("iptv_channel_groups.name as group_name"),
+                DB::raw('iptv_channel_groups.name as group_name'),
                 'iptv_urls.url_stream'
             )
             ->where('iptv_cdns.slug', $cdn_slug)
@@ -77,24 +77,29 @@ class Channel extends Model
      */
     public function scopeGetList($query)
     {
-        return $query->orderBy("radio")->orderBy('number')->get();
+        return $query->orderBy('radio')->orderBy('number')->get();
     }
 
     public function setLogoAttribute($image)
     {
+        if ($image === null || is_string($image)) {
+            $this->attributes['logo'] = $image;
+
+            return;
+        }
+
         $extension = $image->guessExtension() ?: $image->getClientOriginalExtension();
-        $nameLogo = Str::random(40) . '.' . strtolower($extension);
-        $path = "logos/";
-        $destinationPath = public_path('/' . $path);
+        $nameLogo = Str::random(40).'.'.strtolower($extension);
+        $path = 'logos/';
+        $destinationPath = public_path('/'.$path);
 
         if (! is_dir($destinationPath)) {
             mkdir($destinationPath, 0755, true);
         }
 
         $image->move($destinationPath, $nameLogo);
-        $this->attributes['logo'] =  $path . $nameLogo;
+        $this->attributes['logo'] = $path.$nameLogo;
     }
-
 
     /**
      * get list fucntion
@@ -107,7 +112,7 @@ class Channel extends Model
         $planQuery = DB::table('iptv_cdns')
             ->join('iptv_urls', 'iptv_urls.iptv_cdn_id', '=', 'iptv_cdns.id')
             ->join('iptv_channels', 'iptv_channels.id', '=', 'iptv_urls.iptv_channel_id')
-            ->join('iptv_channel_groups',   'iptv_channels.group_id', '=',  'iptv_channel_groups.id',)
+            ->join('iptv_channel_groups', 'iptv_channels.group_id', '=', 'iptv_channel_groups.id')
             ->join('iptv_plans', 'iptv_channel_groups.iptv_plan_id', '=', 'iptv_plans.id')
             ->join('iptv_customers', 'iptv_plans.id', '=', 'iptv_customers.iptv_plan_id')
             ->select(
@@ -115,7 +120,7 @@ class Channel extends Model
                 'iptv_channels.name',
                 'iptv_channels.logo',
                 'iptv_channels.radio',
-                DB::raw("iptv_channel_groups.name as group_name"),
+                DB::raw('iptv_channel_groups.name as group_name'),
                 'iptv_urls.url_stream'
             )
             ->where('iptv_cdns.slug', $cdn_slug)
@@ -136,7 +141,7 @@ class Channel extends Model
         $planAdditionalQuery = DB::table('iptv_cdns')
             ->join('iptv_urls', 'iptv_urls.iptv_cdn_id', '=', 'iptv_cdns.id')
             ->join('iptv_channels', 'iptv_channels.id', '=', 'iptv_urls.iptv_channel_id')
-            ->join('iptv_channel_groups',   'iptv_channels.group_id', '=',  'iptv_channel_groups.id',)
+            ->join('iptv_channel_groups', 'iptv_channels.group_id', '=', 'iptv_channel_groups.id')
             ->join('iptv_plans', 'iptv_channel_groups.iptv_plan_id', '=', 'iptv_plans.id')
             ->join('iptv_customer_plan_additionals', 'iptv_plans.id', '=', 'iptv_customer_plan_additionals.iptv_plans_id')
             ->select(
@@ -144,7 +149,7 @@ class Channel extends Model
                 'iptv_channels.name',
                 'iptv_channels.logo',
                 'iptv_channels.radio',
-                DB::raw("iptv_channel_groups.name as group_name"),
+                DB::raw('iptv_channel_groups.name as group_name'),
                 'iptv_urls.url_stream'
             )
             ->where('iptv_cdns.slug', $cdn_slug)

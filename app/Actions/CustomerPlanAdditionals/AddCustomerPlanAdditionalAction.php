@@ -12,7 +12,9 @@ class AddCustomerPlanAdditionalAction
 
     public function handle(Customer $customer, int $planId): Customer
     {
-        $customer->plans_additional()->save(CustomerPlan::findOrFail($planId));
+        $plan = CustomerPlan::where('additional', true)->findOrFail($planId);
+
+        $customer->plans_additional()->syncWithoutDetaching([$plan->id]);
 
         return $customer;
     }

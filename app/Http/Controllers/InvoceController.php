@@ -10,6 +10,7 @@ use App\Http\Requests\PayCustomerInvoceRequest;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
 use App\Models\IPTVConfig;
+use App\Services\Invoces\InvoiceCalculator;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVGateway;
 use Illuminate\Http\RedirectResponse;
 
@@ -19,7 +20,7 @@ class InvoceController extends Controller
     public function new($customer_id)
     {
         // $data['CustomerInvoce'] = IPTVCustomerInvoce::where("iptv_customer_id",$customer_id);
-        return view('IPTV::customer_invoce');
+        return view('customer_invoce');
     }
 
     public function create(IPTVCustomerInvoceCreateInvoceRequest $request): RedirectResponse
@@ -40,61 +41,8 @@ class InvoceController extends Controller
         }
         $data['ConfigData'] = IPTVConfig::getAllStringSettings();
 
-        $data['subtotal'] = 0;
-        $data['totalDiscount'] = 0;
-        $data['total'] = 0;
-        $data['totalTax'] = 0;
-        $data['final'] = 0;
-
         $customer = Customer::findOrFail($request->customerId());
-        $index = 0;
-        $services[$index]['service'] = $customer->plan->name;
-        $services[$index]['service_type'] = 'Principal';
-        $services[$index]['price'] = $customer->plan->price;
-        $services[$index]['discont'] = 0;
-        $services[$index]['tax'] = ($services[$index]['price'] - $services[$index]['discont']) * (((isset($customer->plan->tax_vat->porcent)) ? $customer->plan->tax_vat->porcent : 0) / 100);
-        $services[$index]['tax_porcent'] = (isset($customer->plan->tax_vat->porcent)) ? $customer->plan->tax_vat->porcent : 0;
-        $services[$index]['total'] = $services[$index]['price'] + $services[$index]['tax'];
-        $services[$index]['subtotal'] = $services[$index]['price'] - $services[$index]['discont'];
-        $index++;
-
-        foreach ($customer->plans_additional as $plan) {
-            $services[$index]['service'] = $plan->name;
-            $services[$index]['service_type'] = 'Additional';
-            $services[$index]['price'] = $plan->price;
-            $services[$index]['discont'] = 0;
-            $services[$index]['tax'] = ($services[$index]['price'] - $services[$index]['discont']) * (((isset($plan->tax_vat->porcent)) ? $plan->tax_vat->porcent : 0) / 100);
-            $services[$index]['tax_porcent'] = (isset($plan->tax_vat->porcent) && $plan->tax_vat->porcent != null) ? $plan->tax_vat->porcent : 0;
-            $services[$index]['total'] = $services[$index]['price'] + $services[$index]['tax'];
-            $services[$index]['subtotal'] = $services[$index]['price'] - $services[$index]['discont'];
-            $index++;
-        }
-
-        $data['services'] = $services;
-        // Total
-        foreach ($services as $service) {
-            $data['subtotal'] += $service['price'];
-        }
-
-        // Total Discount
-        foreach ($services as $service) {
-            $data['totalDiscount'] += $service['discont'];
-        }
-
-        // Total = Total - Discount
-        foreach ($services as $service) {
-            $data['total'] += $service['price'] - $service['discont'];
-        }
-
-        // Total tax
-        foreach ($services as $service) {
-            $data['totalTax'] += $service['tax'];
-        }
-
-        // Final
-        foreach ($services as $service) {
-            $data['final'] = $data['totalTax'] + $data['total'];
-        }
+        $data = array_merge($data, app(InvoiceCalculator::class)->calculate($customer));
 
         return view('invoce', $data);
     }

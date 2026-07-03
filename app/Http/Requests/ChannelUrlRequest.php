@@ -19,7 +19,7 @@ class ChannelUrlRequest extends FormRequest
         return [
             'iptv_cdn_id' => ['required', 'integer', 'exists:iptv_cdns,id'],
             'iptv_channel_id' => ['required', 'integer', 'exists:iptv_channels,id'],
-            'url_stream' => ['required', 'string'],
+            'url_stream' => ['required', 'string', 'url', 'not_regex:/[\r\n]/'],
         ];
     }
 }

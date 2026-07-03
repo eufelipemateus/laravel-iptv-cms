@@ -2,7 +2,6 @@
 
 namespace App\Actions\CustomerPlanGroups;
 
-use App\Models\ChannelGroup;
 use App\Models\CustomerPlan;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -12,7 +11,8 @@ class RemoveChannelGroupFromCustomerPlanAction
 
     public function handle(CustomerPlan $plan, int $groupId): CustomerPlan
     {
-        $group = ChannelGroup::findOrFail($groupId)->plan()->dissociate();
+        $group = $plan->groups()->whereKey($groupId)->firstOrFail();
+        $group->plan()->dissociate();
         $group->save();
 
         return $plan;

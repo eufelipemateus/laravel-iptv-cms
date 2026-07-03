@@ -3,6 +3,7 @@
 namespace App\Actions\Customers;
 
 use App\Models\Customer;
+use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class UpdateCustomerAction
@@ -15,7 +16,7 @@ class UpdateCustomerAction
     public function handle(Customer $customer, array $data, bool $isActive, bool $regenerateHash): Customer
     {
         if ($regenerateHash) {
-            $customer->update(['hash_acess' => md5((string) now())]);
+            $customer->update(['hash_acess' => Str::random(64)]);
 
             return $customer;
         }
