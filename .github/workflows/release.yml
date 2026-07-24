@@ -203,4 +203,5 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
+          make_latest: false
           body: Automated release for version ${{ steps.version.outputs.version }}.
