@@ -15,20 +15,27 @@ return [
     |
     */
 
-    'paths' => ['public/*','api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['public/*', 'api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => env_csv('CORS_ALLOWED_METHODS', ['GET', 'POST', 'OPTIONS']),
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => env_csv('CORS_ALLOWED_ORIGINS', [env('APP_URL', 'http://localhost')]),
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        'Accept',
+        'Authorization',
+        'Content-Type',
+        'X-CSRF-TOKEN',
+        'X-XSRF-TOKEN',
+        'X-Requested-With',
+    ],
 
     'exposed_headers' => [],
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => filter_var(env('CORS_SUPPORTS_CREDENTIALS', false), FILTER_VALIDATE_BOOLEAN),
 
 ];

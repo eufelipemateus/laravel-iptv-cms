@@ -1,14 +1,17 @@
 <?php
 
-namespace  App\Models;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-
 class ChannelUrl extends Pivot
 {
     use HasFactory;
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
 
     /**
      * The attributes that are mass assignable.
@@ -16,16 +19,15 @@ class ChannelUrl extends Pivot
      * @var array
      */
     protected $fillable = [
-        'url_stream','iptv_cdn_id','iptv_channel_id'
+        'url_stream', 'iptv_cdn_id', 'iptv_channel_id',
     ];
 
-	protected $table = "iptv_urls";
+    protected $table = 'iptv_urls';
 
-     /**
-     * The channels that belong to the user.
+    /**
+    * The channels that belong to the user.
 
     public function channels(){
-        return $this->belongsToMany(IPTVChannel::class)->withPivot('url');
+       return $this->belongsToMany(IPTVChannel::class)->withPivot('url');
     }*/
-
 }
