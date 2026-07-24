@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Customer extends Model
 {
@@ -106,17 +107,19 @@ class Customer extends Model
     public function getDefeatedAttribute()
     {
 
-        $first_day_this_month = date('Y-m-01');
-        $last_day_this_month = date('Y-m-t');
+        $now = Carbon::now();
+        $first_day_this_month = $now->copy()->startOfMonth()->toDateString();
+        $last_day_this_month = $now->copy()->endOfMonth()->toDateString();
 
-        $this_month_deafeted = $this->customer_invoce()->whereBetween('duedate_at', [$first_day_this_month, $last_day_this_month])
-            ->where('payment_at', '=', null)
-            ->where('canceled_at', '=', null)
+        $this_month_deafeted = $this->customer_invoce()
+            ->whereBetween('duedate_at', [$first_day_this_month, $last_day_this_month])
+            ->whereNull('payment_at')
+            ->whereNull('canceled_at')
             ->count();
 
         $before_months = $this->customer_invoce()->where('duedate_at', '<', $first_day_this_month)
-            ->where('payment_at', '=', null)
-            ->where('canceled_at', '=', null)
+            ->whereNull('payment_at')
+            ->whereNull('canceled_at')
             ->count();
 
         if ($this_month_deafeted || $before_months) {
