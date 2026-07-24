@@ -27,7 +27,6 @@ class CustomerMiddleware
                 ->first();
 
             $request->attributes->set('customer', $customer);
-            $request->attributes->set('custormer', $customer);
         }
 
         $is_not_authenticated = (

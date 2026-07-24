@@ -18,7 +18,6 @@ class CustomerMiddlewareTest extends TestCase
         Route::middleware('client')->get('/_testing/client-auth', function (Request $request) {
             return response()->json([
                 'customer_id' => $request->attributes->get('customer')?->id,
-                'legacy_customer_id' => $request->attributes->get('custormer')?->id,
             ]);
         });
     }
@@ -55,7 +54,6 @@ class CustomerMiddlewareTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'customer_id' => $customer->id,
-            'legacy_customer_id' => $customer->id,
         ]);
     }
 

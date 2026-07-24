@@ -36,7 +36,7 @@ class CustomerChannelsM3URequest extends FormRequest
 
     public function customer(): Customer
     {
-        $customer = $this->attributes->get('customer') ?? $this->attributes->get('custormer');
+        $customer = $this->attributes->get('customer');
 
         if (! $customer instanceof Customer) {
             abort(401, 'Customer is not authenticated.');
