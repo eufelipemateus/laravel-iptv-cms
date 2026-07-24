@@ -17,21 +17,25 @@ class CustomerMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $username = $request->getUser() ?: $request->query('user');
-        $password = $request->getPassword() ?: $request->query('pass');
-        $has_supplied_credentials = filled($username) && filled($password);
+        $tokenId = $request->getUser();
+        $tokenSecret = $request->getPassword();
+        $has_supplied_credentials = filled($tokenId) && filled($tokenSecret);
+        $customer = null;
 
         if ($has_supplied_credentials) {
-            $customer = Customer::where('username', $username)
-                ->where('hash_acess', $password)
-                ->first();
+            $candidate = Customer::where('auth_token_id', $tokenId)->first();
+
+            if ($candidate instanceof Customer && $candidate->canUseAuthToken((string) $tokenSecret)) {
+                $candidate->markAuthTokenUsed();
+                $customer = $candidate;
+            }
 
             $request->attributes->set('customer', $customer);
         }
 
         $is_not_authenticated = (
             ! $has_supplied_credentials ||
-            ! isset($customer)
+            ! $customer instanceof Customer
         );
 
         if ($is_not_authenticated) {

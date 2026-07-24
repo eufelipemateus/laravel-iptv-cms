@@ -34,8 +34,8 @@ use App\Models\CustomerPlan;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -141,7 +141,7 @@ class DomainActionsTest extends TestCase
         $this->assertDatabaseMissing('iptv_cdns', ['id' => $cdn->id]);
     }
 
-    public function test_customer_hash_is_cryptographically_shaped_and_regenerates(): void
+    public function test_customer_auth_token_is_securely_hashed_and_regenerates(): void
     {
         Date::setTestNow('2026-06-20 12:00:00');
         $plan = CustomerPlan::factory()->active()->create();
@@ -155,13 +155,21 @@ class DomainActionsTest extends TestCase
             'active' => true,
             'due_day' => 15,
         ]);
-        $oldHash = $customer->hash_acess;
+        $issuedToken = (string) $customer->getRelation('plainAuthToken');
+        [$oldTokenId, $oldSecret] = explode('.', $issuedToken, 2);
+        $oldTokenHash = (string) $customer->auth_token_hash;
 
-        UpdateCustomerAction::run($customer, [], true, true);
+        $this->assertSame($oldTokenId, $customer->auth_token_id);
+        $this->assertTrue(Hash::check($oldSecret, $oldTokenHash));
 
-        $this->assertTrue(Str::length($oldHash) >= 40);
-        $this->assertNotSame(md5((string) Date::now()), $oldHash);
-        $this->assertNotSame($oldHash, $customer->fresh()->hash_acess);
+        $updated = UpdateCustomerAction::run($customer, [], true, true, false);
+        $newToken = (string) $updated->getRelation('plainAuthToken');
+        [$newTokenId, $newSecret] = explode('.', $newToken, 2);
+        $fresh = $customer->fresh();
+
+        $this->assertNotSame($oldTokenId, $newTokenId);
+        $this->assertNotSame($oldTokenHash, (string) $fresh->auth_token_hash);
+        $this->assertTrue(Hash::check($newSecret, (string) $fresh->auth_token_hash));
     }
 
     public function test_additional_plan_action_is_idempotent_and_requires_additional_plan(): void

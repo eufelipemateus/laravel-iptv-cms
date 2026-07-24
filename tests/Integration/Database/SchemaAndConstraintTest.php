@@ -46,6 +46,11 @@ class SchemaAndConstraintTest extends TestCase
             'due_day',
             'email',
             'tax_no',
+            'auth_token_id',
+            'auth_token_hash',
+            'auth_token_last_used_at',
+            'auth_token_expires_at',
+            'auth_token_revoked_at',
         ]));
     }
 

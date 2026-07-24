@@ -32,6 +32,7 @@ class StoreCustomerRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'tax_no' => ['nullable', 'string', 'max:255'],
+            'auth_token_expires_at' => ['nullable', 'date', 'after:now'],
         ];
     }
 }
