@@ -18,6 +18,10 @@ class CustomerChannelsM3UController extends Controller
         $slug = $request->slug();
         $customer = $request->customer();
 
+        if ($customer->cdn?->slug !== $slug) {
+            abort(404);
+        }
+
         $data['list'] = Channel::getCustomerChannelListM3u8($slug, $customer->id);
 
         $response = response()->view('list_M3U', $data, 200);

@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\ChannelCdn;
-use App\Models\CustomerInvoce;
+use Illuminate\Support\Carbon;
 
 class Customer extends Model
 {
     use HasFactory;
-     /**
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -27,22 +27,21 @@ class Customer extends Model
         'address',
         'phone',
         'email',
-        'tax_no'
+        'tax_no',
     ];
 
-    protected $table = "iptv_customers";
+    protected $table = 'iptv_customers';
 
+    public function getPersonalUrlAttribute()
+    {
 
-    public function getPersonalUrlAttribute(){
+        $cdn = ChannelCdn::findOrFail($this->iptv_cdn_id);
 
-        $cdn =  ChannelCdn::findOrFail($this->iptv_cdn_id);
-
-
-        return http_build_url(route("client-playlist",['slug'=>$cdn->slug]),
-            array(
-                "user" => $this->username,
-                "pass" => $this->hash_acess,
-            )
+        return http_build_url(route('client-playlist', ['slug' => $cdn->slug]),
+            [
+                'user' => $this->username,
+                'pass' => $this->hash_acess,
+            ]
         );
 
     }
@@ -60,7 +59,7 @@ class Customer extends Model
      */
     public function plans_additional()
     {
-        return $this->belongsToMany(CustomerPlan::class,'iptv_customer_plan_additionals','iptv_customer_id', 'iptv_plans_id');
+        return $this->belongsToMany(CustomerPlan::class, 'iptv_customer_plan_additionals', 'iptv_customer_id', 'iptv_plans_id');
     }
 
     /**
@@ -68,8 +67,9 @@ class Customer extends Model
      *
      * @return list
      */
-	public function scopeGetList($query){
-        return $query->orderBy("name")->get();
+    public function scopeGetList($query)
+    {
+        return $query->orderBy('name')->get();
     }
 
     /**
@@ -80,51 +80,52 @@ class Customer extends Model
         return $this->belongsTo(ChannelCdn::class, 'iptv_cdn_id');
     }
 
-
     /**
      * Plan Additional List
      */
     public function planAditionalList()
     {
-        $exclude  = $this->plans_additional()->pluck('iptv_plans_id');
+        $exclude = $this->plans_additional()->pluck('iptv_plans_id');
 
         return CustomerPlan::where('active', 1)->where('additional', 1)->whereNotIn('id', $exclude)->get();
     }
 
-
     /*
      * Customer Invoces List
      */
-    public function customer_invoce(){
-        return $this->hasMany(CustomerInvoce::class,  'iptv_customer_id');
+    public function customer_invoce()
+    {
+        return $this->hasMany(CustomerInvoce::class, 'iptv_customer_id');
     }
 
     /**
      * Get  defeated
      *
      * @param  string  $value
-     * @return boolean
+     * @return bool
      */
-    public function getDefeatedAttribute(){
+    public function getDefeatedAttribute()
+    {
 
-        $first_day_this_month = date('Y-m-01');
-        $last_day_this_month  = date('Y-m-t');
+        $now = Carbon::now();
+        $first_day_this_month = $now->copy()->startOfMonth()->toDateString();
+        $last_day_this_month = $now->copy()->endOfMonth()->toDateString();
 
-        $this_month_deafeted =  CustomerInvoce::whereBetween('duedate_at', [$first_day_this_month, $last_day_this_month ])
-        ->where('payment_at','=',null)
-        ->where('canceled_at','=',null)
-        ->count();
+        $this_month_deafeted = $this->customer_invoce()
+            ->whereBetween('duedate_at', [$first_day_this_month, $last_day_this_month])
+            ->whereNull('payment_at')
+            ->whereNull('canceled_at')
+            ->count();
 
-        $before_months = CustomerInvoce::where('duedate_at', '<', $first_day_this_month)
-        ->where('payment_at','=',null)
-        ->where('canceled_at','=',null)
-        ->count();
+        $before_months = $this->customer_invoce()->where('duedate_at', '<', $first_day_this_month)
+            ->whereNull('payment_at')
+            ->whereNull('canceled_at')
+            ->count();
 
-        if($this_month_deafeted || $before_months){
+        if ($this_month_deafeted || $before_months) {
             return true;
         }
 
         return false;
     }
-
 }

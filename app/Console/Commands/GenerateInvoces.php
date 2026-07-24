@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\User;
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Date;
 
 class GenerateInvoces extends Command
 {
@@ -41,15 +40,20 @@ class GenerateInvoces extends Command
      */
     public function handle()
     {
+        $now = Date::now();
+        $this->info(sprintf('Generating invoices for the month %s.', $now->format('m/Y')));
+        $customers = Customer::where('active', 1)->get();
 
-        $this->info( sprintf('Generating invoices for the month %s.', date('m/Y')) );
-        $customers = Customer::where("active",1)->get();
+        foreach ($customers as $customer) {
+            $day = min((int) $customer->due_day, $now->daysInMonth);
+            $due_day_this_month = $now->setDay($day)->toDateString();
 
-        foreach($customers as $customer){
-            $format = sprintf('Y-m-%d', $customer->due_day);
-            $due_day_this_month = date($format);
-            CustomerInvoce::create(['duedate_at'=>$due_day_this_month,'customer_id'=> $customer->id]);
-            $message = sprintf('Generated invoce to %s with due date %s.', $customer->name, $due_day_this_month );
+            CustomerInvoce::firstOrCreate([
+                'iptv_customer_id' => $customer->id,
+                'duedate_at' => $due_day_this_month,
+            ]);
+
+            $message = sprintf('Generated invoce to %s with due date %s.', $customer->name, $due_day_this_month);
             $this->warn($message);
         }
         $this->info('All Invoces generate successfully.');

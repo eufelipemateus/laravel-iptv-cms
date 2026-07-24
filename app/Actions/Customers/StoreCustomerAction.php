@@ -3,6 +3,7 @@
 namespace App\Actions\Customers;
 
 use App\Models\Customer;
+use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class StoreCustomerAction
@@ -14,7 +15,7 @@ class StoreCustomerAction
      */
     public function handle(array $data): Customer
     {
-        $data['hash_acess'] = md5((string) now());
+        $data['hash_acess'] = Str::random(64);
 
         return Customer::create($data);
     }
