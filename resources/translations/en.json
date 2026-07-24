@@ -8,5 +8,8 @@
     "BSINESS_ADDRESS": "Address",
     "BSINESS_PHONE": "Phone",
     "BSINESS_EMAIL": "E-mail",
-    "BSINESS_TAX_NO": "Tax number"
+    "BSINESS_TAX_NO": "Tax number",
+
+    "SHOWROOM_MODE_TITLE": "Showroom Mode",
+    "SHOWROOM_MODE_MESSAGE": "The system is in showroom mode. Data is automatically reset every 12 hours."
 }

@@ -18,7 +18,14 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register() {}
+    public function register()
+    {
+        if (! app()->hasMacro('isStore')) {
+            app()->macro('isStore', function (): bool {
+                return config('app.env') === 'store' || app()->environment('store');
+            });
+        }
+    }
 
     /**
      * Bootstrap any application services.
