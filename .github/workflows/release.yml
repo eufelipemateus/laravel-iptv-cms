@@ -47,11 +47,11 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Generate production environment
+      - name: Generate store environment
         run: |
           cat > .env <<'ENV'
           APP_NAME="IPTV CMS"
-          APP_ENV=production
+          APP_ENV=store
           APP_KEY=${{ secrets.APP_KEY }}
           APP_DEBUG=false
           APP_URL=${{ secrets.APP_URL }}
