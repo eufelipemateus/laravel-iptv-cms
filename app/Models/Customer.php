@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use DateTimeInterface;
 
 class Customer extends Model
 {
@@ -18,7 +21,6 @@ class Customer extends Model
     protected $fillable = [
         'name',
         'username',
-        'hash_acess',
         'iptv_plan_id',
         'iptv_cdn_id',
         'active',
@@ -28,22 +30,73 @@ class Customer extends Model
         'phone',
         'email',
         'tax_no',
+        'auth_token_expires_at',
+    ];
+
+    protected $casts = [
+        'auth_token_last_used_at' => 'datetime',
+        'auth_token_expires_at' => 'datetime',
+        'auth_token_revoked_at' => 'datetime',
     ];
 
     protected $table = 'iptv_customers';
 
     public function getPersonalUrlAttribute()
     {
+        $cdn = $this->cdn()->first();
 
-        $cdn = ChannelCdn::findOrFail($this->iptv_cdn_id);
+        if (! $cdn instanceof ChannelCdn) {
+            return '';
+        }
 
-        return http_build_url(route('client-playlist', ['slug' => $cdn->slug]),
-            [
-                'user' => $this->username,
-                'pass' => $this->hash_acess,
-            ]
-        );
+        return route('client-playlist', ['slug' => $cdn->slug]);
+    }
 
+    public function issueAuthToken(?DateTimeInterface $expiresAt = null): string
+    {
+        $tokenId = (string) Str::ulid();
+        $secret = Str::random(64);
+
+        $this->forceFill([
+            'auth_token_id' => $tokenId,
+            'auth_token_hash' => Hash::make($secret),
+            'auth_token_last_used_at' => null,
+            'auth_token_expires_at' => $expiresAt,
+            'auth_token_revoked_at' => null,
+        ])->save();
+
+        return $tokenId . '.' . $secret;
+    }
+
+    public function revokeAuthToken(): void
+    {
+        $this->forceFill([
+            'auth_token_revoked_at' => now(),
+        ])->save();
+    }
+
+    public function canUseAuthToken(string $secret): bool
+    {
+        if (! is_string($this->auth_token_hash) || $this->auth_token_hash === '') {
+            return false;
+        }
+
+        if ($this->auth_token_revoked_at !== null) {
+            return false;
+        }
+
+        if ($this->auth_token_expires_at !== null && $this->auth_token_expires_at->isPast()) {
+            return false;
+        }
+
+        return Hash::check($secret, $this->auth_token_hash);
+    }
+
+    public function markAuthTokenUsed(?Carbon $usedAt = null): void
+    {
+        $this->forceFill([
+            'auth_token_last_used_at' => $usedAt ?? now(),
+        ])->save();
     }
 
     /**

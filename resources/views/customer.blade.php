@@ -70,6 +70,20 @@
                 </div>
 
                 <div class="card-body">
+
+                    @if(session('auth_token'))
+                        <div class="alert alert-warning" role="alert">
+                            <strong>{{ __('New auth token (shown only once):') }}</strong>
+                            <div style="word-break: break-all;">{{ session('auth_token') }}</div>
+                        </div>
+                    @endif
+
+                    @if(session('auth_token_revoked'))
+                        <div class="alert alert-info" role="alert">
+                            {{ __('Auth token revoked successfully.') }}
+                        </div>
+                    @endif
+
 					<form class="form-horizontal" role="form" method="POST" action="" enctype="multipart/form-data">
 
 						{{ csrf_field() }}
@@ -98,22 +112,22 @@
 							</div>
 						</div>
 
+                        @if(isset($Customer))
                         <div class="form-group">
-							<label for="hash_acess" class="col-md-4 control-label">{{ __('Hash') }}</label>
+                            <label for="auth_token_id" class="col-md-4 control-label">{{ __('Auth Token ID') }}</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input id="hash_acess" type="text" class="form-control" readonly value="@if(isset($Customer->hash_acess)){{ $Customer->hash_acess }}@endif" placeholder="" required autofocus>
-                                    @if ($errors->has('hash_acess'))
-                                        <span class="help-block">
-                                            <strong>{{ $errors->first('hash_acess') }}</strong>
-                                        </span>
-                                    @endif
+                                    <input id="auth_token_id" type="text" class="form-control" readonly value="{{ $Customer->auth_token_id ?? '' }}">
                                 </div>
                                 <div class="col-md-3">
-                                    <button  name="regenerate" value="ok"  class="btn btn-success">{{ __('Regenerate')}}</button>
+                                    <button name="regenerate" value="ok" class="btn btn-success">{{ __('Regenerate Token')}}</button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button name="revoke_token" value="ok" class="btn btn-danger">{{ __('Revoke Token')}}</button>
                                 </div>
                             </div>
-						</div>
+                        </div>
+                        @endif
 
                         <div class="form-group">
 							<label for="industry" class="col-md-4 control-label">{{ __('Industry') }}</label>
@@ -203,6 +217,24 @@
                                 </select>
 							</div>
 						</div>
+
+                        <div class="form-group">
+                            <label for="auth_token_expires_at" class="col-md-4 control-label">{{ __('Auth Token Expires At') }}</label>
+                            <div class="col-md-6">
+                                <input
+                                    id="auth_token_expires_at"
+                                    type="datetime-local"
+                                    class="form-control"
+                                    name="auth_token_expires_at"
+                                    value="@if(isset($Customer) && $Customer->auth_token_expires_at){{ $Customer->auth_token_expires_at->format('Y-m-d\\TH:i') }}@endif"
+                                >
+                                @if ($errors->has('auth_token_expires_at'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('auth_token_expires_at') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
 
                         @if(@$Customer)
                         <div class="form-group">
