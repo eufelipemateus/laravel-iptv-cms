@@ -71,6 +71,16 @@
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
+                    @if (app()->hasMacro('isStore') && app()->isStore())
+                        <div class="card border-left-warning shadow-sm mb-4">
+                            <div class="card-body py-3">
+                                <div class="text-xs text-warning text-uppercase mb-1">{{ __('SHOWROOM_MODE_TITLE') }}</div>
+                                <div class="h6 mb-0 text-gray-800">
+                                    {{ __('SHOWROOM_MODE_MESSAGE') }}
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                     @yield('content')
                 </div>
                 <!-- /.container-fluid -->
