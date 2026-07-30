@@ -28,6 +28,12 @@ return [
                 'value' => 'br',
             ],
             [
+                'name' => 'mode',
+                'rules' => 'required|string|in:m3u8,dtv3',
+                'data' => 'string',
+                'value' => 'm3u8',
+            ],
+            [
                 'name' => 'BSINESS_NAME',
                 'rules' => 'string',
                 'data' => 'string',

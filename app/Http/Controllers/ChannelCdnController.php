@@ -10,19 +10,22 @@ use App\Http\Requests\StoreChannelCdnRequest;
 use App\Http\Requests\UpdateChannelCdnRequest;
 use App\Models\ChannelCdn;
 use App\Models\IPTVConfig;
+use App\Services\OperationModeService;
 use Illuminate\Http\RedirectResponse;
 
 class ChannelCdnController extends Controller
 {
+    public function __construct(private readonly OperationModeService $operationModeService)
+    {
+        // //$this->middleware('auth');
+    }
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
-        // //$this->middleware('auth');
-    }
+    
 
     /**
      * Show new channewl page.
@@ -101,6 +104,7 @@ class ChannelCdnController extends Controller
 
         $data['url_cdn'] = IPTVConfig::get('URL_CDN');
         $data['donwload'] = IPTVConfig::get('DOWNLOAD_FILE');
+        $data['show_m3u8_links'] = $this->operationModeService->isM3u8();
 
         return view('channel_cdn_list', $data);
     }

@@ -12,10 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(App\Http\Middleware\EnsureOperationMode::class);
+
         $middleware->alias([
             'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
             'client' => App\Http\Middleware\CustomerMiddleware::class,
             'public_cdn' => App\Http\Middleware\PublicCdnMiddleware::class,
+            'operation-mode' => App\Http\Middleware\EnsureOperationMode::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

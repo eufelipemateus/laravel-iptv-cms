@@ -2,6 +2,7 @@
 
 namespace Tests\Concerns;
 
+use App\Enums\OperationMode;
 use App\Models\Channel;
 use App\Models\ChannelCdn;
 use App\Models\ChannelGroup;
@@ -9,9 +10,16 @@ use App\Models\ChannelUrl;
 use App\Models\Customer;
 use App\Models\CustomerPlan;
 use App\Models\IPTVConfig;
+use App\Services\OperationModeService;
 
 trait BuildsIptvFixtures
 {
+    protected function setOperationMode(OperationMode $mode): void
+    {
+        IPTVConfig::set('mode', $mode->value, 'string');
+        app(OperationModeService::class)->forgetCachedMode();
+    }
+
     protected function enablePublicCdn(bool|string $value = true): void
     {
         IPTVConfig::set('URL_CDN', $value, 'bool');

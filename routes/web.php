@@ -42,7 +42,7 @@ Route::group(
 #Channel Routes
 Route::group([
     'prefix' => 'public/m3u8',
-    'middleware' => ['api','public_cdn'],
+    'middleware' => ['api', 'operation-mode:m3u8', 'public_cdn'],
 	],
     function(){
         Route::get('/{slug}', [ChannelListM3UController::class, 'show'])->name("cdn-playslit");
@@ -99,7 +99,7 @@ Route::group([
 #IPTV Customers Routes
 Route::group([
     'prefix' => 'client/m3u8',
-    'middleware' => ['api','client'],
+    'middleware' => ['api', 'operation-mode:m3u8', 'client'],
 	],
     function(){
         Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name("client-playlist");

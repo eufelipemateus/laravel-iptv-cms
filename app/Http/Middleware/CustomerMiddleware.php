@@ -3,12 +3,17 @@
 namespace App\Http\Middleware;
 
 use App\Models\Customer;
+use App\Services\OperationModeService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomerMiddleware
 {
+    public function __construct(private readonly OperationModeService $operationModeService)
+    {
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -17,6 +22,10 @@ class CustomerMiddleware
      */
     public function handle($request, Closure $next)
     {
+        if (! $this->operationModeService->isM3u8()) {
+            abort(404);
+        }
+
         $tokenId = $request->getUser();
         $tokenSecret = $request->getPassword();
         $has_supplied_credentials = filled($tokenId) && filled($tokenSecret);

@@ -38,6 +38,7 @@ class IPTVConfigTest extends TestCase
         $this->assertFalse(IPTVConfig::get('BOOLEAN_ZERO'));
         $this->assertSame('fallback', IPTVConfig::get('UNKNOWN_KEY', 'fallback'));
         $this->assertSame('br', IPTVConfig::getDefaultValueForField('CURRENT_LOCALE'));
+        $this->assertSame('m3u8', IPTVConfig::getDefaultValueForField('mode'));
     }
 
     public function test_defined_setting_metadata_is_available(): void

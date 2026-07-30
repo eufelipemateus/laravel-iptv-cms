@@ -11,20 +11,23 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerPlan;
+use App\Services\OperationModeService;
 use FelipeMateus\IPTVGatewayPayment\Models\IPTVGateway;
 use Illuminate\Http\RedirectResponse;
 
 class CustomerController extends Controller
 {
+    public function __construct(private readonly OperationModeService $operationModeService)
+    {
+        // //$this->middleware('auth');
+    }
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
-        // //$this->middleware('auth');
-    }
+    
 
     /**
      * Show new customer page.
@@ -35,6 +38,7 @@ class CustomerController extends Controller
     {
         $data['Planslist'] = CustomerPlan::activePlanList();
         $data['Cdnslist'] = ChannelCdn::all();
+        $data['show_m3u8_features'] = $this->operationModeService->isM3u8();
 
         return view('customer', $data);
     }
@@ -53,6 +57,7 @@ class CustomerController extends Controller
         $data['Cdnslist'] = ChannelCdn::all();
         $data['CustomerPlansAddionalList'] = $data['Customer']->plans_additional()->get();
         $data['CustomerInvoceList'] = $data['Customer']->customer_invoce()->get();
+        $data['show_m3u8_features'] = $this->operationModeService->isM3u8();
         if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVGateway')) {
             $data['GatewaysList'] = IPTVGateway::where('active', 1)->get();
         } else {

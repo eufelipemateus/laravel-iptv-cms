@@ -29,12 +29,12 @@
 								{{ $cdn->name }}
 							</div>
 
-                            @if($url_cdn && !$donwload)
+                            @if($show_m3u8_links && $url_cdn && !$donwload)
                             <div class="col-md-2">
 							    <a href="{{  route('cdn-playslit',$cdn->slug) }}" target="_blank">Playslit</a>
 							</div>
                             @endif
-                            @if ($url_cdn && $donwload)
+                            @if ($show_m3u8_links && $url_cdn && $donwload)
                             <div class="col-md-2">
 							  <a href="{{  route('cdn-playslit',$cdn->slug) }}">Donwload</a>
 							</div>
