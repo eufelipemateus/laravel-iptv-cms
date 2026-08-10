@@ -46,7 +46,10 @@ class IPTVServiceProvider extends IPTVProviderBase
         $this->loadDashFrom(Channels::class);
         $this->loadDashFrom(ChannelGroups::class);
         $this->loadDashFrom(ChannelCdns::class);
-        $this->loadDashFrom(Customers::class);
-        $this->loadDashFrom(CustomerPlans::class);
+
+        if (config('modules.customer.enabled', true)) {
+            $this->loadDashFrom(Customers::class);
+            $this->loadDashFrom(CustomerPlans::class);
+        }
     }
 }
