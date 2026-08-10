@@ -45,7 +45,16 @@ class SsrfGuard
             throw new StreamMonitoringSecurityException('Invalid stream URL for monitoring.');
         }
 
-        $host = strtolower((string) ($parts['host'] ?? ''));
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        $allowedSchemes = array_values(array_unique(array_map(
+            static fn (string $item): string => strtolower(trim($item)),
+            (array) config('stream_security.monitoring.allowed_schemes', config('stream_security.allowed_schemes', ['https', 'http'])),
+        )));
+        if ($scheme === '' || ! in_array($scheme, $allowedSchemes, true)) {
+            throw new StreamMonitoringSecurityException('Protocol is blocked for stream monitoring.');
+        }
+
+        $host = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
         if ($host === '') {
             throw new StreamMonitoringSecurityException('Missing host in stream URL for monitoring.');
         }
@@ -64,6 +73,12 @@ class SsrfGuard
 
         if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
             $this->assertAllowedIp($host);
+        } elseif (filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) === false) {
+            throw new StreamMonitoringSecurityException('Invalid host in stream URL for monitoring.');
+        } else {
+            foreach ($this->resolveHostIps($host) as $resolvedIp) {
+                $this->assertAllowedIp($resolvedIp);
+            }
         }
 
         if (array_key_exists('port', $parts)) {
@@ -93,6 +108,47 @@ class SsrfGuard
                 }
             }
         }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function resolveHostIps(string $host): array
+    {
+        $resolvedIps = [];
+
+        $aRecords = @dns_get_record($host, DNS_A);
+        if (is_array($aRecords)) {
+            foreach ($aRecords as $record) {
+                $ip = (string) ($record['ip'] ?? '');
+                if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+                    $resolvedIps[] = $ip;
+                }
+            }
+        }
+
+        if (defined('DNS_AAAA')) {
+            $aaaaRecords = @dns_get_record($host, DNS_AAAA);
+            if (is_array($aaaaRecords)) {
+                foreach ($aaaaRecords as $record) {
+                    $ip = (string) ($record['ipv6'] ?? '');
+                    if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false) {
+                        $resolvedIps[] = $ip;
+                    }
+                }
+            }
+        }
+
+        $fallbackIpv4 = @gethostbynamel($host);
+        if (is_array($fallbackIpv4)) {
+            foreach ($fallbackIpv4 as $ip) {
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+                    $resolvedIps[] = $ip;
+                }
+            }
+        }
+
+        return array_values(array_unique($resolvedIps));
     }
 
     private function isPublicIp(string $ip): bool
