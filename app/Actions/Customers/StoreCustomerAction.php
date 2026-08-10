@@ -3,7 +3,7 @@
 namespace App\Actions\Customers;
 
 use App\Models\Customer;
-use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class StoreCustomerAction
@@ -15,8 +15,16 @@ class StoreCustomerAction
      */
     public function handle(array $data): Customer
     {
-        $data['hash_acess'] = Str::random(64);
+        $expiresAt = null;
+        if (isset($data['auth_token_expires_at']) && filled($data['auth_token_expires_at'])) {
+            $expiresAt = Carbon::parse((string) $data['auth_token_expires_at']);
+        }
 
-        return Customer::create($data);
+        unset($data['auth_token_expires_at']);
+
+        $customer = Customer::create($data);
+        $customer->setRelation('plainAuthToken', $customer->issueAuthToken($expiresAt));
+
+        return $customer;
     }
 }

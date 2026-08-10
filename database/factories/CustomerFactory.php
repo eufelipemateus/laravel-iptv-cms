@@ -6,6 +6,7 @@ use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerPlan;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class CustomerFactory extends Factory
@@ -14,10 +15,16 @@ class CustomerFactory extends Factory
 
     public function definition(): array
     {
+        $tokenSecret = Str::random(64);
+
         return [
             'name' => $this->faker->name(),
             'username' => $this->faker->unique()->userName(),
-            'hash_acess' => Str::random(64),
+            'auth_token_id' => (string) Str::ulid(),
+            'auth_token_hash' => Hash::make($tokenSecret),
+            'auth_token_last_used_at' => null,
+            'auth_token_expires_at' => null,
+            'auth_token_revoked_at' => null,
             'iptv_plan_id' => CustomerPlan::factory()->active(),
             'iptv_cdn_id' => ChannelCdn::factory(),
             'active' => true,

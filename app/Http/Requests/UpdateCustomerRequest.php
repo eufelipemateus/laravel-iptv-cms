@@ -20,6 +20,13 @@ class UpdateCustomerRequest extends FormRequest
         if ($this->filled('regenerate')) {
             return [
                 'regenerate' => ['required', 'string'],
+                'auth_token_expires_at' => ['nullable', 'date', 'after:now'],
+            ];
+        }
+
+        if ($this->filled('revoke_token')) {
+            return [
+                'revoke_token' => ['required', 'string'],
             ];
         }
 
@@ -44,6 +51,7 @@ class UpdateCustomerRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'tax_no' => ['nullable', 'string', 'max:255'],
             'active' => ['sometimes', 'boolean'],
+            'auth_token_expires_at' => ['nullable', 'date', 'after:now'],
         ];
     }
 }

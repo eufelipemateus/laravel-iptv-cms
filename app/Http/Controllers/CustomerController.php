@@ -71,7 +71,8 @@ class CustomerController extends Controller
     {
         $customer = StoreCustomerAction::run($request->validated());
 
-        return redirect()->route('show_customer', ['id' => $customer->id]);
+        return redirect()->route('show_customer', ['id' => $customer->id])
+            ->with('auth_token', $customer->getRelation('plainAuthToken'));
     }
 
     /**
@@ -89,9 +90,20 @@ class CustomerController extends Controller
             $request->validated(),
             $request->boolean('active'),
             $request->filled('regenerate'),
+            $request->filled('revoke_token'),
         );
 
-        return redirect()->route('show_customer', ['id' => $customer->id]);
+        $redirect = redirect()->route('show_customer', ['id' => $customer->id]);
+
+        if ($request->filled('regenerate')) {
+            return $redirect->with('auth_token', $customer->getRelation('plainAuthToken'));
+        }
+
+        if ($request->filled('revoke_token')) {
+            return $redirect->with('auth_token_revoked', true);
+        }
+
+        return $redirect;
     }
 
     /**

@@ -14,6 +14,17 @@ class PrivatePlaylistTest extends TestCase
     use BuildsIptvFixtures;
     use RefreshDatabase;
 
+    /**
+     * @return array{0: string, 1: string}
+     */
+    protected function tokenCredentialsFor(Customer $customer): array
+    {
+        $token = $customer->issueAuthToken();
+        $parts = explode('.', $token, 2);
+
+        return [$parts[0], $parts[1]];
+    }
+
     public function test_private_playlist_requires_customer_basic_auth_and_returns_authorized_plan_channels(): void
     {
         $cdn = ChannelCdn::factory()->create(['slug' => 'customer-cdn']);
@@ -27,10 +38,11 @@ class PrivatePlaylistTest extends TestCase
 
         $this->makePlayableChannel($cdn, $mainPlan, ['number' => 1, 'name' => 'Main']);
         $this->makePlayableChannel($cdn, $additionalPlan, ['number' => 2, 'name' => 'Extra']);
+        [$tokenId, $tokenSecret] = $this->tokenCredentialsFor($customer);
 
         $this->get(route('client-playlist', ['slug' => $cdn->slug]))->assertUnauthorized();
 
-        $response = $this->withBasicAuth($customer->username, $customer->hash_acess)
+        $response = $this->withBasicAuth($tokenId, $tokenSecret)
             ->get(route('client-playlist', ['slug' => $cdn->slug]));
 
         $response->assertOk();
@@ -44,8 +56,9 @@ class PrivatePlaylistTest extends TestCase
         $customerCdn = ChannelCdn::factory()->create(['slug' => 'customer-cdn']);
         $otherCdn = ChannelCdn::factory()->create(['slug' => 'other-cdn']);
         $customer = Customer::factory()->active()->create(['iptv_cdn_id' => $customerCdn->id]);
+        [$tokenId, $tokenSecret] = $this->tokenCredentialsFor($customer);
 
-        $this->withBasicAuth($customer->username, $customer->hash_acess)
+        $this->withBasicAuth($tokenId, $tokenSecret)
             ->get(route('client-playlist', ['slug' => $otherCdn->slug]))
             ->assertNotFound();
     }

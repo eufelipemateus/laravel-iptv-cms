@@ -60,6 +60,10 @@ class FormRequestValidationTest extends TestCase
         $cdn = ChannelCdn::factory()->create();
         $channel = Channel::factory()->create();
 
+        config()->set('stream_security.allowed_schemes', ['https', 'http']);
+        config()->set('stream_security.allowed_ports', [80, 443]);
+        config()->set('stream_security.max_url_length', 120);
+
         $this->from(route('show_channel', ['id' => $channel->id]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
@@ -75,6 +79,80 @@ class FormRequestValidationTest extends TestCase
                 'url_stream' => 'not a url',
             ])
             ->assertSessionHasErrors(['url_stream']);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => 'ftp://example.test/live.m3u8',
+            ])
+            ->assertSessionHasErrors(['url_stream']);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => 'https://localhost/live.m3u8',
+            ])
+            ->assertSessionHasErrors(['url_stream']);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => 'https://example.test:22/live.m3u8',
+            ])
+            ->assertSessionHasErrors(['url_stream']);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => 'https://192.168.1.10/live.m3u8',
+            ])
+            ->assertSessionHasErrors(['url_stream']);
+
+        $veryLongUrl = 'https://example.test/' . str_repeat('a', 121);
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => $veryLongUrl,
+            ])
+            ->assertSessionHasErrors(['url_stream']);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => "https://example.test/live\x01.m3u8",
+            ])
+            ->assertSessionHasErrors(['url_stream']);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => 'https://example.test/live.m3u8',
+            ])
+            ->assertSessionDoesntHaveErrors(['url_stream']);
+    }
+
+    public function test_channel_url_accepts_configured_rtmp_scheme_when_enabled(): void
+    {
+        $cdn = ChannelCdn::factory()->create();
+        $channel = Channel::factory()->create();
+
+        config()->set('stream_security.allowed_schemes', ['https', 'http', 'rtmp']);
+        config()->set('stream_security.allowed_ports', [80, 443, 1935]);
+
+        $this->from(route('show_channel', ['id' => $channel->id]))
+            ->post(route('create_channel_url'), [
+                'iptv_cdn_id' => $cdn->id,
+                'iptv_channel_id' => $channel->id,
+                'url_stream' => 'rtmp://example.test:1935/live/stream',
+            ])
+            ->assertSessionDoesntHaveErrors(['url_stream']);
     }
 
     public function test_invoice_pay_and_cancel_requests_reject_invoice_from_another_customer(): void

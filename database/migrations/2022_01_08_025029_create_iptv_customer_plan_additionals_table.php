@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('iptv_customer_id')->constrained('iptv_customers');
             $table->foreignId('iptv_plans_id')->constrained('iptv_plans');
-            $table->unique(['iptv_customer_id', 'iptv_plans_id'], 'iptv_cust_plan_add_uq');
+            $table->unique(['iptv_customer_id', 'iptv_plans_id']);
         });
     }
 
