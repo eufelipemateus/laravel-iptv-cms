@@ -36,7 +36,8 @@
         ]
     },
     {
-        "title": "Videos VOD",
+        "title": "VOD",
+        "enabled_when": "modules.vod.enabled",
         "menus": [
             {
                 "name": "Videos",
