@@ -43,5 +43,16 @@
                 "route": "list_customer_plan"
             }
         ]
+    },
+
+    {
+        "title": "Videos VOD",
+        "menus": [
+            {
+                "name": "Videos",
+                "icon": "film",
+                "route": "vods.list"
+            }
+        ]
     }
 ]

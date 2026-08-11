@@ -12,6 +12,7 @@ use App\Dashs\ChannelGroups;
 use App\Dashs\ChannelCdns;
 use App\Dashs\Customers;
 use App\Dashs\CustomerPlans;
+use App\Dashs\Vods;
 
 class IPTVServiceProvider extends IPTVProviderBase
 {
@@ -21,7 +22,6 @@ class IPTVServiceProvider extends IPTVProviderBase
         $this->loadMenusFrom(base_path('resources/menu'));
         $this->loadJSONTranslationsFrom(base_path('resources/translations'));
         $this->registerDashboard();
-
     }
 
 
@@ -48,5 +48,6 @@ class IPTVServiceProvider extends IPTVProviderBase
         $this->loadDashFrom(ChannelCdns::class);
         $this->loadDashFrom(Customers::class);
         $this->loadDashFrom(CustomerPlans::class);
+        $this->loadDashFrom(Vods::class);
     }
 }

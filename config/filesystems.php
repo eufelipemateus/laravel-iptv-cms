@@ -42,6 +42,12 @@ return [
             'visibility' => 'public',
         ],
 
+        'vod-master' => [
+            'driver' => 'local',
+            'root' => storage_path('app/vod/master'),
+            'visibility' => 'private',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

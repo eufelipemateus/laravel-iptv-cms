@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\VideoVodeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -146,5 +146,40 @@ Route::group([
         });
 
         //Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
+        Route::prefix('vods')->group(
+            function () {
+                Route::get(
+                    'list',
+                    [VideoVodeController::class, 'list']
+                )->name('vods.list');
+                Route::get(
+                    'new',
+                    [VideoVodeController::class, 'new']
+                )->name('vods.new');
+                Route::post(
+                    'new',
+                    [VideoVodeController::class, 'store']
+                )->name('vods.store');
+
+                Route::get(
+                    'edit/{id}',
+                    [VideoVodeController::class, 'edit']
+                )->name('vods.edit');
+
+                Route::post(
+                    'edit/{id}',
+                    [VideoVodeController::class, 'update']
+                )->name('vods.update');
+                Route::get(
+                    'play/{id}',
+                    [VideoVodeController::class, 'stream']
+                )->name('vods.stream');
+                Route::delete(
+                    'delete/{id}',
+                    [VideoVodeController::class, 'delete']
+                )->name('vods.delete');
+
+            }
+        );
     }
 );
