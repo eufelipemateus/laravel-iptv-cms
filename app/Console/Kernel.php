@@ -27,6 +27,10 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
 
         $schedule->command('invoce:month')->monthlyOn(1, '00:00');
+
+        $schedule->command('store:reset-demo-data')
+            ->cron('0 */12 * * *')
+            ->withoutOverlapping();
     }
 
     /**

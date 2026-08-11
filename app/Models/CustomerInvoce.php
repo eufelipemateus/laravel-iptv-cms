@@ -9,7 +9,7 @@ class CustomerInvoce extends Model
 {
     use HasFactory;
 
-    protected $table = "iptv_customer_invoces";
+    protected $table = 'iptv_customer_invoces';
 
     /**
      * Indicates if the model should be timestamped.
@@ -17,26 +17,27 @@ class CustomerInvoce extends Model
      * @var bool
      */
     public $timestamps = false;
-     /**
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'iptv_customer_id', 'duedate_at', 'payment_at','canceled_at'
+        'iptv_customer_id', 'duedate_at', 'payment_at', 'canceled_at',
     ];
 
-     /**
+    /**
      * Get is payed
      *
      * @param  string  $value
-     * @return boolean
+     * @return bool
      */
     public function getIsPayedAttribute($value)
     {
-        if($this->payment_at){
+        if ($this->payment_at) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -45,25 +46,29 @@ class CustomerInvoce extends Model
      * Get is canceled
      *
      * @param  string  $value
-     * @return boolean
+     * @return bool
      */
     public function getIsCanceledAttribute($value)
     {
-        if($this->canceled_at){
+        if ($this->canceled_at) {
             return true;
-        }else{
+        } else {
             return false;
         }
+    }
+
+    public function getDueDateAttribute(): int
+    {
+        return strtotime((string) $this->duedate_at);
     }
 
     /**
      * customer do invoce
      *
-     *  @return realation
-     *
-    */
-    public function customer(){
+     * @return realation
+     */
+    public function customer()
+    {
         return $this->belongsTo('App\Models\Customer', 'iptv_customer_id');
     }
-
 }

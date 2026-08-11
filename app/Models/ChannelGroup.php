@@ -1,22 +1,24 @@
 <?php
 
-namespace  App\Models;
+namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\CustomerPlan;
 
 class ChannelGroup extends Model
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name'
+        'name',
     ];
 
-	protected $table = "iptv_channel_groups";
+    protected $table = 'iptv_channel_groups';
 
     /**
      * Get the channels for the group.
@@ -26,8 +28,8 @@ class ChannelGroup extends Model
         return $this->hasMany('App\Models\Channel');
     }
 
-
-    public function plan(){
-        return $this->belongsTo(CustomerPlan::class,'iptv_plan_id');
+    public function plan()
+    {
+        return $this->belongsTo(CustomerPlan::class, 'iptv_plan_id');
     }
 }

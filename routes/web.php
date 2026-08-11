@@ -30,7 +30,7 @@ use App\Http\Controllers\InvoceController;
 Route::redirect('/', '/dashboard');
 Route::group(
     [
-        'middleware' => ['web', 'iptv_locale'],
+        'middleware' => ['web', 'iptv_locale', 'throttle:web'],
     ],
     function () {
         Route::get('dashboard', [DashboardController::class, 'view'])->name('dashboard');
@@ -49,7 +49,7 @@ Route::group([
     });
 
 Route::group([
-    'middleware' => ['web', 'iptv_locale'],
+    'middleware' => ['web', 'iptv_locale', 'throttle:web'],
 	],
 	function(){
         Route::prefix('channel')->group(function () {
@@ -58,7 +58,7 @@ Route::group([
             Route::post('add', [ChannelController::class, 'create'])->name('create_channel');
             Route::get('/{id}', [ChannelController::class, 'show'])->name('show_channel');
             Route::post('/{id}', [ChannelController::class, 'update'])->name('update_channel');
-            Route::get('/del/{id}', [ChannelController::class, 'delete'])->name('delete_channel');
+            Route::post('/del/{id}', [ChannelController::class, 'delete'])->name('delete_channel');
         });
 
 
@@ -71,7 +71,7 @@ Route::group([
             Route::get('/{id}', [ChannelGroupController::class, 'show'])->name('show_channel_group');
 
             Route::post('/{id}', [ChannelGroupController::class, 'update'])->name('update_channel_group');
-            Route::get('/del/{id}', [ChannelGroupController::class, 'delete'])->name('delete_channel_group');
+            Route::post('/del/{id}', [ChannelGroupController::class, 'delete'])->name('delete_channel_group');
         });
 
 
@@ -85,101 +85,108 @@ Route::group([
             Route::get('/{id}', [ChannelCdnController::class, 'show'])->name('show_channel_cdn');
             Route::post('/{id}', [ChannelCdnController::class, 'update'])->name('update_channel_cdn');
 
-            Route::get('/del/{id}', [ChannelCdnController::class, 'delete'])->name('delete_channel_cdn');
+            Route::post('/del/{id}', [ChannelCdnController::class, 'delete'])->name('delete_channel_cdn');
         });
 
         Route::prefix('url')->group(function () {
             Route::post('/add', [ChannelUrlController::class, 'create'])->name('create_channel_url');
             Route::post('/{id}', [ChannelUrlController::class, 'update'])->name('update_channel_url');
-            Route::get('/del/{id}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
+            Route::post('/del/{id}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
         });
 	});
 
 
 #IPTV Customers Routes
-Route::group([
-    'prefix' => 'client/m3u8',
-    'middleware' => ['api','client'],
-	],
-    function(){
-        Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name("client-playlist");
-    });
+if (config('modules.customer.enabled', true)) {
+    Route::group(
+        [
+        'prefix' => 'client/m3u8',
+        'middleware' => ['api','client'],
+        ],
+        function () {
+            Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name("client-playlist");
+        }
+    );
+}
 
-Route::group([
-    'middleware' => ['web', 'iptv_locale'],
-	],
-	function(){
-        Route::prefix('plan')->group(function () {
-            Route::get('/list', [CustomerPlanController::class, 'list'])->name('list_customer_plan');
+if (config('modules.customer.enabled', true)) {
+    Route::group(
+        [
+        'middleware' => ['web', 'iptv_locale', 'throttle:web'],
+        ],
+        function () {
+            Route::prefix('plan')->group(function () {
+                Route::get('/list', [CustomerPlanController::class, 'list'])->name('list_customer_plan');
 
-            Route::get('/add', [CustomerPlanController::class, 'new'])->name('add_customer_plan');
-            Route::post('/add', [CustomerPlanController::class, 'create'])->name('create_customer_plan');
+                Route::get('/add', [CustomerPlanController::class, 'new'])->name('add_customer_plan');
+                Route::post('/add', [CustomerPlanController::class, 'create'])->name('create_customer_plan');
 
-            Route::get('/{id}', [CustomerPlanController::class, 'show'])->name('show_customer_plan');
-            Route::post('/{id}', [CustomerPlanController::class, 'update'])->name('update_customer_plan');
+                Route::get('/{id}', [CustomerPlanController::class, 'show'])->name('show_customer_plan');
+                Route::post('/{id}', [CustomerPlanController::class, 'update'])->name('update_customer_plan');
 
-            Route::get('/del/{id}', [CustomerPlanController::class, 'delete'])->name('delete_customer_plan');
+                Route::post('/del/{id}', [CustomerPlanController::class, 'delete'])->name('delete_customer_plan');
 
-            Route::post('/{plan_id}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
-            Route::post('/{plan_id}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
-
-        });
-
-
-        Route::prefix('customer')->group(function () {
-            Route::get('list', [CustomerController::class, 'list'])->name('list_customer');
-            Route::get('add', [CustomerController::class, 'new'])->name('add_customer');
-            Route::post('add', [CustomerController::class, 'create'])->name('create_customer');
-            Route::get('/{id}', [CustomerController::class, 'show'])->name('show_customer');
-            Route::post('/{id}', [CustomerController::class, 'update'])->name('update_customer');
-            Route::get('/del/{id}', [CustomerController::class, 'delete'])->name('delete_customer');
-
-            Route::post('/{customer_id}/plan_additional/add', [CustomerPlanAdditionalController::class, 'add'])->name('add_additional');
-            Route::post('/{customer_id}/plan_additional/del', [CustomerPlanAdditionalController::class, 'del'])->name('del_additional');
-
-
-            Route::get('/{customer_id}/invoces/new', [InvoceController::class, 'new'])->name('new_customer_invoce');
-            Route::post('/{customer_id}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
-            Route::post('/{customer_id}/invoces/{id}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
-            Route::post('/{customer_id}/invoces/{id}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
-
-        });
-
-        //Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
-        Route::prefix('vods')->group(
-            function () {
-                Route::get(
-                    'list',
-                    [VideoVodeController::class, 'list']
-                )->name('vods.list');
-                Route::get(
-                    'new',
-                    [VideoVodeController::class, 'new']
-                )->name('vods.new');
-                Route::post(
-                    'new',
-                    [VideoVodeController::class, 'store']
-                )->name('vods.store');
-
-                Route::get(
-                    'edit/{id}',
-                    [VideoVodeController::class, 'edit']
-                )->name('vods.edit');
-
-                Route::post(
-                    'edit/{id}',
-                    [VideoVodeController::class, 'update']
-                )->name('vods.update');
-                Route::get(
-                    'play/{id}',
-                    [VideoVodeController::class, 'stream']
-                )->name('vods.stream');
-                Route::delete(
-                    'delete/{id}',
-                    [VideoVodeController::class, 'delete']
-                )->name('vods.delete');
-
+                Route::post('/{plan_id}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
+                Route::post('/{plan_id}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
             }
         );
-    }
-);
+
+            Route::prefix('customer')->group(function () {
+                Route::get('list', [CustomerController::class, 'list'])->name('list_customer');
+                Route::get('add', [CustomerController::class, 'new'])->name('add_customer');
+                Route::post('add', [CustomerController::class, 'create'])->name('create_customer');
+                Route::get('/{id}', [CustomerController::class, 'show'])->name('show_customer');
+                Route::post('/{id}', [CustomerController::class, 'update'])->name('update_customer');
+                Route::post('/del/{id}', [CustomerController::class, 'delete'])->name('delete_customer');
+
+                Route::post('/{customer_id}/plan_additional/add', [CustomerPlanAdditionalController::class, 'add'])->name('add_additional');
+                Route::post('/{customer_id}/plan_additional/del', [CustomerPlanAdditionalController::class, 'del'])->name('del_additional');
+
+
+                Route::get('/{customer_id}/invoces/new', [InvoceController::class, 'new'])->name('new_customer_invoce');
+                Route::post('/{customer_id}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
+                Route::post('/{customer_id}/invoces/{id}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
+                Route::post('/{customer_id}/invoces/{id}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
+
+            });
+        });
+}
+        //Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
+
+
+if (config('modules.vod.enabled', true)) {
+    Route::prefix('vods')->group(
+        function () {
+            Route::get(
+                'list',
+                [VideoVodeController::class, 'list']
+            )->name('vods.list');
+            Route::get(
+                'new',
+                [VideoVodeController::class, 'new']
+            )->name('vods.new');
+            Route::post(
+                'new',
+                [VideoVodeController::class, 'store']
+            )->name('vods.store');
+
+            Route::get(
+                'edit/{id}',
+                [VideoVodeController::class, 'edit']
+            )->name('vods.edit');
+
+            Route::post(
+                'edit/{id}',
+                [VideoVodeController::class, 'update']
+            )->name('vods.update');
+            Route::get(
+                'play/{id}',
+                [VideoVodeController::class, 'stream']
+            )->name('vods.stream');
+            Route::delete(
+                'delete/{id}',
+                [VideoVodeController::class, 'delete']
+            )->name('vods.delete');
+        }
+    );
+}

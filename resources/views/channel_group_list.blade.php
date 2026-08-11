@@ -24,7 +24,10 @@
 						{{ $group->name }}
 						</div>
 						<div class="col-md-2">
-						  <a href="{{ route('delete_channel_group',$group->id)  }}">{{ __('delete')}}</a>
+                            <form action="{{ route('delete_channel_group', $group->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-link p-0 align-baseline">{{ __('delete')}}</button>
+                            </form>
 						</div>
 						<div class="col-md-2">
 						  <a href="{{ route('show_channel_group',$group->id)  }}">{{ __('edit') }}</a>

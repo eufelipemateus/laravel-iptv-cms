@@ -42,12 +42,19 @@ class IPTVServiceProvider extends IPTVProviderBase
      *
      * @return void
      */
-    private function registerDashboard(){
+    private function registerDashboard() {
         $this->loadDashFrom(Channels::class);
         $this->loadDashFrom(ChannelGroups::class);
         $this->loadDashFrom(ChannelCdns::class);
-        $this->loadDashFrom(Customers::class);
-        $this->loadDashFrom(CustomerPlans::class);
-        $this->loadDashFrom(Vods::class);
+
+
+        if (config('modules.customer.enabled', true)) {
+            $this->loadDashFrom(Customers::class);
+            $this->loadDashFrom(CustomerPlans::class);
+        }
+
+        if (config('modules.vod.enabled', true)) {
+            $this->loadDashFrom(Vods::class);
+        }
     }
 }

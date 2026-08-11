@@ -76,5 +76,8 @@
     "Address": "Endereço",
     "Industry": "Atividade",
     "Tax Number": "CNPJ/CPF",
-    "Phone": "Telefone"
+    "Phone": "Telefone",
+
+    "SHOWROOM_MODE_TITLE": "Modo Mostruario",
+    "SHOWROOM_MODE_MESSAGE": "O sistema esta em modo mostruario. Os dados serao restaurados automaticamente a cada 12 horas."
 }

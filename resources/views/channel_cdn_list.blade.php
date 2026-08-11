@@ -45,7 +45,10 @@
 							</div>
                             @if ($cdn->canDelete())
 							<div class="col-md-2">
-							  <a href="{{  route('delete_channel_cdn',$cdn->id) }}">{{ __('delete')}}</a>
+                                <form action="{{ route('delete_channel_cdn', $cdn->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link p-0 align-baseline">{{ __('delete')}}</button>
+                                </form>
 							</div>
                             @endif
 

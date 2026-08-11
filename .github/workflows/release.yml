@@ -47,11 +47,11 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Generate production environment
+      - name: Generate store environment
         run: |
           cat > .env <<'ENV'
           APP_NAME="IPTV CMS"
-          APP_ENV=production
+          APP_ENV=store
           APP_KEY=${{ secrets.APP_KEY }}
           APP_DEBUG=false
           APP_URL=${{ secrets.APP_URL }}
@@ -102,6 +102,7 @@ jobs:
 
           MIX_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
           MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+          MODULE_CUSTOMER_ENABLED=true
           ENV
 
       - name: Install Composer dependencies
@@ -203,4 +204,5 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
+          make_latest: false
           body: Automated release for version ${{ steps.version.outputs.version }}.

@@ -1,15 +1,5 @@
 [
     {
-        "title": "Settings",
-        "menus": [
-            {
-                "name": "Settings",
-                "icon": "cog",
-                "route": "config"
-            }
-        ]
-    },
-    {
         "title": "Channels",
         "menus": [
             {
@@ -31,6 +21,7 @@
     },
     {
         "title": "Customers",
+        "enabled_when": "modules.customer.enabled",
         "menus": [
             {
                 "name": "Customers",
@@ -44,7 +35,6 @@
             }
         ]
     },
-
     {
         "title": "Videos VOD",
         "menus": [
@@ -52,6 +42,17 @@
                 "name": "Videos",
                 "icon": "film",
                 "route": "vods.list"
+
+            }
+        ]
+    },
+    {
+        "title": "Settings",
+        "menus": [
+            {
+                "name": "Settings",
+                "icon": "cog",
+                "route": "config"
             }
         ]
     }

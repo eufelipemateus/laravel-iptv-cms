@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CustomerChannelsM3URequest;
 use App\Models\Channel;
 use App\Models\IPTVConfig;
 use App\Models\IPTVVodVideo;
