@@ -12,11 +12,19 @@
         margin-top: 1.5rem;
         padding-top: 1.5rem;
     }
+
+    .vod-preview {
+        width: 100%;
+        max-height: 340px;
+        border-radius: .35rem;
+        background: #111827;
+    }
 </style>
 @endsection
 
 @section('content')
 @php($vod = $Vod ?? null)
+@php($isStoreMode = app()->isStore())
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <div>
@@ -74,6 +82,27 @@
             </div>
 
             <div class="vod-form-section">
+                @if($vod && !$isStoreMode)
+                    <div class="form-group">
+                        <label>{{ __('Preview') }}</label>
+
+                        @if($vod->is_playable)
+                            <video id="vod-preview" class="vod-preview" controls preload="metadata">
+                                <source src="{{ route('vods.stream', $vod->id) }}" type="{{ $vod->mime_type ?: 'video/mp4' }}">
+                                {{ __('Your browser does not support video playback.') }}
+                            </video>
+                            <small class="form-text text-muted">
+                                {{ __('Current preview for this video.') }}
+                            </small>
+                        @else
+                            <div id="vod-preview-empty" class="alert alert-light border mb-0">
+                                {{ __('No video available for preview yet.') }}
+                            </div>
+                            <video id="vod-preview" class="vod-preview d-none" controls preload="metadata"></video>
+                        @endif
+                    </div>
+                @endif
+
                 <div class="form-group mb-0">
                     <label for="file">{{ __('Video file') }}</label>
                     <input
@@ -92,6 +121,9 @@
                     @else
                         <small class="form-text text-muted">{{ __('Select the video you want to make available.') }}</small>
                     @endif
+                    @if($vod && !$isStoreMode)
+                        <small class="form-text text-muted">{{ __('When selecting a new file, the preview updates before saving.') }}</small>
+                    @endif
                 </div>
             </div>
 
@@ -103,4 +135,43 @@
         </div>
     </div>
 </form>
+
+<script>
+    (function () {
+        var input = document.getElementById('file');
+        var preview = document.getElementById('vod-preview');
+        var emptyState = document.getElementById('vod-preview-empty');
+        var objectUrl = null;
+
+        if (!input || !preview) {
+            return;
+        }
+
+        input.addEventListener('change', function () {
+            var file = input.files && input.files[0] ? input.files[0] : null;
+
+            if (!file) {
+                return;
+            }
+
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+
+            objectUrl = URL.createObjectURL(file);
+            preview.src = objectUrl;
+            preview.classList.remove('d-none');
+
+            if (emptyState) {
+                emptyState.classList.add('d-none');
+            }
+        });
+
+        window.addEventListener('beforeunload', function () {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        });
+    })();
+</script>
 @endsection
