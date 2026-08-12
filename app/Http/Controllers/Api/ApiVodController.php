@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\VodListResource;
 use App\Models\IPTVVodVideo;
 use App\Services\Vod\VodAssetService;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class ApiVodController extends Controller
 {
