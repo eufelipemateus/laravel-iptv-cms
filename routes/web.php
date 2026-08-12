@@ -98,23 +98,20 @@ Route::group([
 
 #IPTV Customers Routes
 if (config('modules.customer.enabled', true)) {
-    Route::group(
-        [
+    Route::group([
         'prefix' => 'client/m3u8',
         'middleware' => ['api','client'],
-        ],
-        function () {
+	    ],
+        function(){
             Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name("client-playlist");
-        }
-    );
+        });
 }
 
 if (config('modules.customer.enabled', true)) {
-    Route::group(
-        [
+    Route::group([
         'middleware' => ['web', 'iptv_locale', 'throttle:web'],
-        ],
-        function () {
+	    ],
+	    function(){
             Route::prefix('plan')->group(function () {
                 Route::get('/list', [CustomerPlanController::class, 'list'])->name('list_customer_plan');
 
@@ -128,8 +125,9 @@ if (config('modules.customer.enabled', true)) {
 
                 Route::post('/{plan_id}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
                 Route::post('/{plan_id}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
-            }
-        );
+
+            });
+
 
             Route::prefix('customer')->group(function () {
                 Route::get('list', [CustomerController::class, 'list'])->name('list_customer');
@@ -149,44 +147,20 @@ if (config('modules.customer.enabled', true)) {
                 Route::post('/{customer_id}/invoces/{id}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
 
             });
-        });
-}
-        //Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
 
-
-if (config('modules.vod.enabled', true)) {
-    Route::prefix('vods')->group(
-        function () {
-            Route::get(
-                'list',
-                [VideoVodeController::class, 'list']
-            )->name('vods.list');
-            Route::get(
-                'new',
-                [VideoVodeController::class, 'new']
-            )->name('vods.new');
-            Route::post(
-                'new',
-                [VideoVodeController::class, 'store']
-            )->name('vods.store');
-
-            Route::get(
-                'edit/{id}',
-                [VideoVodeController::class, 'edit']
-            )->name('vods.edit');
-
-            Route::post(
-                'edit/{id}',
-                [VideoVodeController::class, 'update']
-            )->name('vods.update');
-            Route::get(
-                'play/{id}',
-                [VideoVodeController::class, 'stream']
-            )->name('vods.stream');
-            Route::delete(
-                'delete/{id}',
-                [VideoVodeController::class, 'delete']
-            )->name('vods.delete');
+            //Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
         }
     );
+}
+
+if (config('modules.vod.enabled', true)) {
+    Route::prefix('vods')->group(function () {
+        Route::get('list', [VideoVodeController::class, 'list'])->name('vods.list');
+        Route::get('new', [VideoVodeController::class, 'new'])->name('vods.new');
+        Route::post('new', [VideoVodeController::class, 'store'])->name('vods.store');
+        Route::get('edit/{id}', [VideoVodeController::class, 'edit'])->name('vods.edit');
+        Route::post('edit/{id}', [VideoVodeController::class, 'update'])->name('vods.update');
+        Route::get('play/{id}', [VideoVodeController::class, 'stream'])->name('vods.stream');
+        Route::delete('delete/{id}', [VideoVodeController::class, 'delete'])->name('vods.delete');
+    });
 }
