@@ -40,8 +40,6 @@ php artisan migrate --seed
 
 ## Extra
 
-- To add new locale compatibility you need contribute to [iptv-core](https://github.com/eufelipemateus/laravel-iptv-core/blob/main/src/Helpes/Locale.php) first.
-
 - [Telegram Group to discussion about sugestion,Feature and etc.](https://t.me/laravel_iptv)
 
 ## License
