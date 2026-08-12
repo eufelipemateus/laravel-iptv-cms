@@ -17,7 +17,7 @@ In your .env file, set:
 
 MODULE_VOD_ENABLED=true
 
-The VOD menu and routes respect this flag. When set to false, the VOD section is hidden.
+When set to false, the menu and dashboard entry are hidden, the VOD web and API routes return 404, and M3U playlists do not query or include VOD entries.
 
 ## 2) Environment variables
 
@@ -76,13 +76,15 @@ With the module enabled:
 
 ## 6) API routes
 
-Available in two versions:
+The public catalog and playback API.
 
 - GET /api/vods
 - GET /api/vods/{id}
 - GET /api/vods/{id}/play
 
 The {id} parameter accepts numeric id, slug, or uuid.
+
+The `per_page` query parameter is limited to values between 1 and 100.
 
 ## 7) File storage flow
 
@@ -101,7 +103,7 @@ When saving a video:
 - mime_type
 - file_size
 
-When replacing a file, the old file is removed before saving the new one.
+When replacing a file, the new file is stored and its metadata is persisted before the old file is removed. If storing or persisting the new file fails, the old file remains active and the new file is removed.
 
 ## 8) Database
 

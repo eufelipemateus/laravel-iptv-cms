@@ -5,7 +5,9 @@ namespace Tests\Feature\Playlists;
 use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerPlan;
+use App\Models\IPTVVodVideo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\BuildsIptvFixtures;
 use Tests\TestCase;
 
@@ -61,5 +63,24 @@ class PrivatePlaylistTest extends TestCase
         $this->withBasicAuth($tokenId, $tokenSecret)
             ->get(route('client-playlist', ['slug' => $otherCdn->slug]))
             ->assertNotFound();
+    }
+
+    public function test_private_playlist_includes_playable_vods_for_the_authenticated_customer(): void
+    {
+        config(['modules.vod.enabled' => true]);
+        Storage::fake('vod-master');
+        $cdn = ChannelCdn::factory()->create(['slug' => 'customer-vod-cdn']);
+        $customer = Customer::factory()->active()->create(['iptv_cdn_id' => $cdn->id]);
+        [$tokenId, $tokenSecret] = $this->tokenCredentialsFor($customer);
+        $vod = IPTVVodVideo::create(['name' => 'Customer movie']);
+        $path = "vod/{$vod->uuid}/movie.mp4";
+        Storage::disk('vod-master')->put($path, 'video');
+        $vod->update(['disk' => 'vod-master', 'path' => $path]);
+
+        $this->withBasicAuth($tokenId, $tokenSecret)
+            ->get(route('client-playlist', ['slug' => $cdn->slug]))
+            ->assertOk()
+            ->assertSee('group-title="VOD",Customer movie', false)
+            ->assertSee(route('api.v1.vods.playback', ['id' => $vod->slug]), false);
     }
 }

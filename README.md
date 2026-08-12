@@ -42,7 +42,7 @@ php artisan migrate --seed
 
 This project includes a simple VOD module for uploading, listing and playing videos through a versioned API.
 
-See [docs/VOD.md](docs/VOD.md) for environment variables, storage disks, queue commands and the media worker contract.
+See [docs/VOD.md](docs/VOD.md) for environment variables, storage disks, and API routes.
 
 ## Extra
 

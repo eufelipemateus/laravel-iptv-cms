@@ -50,6 +50,19 @@ class IPTVVodVideo extends Model
         return $query->whereNotNull('disk')->whereNotNull('path');
     }
 
+    public function scopeWhereIdentifier(Builder $query, string $identifier): Builder
+    {
+        if (ctype_digit($identifier)) {
+            return $query->whereKey($identifier);
+        }
+
+        if (Str::isUuid($identifier)) {
+            return $query->where('uuid', $identifier);
+        }
+
+        return $query->where('slug', $identifier);
+    }
+
     public function getIsPlayableAttribute(): bool
     {
         return (bool) ($this->disk && $this->path);

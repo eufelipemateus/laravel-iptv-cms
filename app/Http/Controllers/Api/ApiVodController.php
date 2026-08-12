@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\VodListResource;
 use App\Models\IPTVVodVideo;
 use App\Services\Vod\VodAssetService;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
 class ApiVodController extends Controller
 {
@@ -18,26 +18,24 @@ class ApiVodController extends Controller
             ->withVideo()
             ->search($request->input('search'))
             ->orderBy('name')
-            ->paginate((int) $request->input('per_page', 15));
+            ->paginate(min(max((int) $request->input('per_page', 15), 1), 100));
 
         return VodListResource::collection($vods);
     }
 
-    public function show($id)
+    public function show(string $id)
     {
-        $vod = IPTVVodVideo::query()
-            ->withVideo()
-            ->where(fn ($query) => $query->where('id', $id)->orWhere('slug', $id)->orWhere('uuid', $id))
+        $vod = IPTVVodVideo::withVideo()
+            ->whereIdentifier($id)
             ->firstOrFail();
 
         return new VodListResource($vod);
     }
 
-    public function playback($id)
+    public function playback(string $id)
     {
-        $vod = IPTVVodVideo::query()
-            ->withVideo()
-            ->where(fn ($query) => $query->where('id', $id)->orWhere('slug', $id)->orWhere('uuid', $id))
+        $vod = IPTVVodVideo::withVideo()
+            ->whereIdentifier($id)
             ->firstOrFail();
 
         return $this->assets->responseFor($vod);

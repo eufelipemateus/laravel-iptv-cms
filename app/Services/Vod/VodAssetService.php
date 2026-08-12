@@ -5,29 +5,44 @@ namespace App\Services\Vod;
 use App\Models\IPTVVodVideo;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 class VodAssetService
 {
     public function store(IPTVVodVideo $vod, UploadedFile $file): IPTVVodVideo
     {
         $disk = config('vod.disk', 'vod-master');
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
-        $path = "vod/{$vod->uuid}/video.{$extension}";
+        $extension = strtolower($file->guessExtension() ?: $file->extension() ?: 'bin');
+        $path = "vod/{$vod->uuid}/video-".Str::uuid().".{$extension}";
+        $oldDisk = $vod->disk;
+        $oldPath = $vod->path;
 
-        if ($vod->disk && $vod->path) {
-            Storage::disk($vod->disk)->delete($vod->path);
+        try {
+            $stored = Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path));
+
+            if (! $stored || ! Storage::disk($disk)->exists($path)) {
+                throw new RuntimeException('Unable to store the VOD asset.');
+            }
+
+            $vod->forceFill([
+                'disk' => $disk,
+                'path' => $path,
+                'original_filename' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+            ])->save();
+        } catch (Throwable $exception) {
+            Storage::disk($disk)->delete($path);
+
+            throw $exception;
         }
 
-        Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path));
-
-        $vod->forceFill([
-            'disk' => $disk,
-            'path' => $path,
-            'original_filename' => $file->getClientOriginalName(),
-            'mime_type' => $file->getMimeType(),
-            'file_size' => $file->getSize(),
-        ])->save();
+        if ($oldDisk && $oldPath) {
+            Storage::disk($oldDisk)->delete($oldPath);
+        }
 
         return $vod;
     }

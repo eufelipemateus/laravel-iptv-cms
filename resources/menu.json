@@ -43,7 +43,6 @@
                 "name": "Videos",
                 "icon": "film",
                 "route": "vods.list"
-
             }
         ]
     },

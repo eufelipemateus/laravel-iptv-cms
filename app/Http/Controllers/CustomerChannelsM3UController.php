@@ -6,7 +6,6 @@ use App\Http\Requests\CustomerChannelsM3URequest;
 use App\Models\Channel;
 use App\Models\IPTVConfig;
 use App\Models\IPTVVodVideo;
-use Illuminate\Http\Request;
 
 class CustomerChannelsM3UController extends Controller
 {
@@ -15,15 +14,19 @@ class CustomerChannelsM3UController extends Controller
      *
      * @return response
      */
-    public function show($slug, Request $request)
+    public function show(CustomerChannelsM3URequest $request)
     {
-        $customer = $request->customer;
+        $slug = $request->slug();
+        $customer = $request->customer();
+
+        if ($customer->cdn?->slug !== $slug) {
+            abort(404);
+        }
 
         $data['list'] = Channel::getCustomerChannelListM3u8($slug, $customer->id);
-        $data['vods'] = IPTVVodVideo::m3u8Ready()
-            ->orderBy('display_order')
-            ->orderBy('name')
-            ->get();
+        $data['vods'] = config('modules.vod.enabled', false)
+            ? IPTVVodVideo::withVideo()->orderBy('name')->get()
+            : [];
 
         $response = response()->view('list_M3U', $data, 200);
         $response->header('Content-Type', 'text/plain; charset=utf-8');
