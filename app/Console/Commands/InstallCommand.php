@@ -52,9 +52,15 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        if (! $this->configureModules()) {
+            return self::FAILURE;
+        }
+
+
         if (! $this->createAdminUser()) {
             return self::FAILURE;
         }
+
 
         if (! $this->switchApplicationEnvironmentToStore()) {
             return self::FAILURE;
@@ -161,7 +167,20 @@ class InstallCommand extends Command
 
     private function askRequired(string $question): string
     {
+        if (! $this->input->isInteractive()) {
+            $this->error('Missing required value in non-interactive mode: ' . $question . '.');
+
+            throw new \RuntimeException('Required input is missing in non-interactive mode.');
+        }
+
+        $maxAttempts = 3;
+        $attempts = 0;
+
         while (true) {
+            if ($attempts >= $maxAttempts) {
+                throw new \RuntimeException('Too many empty attempts while reading: ' . $question . '.');
+            }
+
             $value = trim((string) $this->ask($question));
 
             if ($value !== '') {
@@ -169,6 +188,7 @@ class InstallCommand extends Command
             }
 
             $this->error('This field is required.');
+            $attempts++;
         }
     }
 
@@ -365,5 +385,100 @@ class InstallCommand extends Command
         }
 
         return true;
+    }
+
+    private function configureModules(): bool
+    {
+        $this->info('Configuring modules...');
+        $optionalModules = [
+            'customer' => 'Customer',
+            'vod' => 'VOD',
+        ];
+
+        $defaultModules = [];
+
+        if ((bool) env('MODULE_CUSTOMER_ENABLED', false)) {
+            $defaultModules[] = 'customer';
+        }
+
+        if ((bool) env('MODULE_VOD_ENABLED', false)) {
+            $defaultModules[] = 'vod';
+        }
+
+        $selectedModules = $this->selectOptionalModules($optionalModules, $defaultModules);
+
+        $saved = $this->persistEnvValues([
+            'MODULE_CUSTOMER_ENABLED' => in_array('customer', $selectedModules, true) ? 'true' : 'false',
+            'MODULE_VOD_ENABLED' => in_array('vod', $selectedModules, true) ? 'true' : 'false',
+        ]);
+
+        if (! $saved) {
+            $this->error('Could not save module configuration in .env.');
+
+            return false;
+        }
+
+        $this->info('Module configuration saved successfully.');
+
+        return true;
+    }
+
+    /**
+     * @param  array<string, string>  $optionalModules
+     * @param  array<int, string>  $defaultModules
+     * @return array<int, string>
+     */
+    private function selectOptionalModules(array $optionalModules, array $defaultModules): array
+    {
+        if (! $this->input->isInteractive()) {
+            $this->warn('Non-interactive mode detected. Using current module defaults from .env.');
+
+            return $defaultModules;
+        }
+
+        $presetOptions = [
+            'none' => 'None',
+            'customer' => 'Customer',
+            'vod' => 'VOD',
+            'customer,vod' => 'Customer + VOD',
+        ];
+
+        $defaultPreset = $this->buildModulePresetDefault($defaultModules);
+
+        $selectedPreset = (string) $this->choice(
+            'Select modules to enable (use keyboard arrows and Enter)',
+            $presetOptions,
+            $defaultPreset,
+        );
+
+        return match ($selectedPreset) {
+            'customer' => ['customer'],
+            'vod' => ['vod'],
+            'customer,vod' => ['customer', 'vod'],
+            default => [],
+        };
+    }
+
+    /**
+     * @param  array<int, string>  $defaultModules
+     */
+    private function buildModulePresetDefault(array $defaultModules): string
+    {
+        $hasCustomer = in_array('customer', $defaultModules, true);
+        $hasVod = in_array('vod', $defaultModules, true);
+
+        if ($hasCustomer && $hasVod) {
+            return 'customer,vod';
+        }
+
+        if ($hasCustomer) {
+            return 'customer';
+        }
+
+        if ($hasVod) {
+            return 'vod';
+        }
+
+        return 'none';
     }
 }
