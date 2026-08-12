@@ -48,6 +48,10 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        if (! $this->generateApplicationKey()) {
+            return self::FAILURE;
+        }
+
         if (! $this->runMigrations()) {
             return self::FAILURE;
         }
@@ -296,6 +300,22 @@ class InstallCommand extends Command
 
         if ($exitCode !== self::SUCCESS) {
             $this->error('Failed to run migrations.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function generateApplicationKey(): bool
+    {
+        $this->info('Generating application key...');
+
+        $exitCode = Artisan::call('key:generate', ['--force' => true]);
+        $this->output->write(Artisan::output());
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Failed to generate application key.');
 
             return false;
         }
