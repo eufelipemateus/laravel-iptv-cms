@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(App\Http\Middleware\BlockWhenInstalling::class);
+
         $middleware->alias([
             'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
             'client' => App\Http\Middleware\CustomerMiddleware::class,
