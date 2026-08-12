@@ -15,13 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware('api')->group(function () {
     Route::get('/vods', [ApiVodController::class, 'list'])->name('api.vods.list');
-
     Route::get('/vods/{id}', [ApiVodController::class, 'show'])->name('api.vods.show');
     Route::get('/vods/{id}/play', [ApiVodController::class, 'playback'])->name('api.vods.getVideo');
 
-    Route::prefix('v1')->group(function () {
-        Route::get('/vods', [ApiVodController::class, 'list'])->name('api.v1.vods.list');
-        Route::get('/vods/{id}', [ApiVodController::class, 'show'])->name('api.v1.vods.show');
-        Route::get('/vods/{id}/play', [ApiVodController::class, 'playback'])->name('api.v1.vods.playback');
-    });
 });
