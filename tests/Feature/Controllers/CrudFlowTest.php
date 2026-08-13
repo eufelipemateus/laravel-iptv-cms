@@ -9,6 +9,7 @@ use App\Models\ChannelUrl;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
 use App\Models\CustomerPlan;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
@@ -18,6 +19,12 @@ class CrudFlowTest extends TestCase
     use RefreshDatabase;
 
     protected array $logosToRemove = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+    }
 
     protected function tearDown(): void
     {

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Security;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -9,11 +10,23 @@ class AdminAuthenticationScopeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_administrative_routes_are_currently_public_by_product_scope_decision(): void
+    public function test_administrative_routes_redirect_guests_to_login(): void
     {
-        $this->get(route('dashboard'))->assertOk();
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
+    }
 
-        $this->assertTrue(true, 'Administrative auth is intentionally documented as a known limitation for a later task.');
+    public function test_regular_users_cannot_access_administrative_routes(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => false]))
+            ->get(route('dashboard'))
+            ->assertForbidden();
+    }
+
+    public function test_administrators_can_access_administrative_routes(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]))
+            ->get(route('dashboard'))
+            ->assertOk();
     }
 
     public function test_framework_api_user_route_requires_sanctum_authentication(): void

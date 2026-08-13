@@ -16,7 +16,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 
-class TestDataSeeder extends Seeder
+class StoreDataSeeder extends Seeder
 {
 
     /**
@@ -28,11 +28,26 @@ class TestDataSeeder extends Seeder
     {
         $channelLogo = $this->readLogoAsBase64DataUri();
 
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@iptv.test'],
+
+        User::updateOrCreate(
+            ['email' => 'common.user@store.test'],
             [
-                'name' => 'Admin Teste',
-                'password' => Hash::make('password'),
+                'name' => 'Common Demo User',
+                'password' => Hash::make(User::STORE_DEMO_PASSWORD),
+                'is_admin' => false,
+                'active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
+
+        User::updateOrCreate(
+            ['email' => User::STORE_DEMO_EMAIL],
+            [
+                'name' => 'Demo Store',
+                'password' => Hash::make(User::STORE_DEMO_PASSWORD),
+                'is_admin' => true,
+                'active' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -259,8 +274,8 @@ class TestDataSeeder extends Seeder
         );
 
         if ($this->command) {
-            $this->command->info('TestDataSeeder executed.');
-            $this->command->line('Admin: ' . $admin->email . ' / password');
+            $this->command->info('StoreDataSeeder executed.');
+            $this->command->line('Demo: ' . User::STORE_DEMO_EMAIL . ' / ' . User::STORE_DEMO_PASSWORD);
         }
     }
 

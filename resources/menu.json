@@ -37,11 +37,18 @@
     },
     {
         "title": "Settings",
+        "enabled_when": "auth.user.is_admin",
+
         "menus": [
             {
                 "name": "Settings",
                 "icon": "cog",
                 "route": "config"
+            },
+            {
+                "name": "Users",
+                "icon": "users",
+                "route": "list_user"
             }
         ]
     }

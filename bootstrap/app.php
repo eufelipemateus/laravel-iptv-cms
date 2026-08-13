@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
             'client' => App\Http\Middleware\CustomerMiddleware::class,
             'public_cdn' => App\Http\Middleware\PublicCdnMiddleware::class,
+            'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

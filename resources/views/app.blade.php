@@ -65,7 +65,11 @@
 
                 <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
+                    <ul class="navbar-nav ml-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link text-primary font-weight-bold" href="{{ route('user.profile') }}">{{ auth()->user()->name }}</a></li>
+                        @if(auth()->user()->is_admin)<li class="nav-item"><a class="nav-link text-primary font-weight-bold" href="{{ route('list_user') }}">{{ __('USERS_LIST_TITLE') }}</a></li>@endif
+                        <li class="nav-item"><form method="POST" action="{{ route('logout') }}">@csrf<button class="btn btn-link nav-link text-danger font-weight-bold" type="submit">{{ __('AUTH_LOGOUT') }}</button></form></li>
+                    </ul>
                 </nav>
                 <!-- End of Topbar -->
 

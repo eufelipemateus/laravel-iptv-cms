@@ -7,12 +7,19 @@ use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
 use App\Models\CustomerPlan;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FormRequestValidationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+    }
 
     public function test_customer_creation_rejects_additional_or_inactive_plan_as_primary_and_invalid_email(): void
     {
