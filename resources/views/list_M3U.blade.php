@@ -9,7 +9,7 @@
 @endforeach
 @foreach(($vods ?? []) as $vod)
 @php
-    $playback = route('api.v1.vods.playback', ['id' => $vod->slug ?: $vod->id]);
+    $playback = route('api.vods.playback', ['id' => $vod->slug ?: $vod->id]);
 @endphp
 #EXTINF:-1 tvg-id="vod-{{ $attr($vod->id) }}" tvg-name="{!! $attr($vod->name) !!}" group-title="VOD",{!! $line($vod->name) !!}
 {!! $line($playback) !!}

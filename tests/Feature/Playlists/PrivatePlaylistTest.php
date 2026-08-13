@@ -81,6 +81,6 @@ class PrivatePlaylistTest extends TestCase
             ->get(route('client-playlist', ['slug' => $cdn->slug]))
             ->assertOk()
             ->assertSee('group-title="VOD",Customer movie', false)
-            ->assertSee(route('api.v1.vods.playback', ['id' => $vod->slug]), false);
+            ->assertSee(route('api.vods.playback', ['id' => $vod->slug]), false);
     }
 }

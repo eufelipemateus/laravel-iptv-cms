@@ -112,7 +112,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $veryLongUrl = 'https://example.test/' . str_repeat('a', 121);
+        $veryLongUrl = 'https://example.test/'.str_repeat('a', 121);
         $this->from(route('show_channel', ['id' => $channel->id]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,

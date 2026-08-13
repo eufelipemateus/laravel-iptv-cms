@@ -85,7 +85,7 @@ class PublicPlaylistTest extends TestCase
         $response->assertOk();
         $response->assertSee('Live channel', false);
         $response->assertSee('group-title="VOD",Movie night', false);
-        $response->assertSee(route('api.v1.vods.playback', ['id' => $vod->slug]), false);
+        $response->assertSee(route('api.vods.playback', ['id' => $vod->slug]), false);
 
         config(['modules.vod.enabled' => false]);
 

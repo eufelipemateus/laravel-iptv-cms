@@ -70,12 +70,12 @@ class VodModuleTest extends TestCase
             ->assertJsonMissing(['name' => 'Without video']);
 
         foreach ([$vod->id, $vod->slug, $vod->uuid] as $identifier) {
-            $this->get(route('api.v1.vods.show', ['id' => $identifier]))
+            $this->get(route('api.vods.show', ['id' => $identifier]))
                 ->assertOk()
                 ->assertJsonPath('data.id', $vod->id);
         }
 
-        $this->get(route('api.v1.vods.playback', ['id' => $vod->slug]))
+        $this->get(route('api.vods.playback', ['id' => $vod->slug]))
             ->assertOk()
             ->assertHeader('Content-Type', 'video/mp4');
 
@@ -85,7 +85,7 @@ class VodModuleTest extends TestCase
             'path' => "vod/{$missingFile->uuid}/missing.mp4",
         ]);
 
-        $this->get(route('api.v1.vods.playback', ['id' => $missingFile->id]))->assertNotFound();
+        $this->get(route('api.vods.playback', ['id' => $missingFile->id]))->assertNotFound();
     }
 
     public function test_disabled_module_hides_the_admin_and_api_endpoints(): void
@@ -93,7 +93,7 @@ class VodModuleTest extends TestCase
         config(['modules.vod.enabled' => false]);
 
         $this->get(route('vods.list'))->assertNotFound();
-        $this->get(route('api.v1.vods.list'))->assertNotFound();
+        $this->get(route('api.vods.list'))->assertNotFound();
     }
 
     private function createPlayableVod(string $name): IPTVVodVideo

@@ -15,7 +15,7 @@ class VodListResource extends JsonResource
             'title' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'playback_url' => route('api.v1.vods.playback', ['id' => $this->slug]),
+            'playback_url' => route('api.vods.playback', ['id' => $this->slug]),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
