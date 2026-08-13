@@ -63,7 +63,7 @@ class VodModuleTest extends TestCase
         $vod = $this->createPlayableVod('API movie');
         IPTVVodVideo::create(['name' => 'Without video']);
 
-        $this->get('/api/v1/vods?per_page=999')
+        $this->get(route('api.vods.list', ['per_page' => 999]))
             ->assertOk()
             ->assertJsonPath('meta.per_page', 100)
             ->assertJsonPath('data.0.id', $vod->id)
