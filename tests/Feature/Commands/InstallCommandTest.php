@@ -147,10 +147,10 @@ class InstallCommandTest extends TestCase
         $this->assertTrue($administrator->is_admin);
         $this->assertTrue($administrator->active);
         $this->assertSame('admin@example.com', $administrator->email);
-        $this->assertEnvContains('MODULE_CUSTOMER_ENABLED=true');
-        $this->assertEnvContains('MODULE_VOD_ENABLED=true');
+        $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="true"');
+        $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
         $this->assertEnvContains('APP_KEY='.$applicationKey);
-        $this->assertEnvContains('APP_ENV=store');
+        $this->assertEnvContains('APP_ENV="store"');
     }
 
     public function test_non_interactive_reinstallation_uses_options_and_does_not_duplicate_admin(): void
@@ -183,8 +183,8 @@ class InstallCommandTest extends TestCase
 
         $this->assertSame(1, User::query()->where('is_admin', true)->count());
         $this->assertDatabaseHas('users', ['id' => $administrator->id]);
-        $this->assertEnvContains('MODULE_CUSTOMER_ENABLED=false');
-        $this->assertEnvContains('MODULE_VOD_ENABLED=true');
+        $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="false"');
+        $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
         $this->assertEnvContains('APP_KEY='.$applicationKey);
     }
 

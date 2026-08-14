@@ -3,7 +3,9 @@
 namespace Tests\Unit\Commands;
 
 use App\Console\Commands\InstallCommand;
+use Dotenv\Dotenv;
 use Illuminate\Console\OutputStyle;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use ReflectionProperty;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -18,6 +20,9 @@ class InstallCommandEnvFileTest extends TestCase
 
     private string $envPath;
 
+    /** @var array<string, array{process: string|false, env: mixed, server: mixed}> */
+    private array $originalEnvironment = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -30,19 +35,28 @@ class InstallCommandEnvFileTest extends TestCase
         file_put_contents($this->envPath, "APP_ENV=install\nATOMIC_EXISTING_KEY=value\n");
         chmod($this->envPath, 0640);
         $this->app->setBasePath($this->temporaryDirectory);
+
+        foreach ($this->environmentKeys() as $key) {
+            $this->originalEnvironment[$key] = [
+                'process' => getenv($key),
+                'env' => $_ENV[$key] ?? null,
+                'server' => $_SERVER[$key] ?? null,
+            ];
+        }
     }
 
     protected function tearDown(): void
     {
         $this->app->setBasePath($this->originalBasePath);
-        putenv('ATOMIC_TEST_KEY');
-        putenv('ATOMIC_EXISTING_KEY');
-        unset(
-            $_ENV['ATOMIC_TEST_KEY'],
-            $_ENV['ATOMIC_EXISTING_KEY'],
-            $_SERVER['ATOMIC_TEST_KEY'],
-            $_SERVER['ATOMIC_EXISTING_KEY'],
-        );
+
+        foreach ($this->originalEnvironment as $key => $values) {
+            $values['process'] === false
+                ? putenv($key)
+                : putenv($key.'='.$values['process']);
+
+            $this->restoreEnvironmentValue($_ENV, $key, $values['env']);
+            $this->restoreEnvironmentValue($_SERVER, $key, $values['server']);
+        }
 
         @unlink($this->envPath);
         @rmdir($this->temporaryDirectory);
@@ -61,7 +75,7 @@ class InstallCommandEnvFileTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertSame(
-            "APP_ENV=install\nATOMIC_EXISTING_KEY=updated\n\nATOMIC_TEST_KEY=\"saved value\"",
+            "APP_ENV=install\nATOMIC_EXISTING_KEY=\"updated\"\n\nATOMIC_TEST_KEY=\"saved value\"",
             file_get_contents($this->envPath),
         );
         $this->assertSame(0640, fileperms($this->envPath) & 0777);
@@ -126,6 +140,38 @@ class InstallCommandEnvFileTest extends TestCase
         $this->assertFileDoesNotExist($command->temporaryPath);
     }
 
+    #[DataProvider('dotenvValues')]
+    public function test_special_values_survive_a_dotenv_round_trip(string $key, string $value): void
+    {
+        [$result] = $this->persistEnvValues(new InstallCommand, [$key => $value]);
+
+        $loaded = Dotenv::createArrayBacked($this->temporaryDirectory)->load();
+
+        $this->assertTrue($result);
+        $this->assertArrayHasKey($key, $loaded);
+        $this->assertSame(strlen($value), strlen((string) $loaded[$key]));
+        $this->assertSame(hash('sha256', $value), hash('sha256', (string) $loaded[$key]));
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function dotenvValues(): array
+    {
+        return [
+            'password containing hash' => ['DB_PASSWORD', 'abc#123'],
+            'username containing space' => ['DB_USERNAME', 'abc def'],
+            'database containing double quote' => ['DB_DATABASE', 'abc"123'],
+            'password containing single quote' => ['DB_PASSWORD', "abc'123"],
+            'username containing backslash' => ['DB_USERNAME', 'abc\\123'],
+            'password containing dollar' => ['DB_PASSWORD', 'abc$123'],
+            'database containing equals' => ['DB_DATABASE', 'abc=123'],
+            'password containing spaced hash' => ['DB_PASSWORD', 'abc # 123'],
+            'username containing tab' => ['DB_USERNAME', "abc\t123"],
+            'password containing line feed' => ['DB_PASSWORD', "abc\n123"],
+            'database containing carriage return' => ['DB_DATABASE', "abc\r123"],
+            'password containing combined characters' => ['DB_PASSWORD', "a b#c\"d'e\\f\$g=h\ti\nj"],
+        ];
+    }
+
     /**
      * @param  array<string, string>  $values
      * @return array{bool, string}
@@ -144,5 +190,29 @@ class InstallCommandEnvFileTest extends TestCase
         $method = new ReflectionMethod($command, 'persistEnvValues');
 
         return [$method->invoke($command, $values), $buffer->fetch()];
+    }
+
+    /** @param array<string, mixed> $environment */
+    private function restoreEnvironmentValue(array &$environment, string $key, mixed $value): void
+    {
+        if ($value === null) {
+            unset($environment[$key]);
+
+            return;
+        }
+
+        $environment[$key] = $value;
+    }
+
+    /** @return list<string> */
+    private function environmentKeys(): array
+    {
+        return [
+            'ATOMIC_TEST_KEY',
+            'ATOMIC_EXISTING_KEY',
+            'DB_PASSWORD',
+            'DB_USERNAME',
+            'DB_DATABASE',
+        ];
     }
 }

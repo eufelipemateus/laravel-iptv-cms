@@ -367,7 +367,11 @@ class InstallCommand extends Command
             $replacement = $key.'='.$encodedValue;
 
             if (preg_match($pattern, $envContent) === 1) {
-                $envContent = (string) preg_replace($pattern, $replacement, $envContent);
+                $envContent = (string) preg_replace_callback(
+                    $pattern,
+                    static fn (): string => $replacement,
+                    $envContent,
+                );
             } else {
                 $envContent .= PHP_EOL.$replacement;
             }
@@ -434,15 +438,16 @@ class InstallCommand extends Command
 
     private function encodeEnvValue(string $value): string
     {
-        if ($value === '') {
-            return '""';
-        }
-
-        if (preg_match('/\s|#|"|\'/', $value) === 1) {
-            return '"'.addslashes($value).'"';
-        }
-
-        return $value;
+        return '"'.strtr($value, [
+            '\\' => '\\\\',
+            '"' => '\\"',
+            '$' => '\\$',
+            "\n" => '\\n',
+            "\r" => '\\r',
+            "\t" => '\\t',
+            "\f" => '\\f',
+            "\v" => '\\v',
+        ]).'"';
     }
 
     private function runMigrations(): bool
