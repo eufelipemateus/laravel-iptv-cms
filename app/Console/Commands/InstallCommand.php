@@ -380,6 +380,12 @@ class InstallCommand extends Command
 
     private function createAdminUser(): bool
     {
+        if (User::query()->where('is_admin', true)->exists()) {
+            $this->info('Administrator user already configured.');
+
+            return true;
+        }
+
         $name = $this->askRequired('Administrator name');
 
         $email = $this->askAdminEmail();

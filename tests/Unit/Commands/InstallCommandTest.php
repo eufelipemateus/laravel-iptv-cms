@@ -3,7 +3,9 @@
 namespace Tests\Unit\Commands;
 
 use App\Console\Commands\InstallCommand;
+use App\Models\User;
 use Illuminate\Console\OutputStyle;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -13,6 +15,8 @@ use Tests\TestCase;
 
 class InstallCommandTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_it_preserves_an_existing_valid_application_key(): void
     {
         config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
@@ -56,10 +60,49 @@ class InstallCommandTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_migrations_remain_safe_to_resume_with_force(): void
+    {
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('migrate', ['--force' => true])
+            ->andReturn(0);
+        Artisan::shouldReceive('output')->once()->andReturn('Nothing to migrate.');
+
+        [$result] = $this->invokeInstallerStep('runMigrations');
+
+        $this->assertTrue($result);
+    }
+
+    public function test_it_preserves_an_existing_administrator_when_resuming_installation(): void
+    {
+        $administrator = User::factory()->create([
+            'is_admin' => true,
+            'active' => true,
+        ]);
+
+        [$result, $output] = $this->invokeInstallerStep('createAdminUser');
+
+        $this->assertTrue($result);
+        $this->assertStringContainsString('Administrator user already configured.', $output);
+        $this->assertSame(1, User::query()->where('is_admin', true)->count());
+        $this->assertDatabaseHas('users', [
+            'id' => $administrator->id,
+            'email' => $administrator->email,
+        ]);
+    }
+
     /**
      * @return array{bool, string}
      */
     private function generateApplicationKey(): array
+    {
+        return $this->invokeInstallerStep('generateApplicationKey');
+    }
+
+    /**
+     * @return array{bool, string}
+     */
+    private function invokeInstallerStep(string $methodName): array
     {
         $buffer = new BufferedOutput;
         $command = new InstallCommand;
@@ -67,7 +110,7 @@ class InstallCommandTest extends TestCase
         $outputProperty = new ReflectionProperty($command, 'output');
         $outputProperty->setValue($command, new OutputStyle(new ArrayInput([]), $buffer));
 
-        $method = new ReflectionMethod($command, 'generateApplicationKey');
+        $method = new ReflectionMethod($command, $methodName);
         $result = $method->invoke($command);
 
         return [$result, $buffer->fetch()];
