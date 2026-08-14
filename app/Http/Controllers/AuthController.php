@@ -8,6 +8,7 @@ use App\Actions\Users\FindInvitedUserAction;
 use App\Actions\Users\LogoutUserAction;
 use App\Http\Requests\AcceptUserInvitationRequest;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -26,14 +27,16 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => __('AUTH_INVALID_CREDENTIALS')]);
         }
 
-
-
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        if ($request->user()->is_admin) {
+            return redirect()->intended(route('dashboard'));
+        }
+
+        return redirect()->route('user.profile');
     }
 
-    public function destroy(\Illuminate\Http\Request $request)
+    public function destroy(Request $request)
     {
         LogoutUserAction::run($request);
 
@@ -60,6 +63,8 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('status', __('AUTH_INVITATION_ACCEPTED'));
+        $route = $user->is_admin ? 'dashboard' : 'user.profile';
+
+        return redirect()->route($route)->with('status', __('AUTH_INVITATION_ACCEPTED'));
     }
 }
