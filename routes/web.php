@@ -41,7 +41,7 @@ Route::post('logout', [AuthController::class, 'destroy'])->middleware('auth')->n
 
 Route::group(
     [
-        'middleware' => ['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'],
+        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
     ],
     function () {
         Route::get('dashboard', [DashboardController::class, 'view'])->name('dashboard');
@@ -81,7 +81,7 @@ Route::group([
     });
 
 Route::group([
-    'middleware' => ['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'],
+    'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
 ],
     function () {
         Route::prefix('channel')->group(function () {
@@ -137,7 +137,7 @@ if (config('modules.customer.enabled', true)) {
 
 if (config('modules.customer.enabled', true)) {
     Route::group([
-        'middleware' => ['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'],
+        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
     ],
         function () {
             Route::prefix('plan')->group(function () {
@@ -180,7 +180,7 @@ if (config('modules.customer.enabled', true)) {
 }
 
 Route::group([
-    'middleware' => ['web', 'vod.enabled', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'],
+    'middleware' => ['web', 'vod.enabled', 'auth', 'active', 'iptv_locale', 'throttle:web'],
 ], function () {
     Route::prefix('vods')->group(function () {
         Route::get('list', [VideoVodeController::class, 'list'])->name('vods.list');
