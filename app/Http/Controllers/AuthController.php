@@ -29,11 +29,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        if ($request->user()->is_admin) {
-            return redirect()->intended(route('dashboard'));
-        }
-
-        return redirect()->route('user.profile');
+        return redirect()->route('dashboard');
     }
 
     public function destroy(Request $request)
