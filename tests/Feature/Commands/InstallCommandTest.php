@@ -139,6 +139,16 @@ class InstallCommandTest extends TestCase
             ->expectsQuestion('Administrator email', 'ADMIN@example.com')
             ->expectsQuestion('Administrator password', 'a-secure-password')
             ->expectsQuestion('Repeat administrator password', 'a-secure-password')
+            ->expectsChoice(
+                'Select the final application environment',
+                'store',
+                [
+                    'production' => 'Production',
+                    'local' => 'Local',
+                    'store' => 'Store',
+                    'other' => 'Other',
+                ],
+            )
             ->expectsOutput('Installation completed successfully.')
             ->assertSuccessful();
 
@@ -220,6 +230,26 @@ class InstallCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
+    public function test_non_interactive_installation_uses_explicit_final_environment(): void
+    {
+        User::factory()->create(['is_admin' => true, 'active' => true]);
+        $this->expectMigrationAfterDatabaseConfiguration('production');
+
+        $this->artisan('install', [
+            '--no-interaction' => true,
+            '--db-host' => 'localhost',
+            '--db-port' => '3306',
+            '--db-database' => $this->databasePath,
+            '--db-username' => 'installer',
+            '--db-password' => 'database-secret',
+            '--app-env' => 'production',
+        ])
+            ->expectsOutput('Updating APP_ENV to production...')
+            ->assertSuccessful();
+
+        $this->assertEnvContains('APP_ENV="production"');
+    }
+
     public function test_database_connection_exception_details_are_not_written_to_the_terminal(): void
     {
         $exception = new RuntimeException('PDO leaked host=10.0.0.8 database=private username=root');
@@ -288,7 +318,7 @@ class InstallCommandTest extends TestCase
         $this->assertEnvContains('APP_ENV="store"');
     }
 
-    private function expectMigrationAfterDatabaseConfiguration(): void
+    private function expectMigrationAfterDatabaseConfiguration(string $finalEnvironment = 'store'): void
     {
         $this->migrationProbe = (object) ['calls' => 0];
         $probe = $this->migrationProbe;
@@ -309,21 +339,21 @@ class InstallCommandTest extends TestCase
         $getArtisan = new ReflectionMethod($this->app->make(Kernel::class), 'getArtisan');
         $getArtisan->invoke($this->app->make(Kernel::class))->add($migrationCommand);
 
-        $this->expectCacheClearAfterEnvPersistence();
+        $this->expectCacheClearAfterEnvPersistence(finalEnvironment: $finalEnvironment);
     }
 
-    private function expectCacheClearAfterEnvPersistence(int $exitCode = 0): void
+    private function expectCacheClearAfterEnvPersistence(int $exitCode = 0, string $finalEnvironment = 'store'): void
     {
         $this->cacheClearProbe = (object) ['calls' => 0];
         $probe = $this->cacheClearProbe;
         $envPath = $this->installationDirectory.'/.env';
 
-        $cacheClearCommand = new ClosureCommand('optimize:clear', function () use ($probe, $envPath, $exitCode): int {
+        $cacheClearCommand = new ClosureCommand('optimize:clear', function () use ($probe, $envPath, $exitCode, $finalEnvironment): int {
             $probe->calls++;
             $contents = file_get_contents($envPath);
 
             Assert::assertIsString($contents);
-            Assert::assertStringContainsString('APP_ENV="store"'.PHP_EOL, $contents);
+            Assert::assertStringContainsString('APP_ENV="'.$finalEnvironment.'"'.PHP_EOL, $contents);
 
             return $exitCode;
         });

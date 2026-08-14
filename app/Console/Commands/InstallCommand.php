@@ -30,6 +30,7 @@ class InstallCommand extends Command
         {--admin-name= : Administrator name}
         {--admin-email= : Administrator email}
         {--admin-password= : Administrator password}
+        {--app-env= : Final application environment}
         {--enable-customer : Enable the customer module}
         {--disable-customer : Disable the customer module}
         {--enable-vod : Enable the VOD module}
@@ -87,7 +88,7 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        if (! $this->switchApplicationEnvironmentToStore()) {
+        if (! $this->switchApplicationEnvironment()) {
             return self::FAILURE;
         }
 
@@ -668,12 +669,18 @@ class InstallCommand extends Command
         ])->passes();
     }
 
-    private function switchApplicationEnvironmentToStore(): bool
+    private function switchApplicationEnvironment(): bool
     {
-        $this->info('Updating APP_ENV to store...');
+        $environment = $this->resolveApplicationEnvironment();
+
+        if ($environment === null) {
+            return false;
+        }
+
+        $this->info(sprintf('Updating APP_ENV to %s...', $environment));
 
         $updated = $this->persistEnvValues([
-            'APP_ENV' => 'store',
+            'APP_ENV' => $environment,
         ]);
 
         if (! $updated) {
@@ -683,6 +690,50 @@ class InstallCommand extends Command
         }
 
         return true;
+    }
+
+    private function resolveApplicationEnvironment(): ?string
+    {
+        if (! $this->input->isInteractive()) {
+            $environment = trim((string) ($this->option('app-env') ?: 'store'));
+
+            if ($environment === '') {
+                $this->error('The final application environment cannot be empty.');
+
+                return null;
+            }
+
+            return $environment;
+        }
+
+        $environment = (string) $this->choice(
+            'Select the final application environment',
+            [
+                'production' => 'Production',
+                'local' => 'Local',
+                'store' => 'Store',
+                'other' => 'Other',
+            ],
+            'store',
+        );
+
+        if ($environment !== 'other') {
+            return $environment;
+        }
+
+        return (string) $this->ask(
+            'Enter the final application environment',
+            null,
+            function (?string $value): string {
+                $environment = trim((string) $value);
+
+                if ($environment === '') {
+                    throw new \InvalidArgumentException('The final application environment cannot be empty.');
+                }
+
+                return $environment;
+            },
+        );
     }
 
     private function configureModules(): bool
