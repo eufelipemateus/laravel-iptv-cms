@@ -48,6 +48,10 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        if (! $this->applyDatabaseConfiguration($dbConfig)) {
+            return self::FAILURE;
+        }
+
         if (! $this->generateApplicationKey()) {
             return self::FAILURE;
         }
@@ -60,11 +64,9 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-
         if (! $this->createAdminUser()) {
             return self::FAILURE;
         }
-
 
         if (! $this->switchApplicationEnvironmentToStore()) {
             return self::FAILURE;
@@ -118,7 +120,7 @@ class InstallCommand extends Command
                 return $currentConfig;
             }
 
-            $this->warn('Current database connection is invalid: ' . $currentConnectionError);
+            $this->warn('Current database connection is invalid: '.$currentConnectionError);
         } else {
             $this->warn('Database settings are not configured in .env yet.');
         }
@@ -128,7 +130,7 @@ class InstallCommand extends Command
             $connectionError = $this->testDatabaseConnection($dbConfig);
 
             if ($connectionError !== null) {
-                $this->error('Failed to connect to the database: ' . $connectionError);
+                $this->error('Failed to connect to the database: '.$connectionError);
                 $this->warn('Please provide the database credentials again.');
 
                 continue;
@@ -172,7 +174,7 @@ class InstallCommand extends Command
     private function askRequired(string $question): string
     {
         if (! $this->input->isInteractive()) {
-            $this->error('Missing required value in non-interactive mode: ' . $question . '.');
+            $this->error('Missing required value in non-interactive mode: '.$question.'.');
 
             throw new \RuntimeException('Required input is missing in non-interactive mode.');
         }
@@ -182,7 +184,7 @@ class InstallCommand extends Command
 
         while (true) {
             if ($attempts >= $maxAttempts) {
-                throw new \RuntimeException('Too many empty attempts while reading: ' . $question . '.');
+                throw new \RuntimeException('Too many empty attempts while reading: '.$question.'.');
             }
 
             $value = trim((string) $this->ask($question));
@@ -239,6 +241,34 @@ class InstallCommand extends Command
     }
 
     /**
+     * @param  array<string, string>  $dbConfig
+     */
+    private function applyDatabaseConfiguration(array $dbConfig): bool
+    {
+        $connection = (string) config('database.default');
+
+        config([
+            "database.connections.{$connection}.host" => $dbConfig['DB_HOST'],
+            "database.connections.{$connection}.port" => $dbConfig['DB_PORT'],
+            "database.connections.{$connection}.database" => $dbConfig['DB_DATABASE'],
+            "database.connections.{$connection}.username" => $dbConfig['DB_USERNAME'],
+            "database.connections.{$connection}.password" => $dbConfig['DB_PASSWORD'],
+        ]);
+
+        DB::purge($connection);
+
+        try {
+            DB::reconnect($connection)->getPdo();
+
+            return true;
+        } catch (Throwable $exception) {
+            $this->error('Could not apply the database configuration: '.$exception->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
      * @param  array<string, string>  $values
      */
     private function persistEnvValues(array $values): bool
@@ -261,18 +291,18 @@ class InstallCommand extends Command
 
         foreach ($values as $key => $value) {
             $encodedValue = $this->encodeEnvValue($value);
-            $pattern = '/^' . preg_quote($key, '/') . '=.*/m';
-            $replacement = $key . '=' . $encodedValue;
+            $pattern = '/^'.preg_quote($key, '/').'=.*/m';
+            $replacement = $key.'='.$encodedValue;
 
             if (preg_match($pattern, $envContent) === 1) {
                 $envContent = (string) preg_replace($pattern, $replacement, $envContent);
             } else {
-                $envContent .= PHP_EOL . $replacement;
+                $envContent .= PHP_EOL.$replacement;
             }
 
             $_ENV[$key] = $value;
             $_SERVER[$key] = $value;
-            putenv($key . '=' . $value);
+            putenv($key.'='.$value);
         }
 
         return file_put_contents($envPath, $envContent) !== false;
@@ -285,7 +315,7 @@ class InstallCommand extends Command
         }
 
         if (preg_match('/\s|#|"|\'/', $value) === 1) {
-            return '"' . addslashes($value) . '"';
+            return '"'.addslashes($value).'"';
         }
 
         return $value;
@@ -341,7 +371,7 @@ class InstallCommand extends Command
 
             return true;
         } catch (Throwable $exception) {
-            $this->error('Could not create administrator user: ' . $exception->getMessage());
+            $this->error('Could not create administrator user: '.$exception->getMessage());
 
             return false;
         }
