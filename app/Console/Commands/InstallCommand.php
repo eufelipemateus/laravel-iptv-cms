@@ -16,6 +16,11 @@ use Throwable;
 
 class InstallCommand extends Command
 {
+    private ?string $administratorEmail = null;
+
+    /** @var list<string> */
+    private array $enabledModules = [];
+
     /**
      * The name and signature of the console command.
      *
@@ -48,6 +53,8 @@ class InstallCommand extends Command
      */
     public function handle(): int
     {
+        $this->displayInstallerHeader();
+
         if (! app()->environment('install')) {
             $this->error('This command can only be executed when APP_ENV=install.');
 
@@ -58,10 +65,11 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        if (! $this->ensureEnvFileIsWritable()) {
+        if (! $this->checkRequirements()) {
             return self::FAILURE;
         }
 
+        $this->displaySection('Database configuration');
         $dbConfig = $this->resolveDatabaseConfiguration();
 
         if ($dbConfig === null) {
@@ -80,13 +88,19 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        $this->displaySection('Module configuration');
+
         if (! $this->configureModules()) {
             return self::FAILURE;
         }
 
+        $this->displaySection('Administrator configuration');
+
         if (! $this->createAdminUser()) {
             return self::FAILURE;
         }
+
+        $this->displaySection('Application environment');
 
         if (! $this->switchApplicationEnvironment()) {
             return self::FAILURE;
@@ -96,9 +110,107 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info('Installation completed successfully.');
+        $this->displayInstallationSummary();
 
         return self::SUCCESS;
+    }
+
+    private function displayInstallerHeader(): void
+    {
+        $this->newLine();
+        $this->line('┌──────────────────────────────┐');
+        $this->line('│           IPTV CMS           │');
+        $this->line('│          Installer           │');
+        $this->line('└──────────────────────────────┘');
+        $this->newLine();
+        $this->info('Welcome to IPTV CMS!');
+        $this->line('This wizard will configure your installation.');
+        $this->newLine();
+    }
+
+    private function checkRequirements(): bool
+    {
+        $this->line('Checking requirements...');
+        $this->newLine();
+
+        $pdoDrivers = $this->supportedPdoDrivers();
+        $pdoDriverLabel = $pdoDrivers === []
+            ? 'Supported PDO driver'
+            : 'Supported PDO driver: '.implode(', ', $pdoDrivers);
+
+        $requirements = [
+            ['PHP '.PHP_VERSION, version_compare(PHP_VERSION, '8.4.0', '>=')],
+            ['PDO', extension_loaded('pdo')],
+            [$pdoDriverLabel, $pdoDrivers !== []],
+            ['.env writable', $this->isEnvFileWritable()],
+            ['storage writable', is_dir(storage_path()) && is_writable(storage_path())],
+        ];
+        $passed = true;
+
+        foreach ($requirements as [$label, $satisfied]) {
+            $this->line(($satisfied ? '<info>✓</info>' : '<error>✗</error>').' '.$label);
+            $passed = $passed && $satisfied;
+        }
+
+        $this->newLine();
+
+        if (! $passed) {
+            $this->error('Installation requirements are not satisfied. Fix the items above and try again.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /** @return list<string> */
+    private function supportedPdoDrivers(): array
+    {
+        $drivers = [
+            'pdo_mysql' => 'MySQL',
+            'pdo_pgsql' => 'PostgreSQL',
+            'pdo_sqlite' => 'SQLite',
+        ];
+
+        return array_values(array_filter(
+            $drivers,
+            fn (string $name): bool => extension_loaded($name),
+            ARRAY_FILTER_USE_KEY,
+        ));
+    }
+
+    private function isEnvFileWritable(): bool
+    {
+        return file_exists(base_path('.env')) && is_writable(base_path('.env'));
+    }
+
+    private function displaySection(string $title): void
+    {
+        $this->newLine();
+        $this->line($title);
+        $this->line(str_repeat('─', mb_strlen($title)));
+    }
+
+    private function displayInstallationSummary(): void
+    {
+        $this->newLine();
+        $this->info('Installation completed successfully!');
+        $this->newLine();
+        $this->line('Administrator:');
+        $this->line($this->administratorEmail ?? 'Not configured');
+        $this->newLine();
+        $this->line('Enabled modules:');
+
+        if ($this->enabledModules === []) {
+            $this->line('None');
+        } else {
+            foreach ($this->enabledModules as $module) {
+                $this->line('<info>✓</info> '.$module);
+            }
+        }
+
+        $this->newLine();
+        $this->info('Your IPTV CMS is ready.');
     }
 
     private function ensureEnvFileIsWritable(): bool
@@ -283,22 +395,14 @@ class InstallCommand extends Command
     {
         $driver = (string) env('DB_CONNECTION', config('database.default', 'mysql'));
 
-        $temporaryConfig = [
+        $temporaryConfig = array_merge(config("database.connections.{$driver}", []), [
             'driver' => $driver,
             'host' => $dbConfig['DB_HOST'],
             'port' => $dbConfig['DB_PORT'],
             'database' => $dbConfig['DB_DATABASE'],
             'username' => $dbConfig['DB_USERNAME'],
             'password' => $dbConfig['DB_PASSWORD'],
-            'charset' => config('database.connections.mysql.charset', 'utf8mb4'),
-            'collation' => config('database.connections.mysql.collation', 'utf8mb4_unicode_ci'),
-            'prefix' => '',
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                \PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ];
+        ]);
 
         config(['database.connections.install_test' => $temporaryConfig]);
         DB::purge('install_test');
@@ -535,7 +639,10 @@ class InstallCommand extends Command
 
     private function createAdminUser(): bool
     {
-        if (User::query()->where('is_admin', true)->exists()) {
+        $administrator = User::query()->where('is_admin', true)->first();
+
+        if ($administrator !== null) {
+            $this->administratorEmail = $administrator->email;
             $this->info('Administrator user already configured.');
 
             return true;
@@ -555,6 +662,7 @@ class InstallCommand extends Command
                 'email' => $credentials['email'],
                 'password' => $credentials['password'],
             ]);
+            $this->administratorEmail = $credentials['email'];
 
             $this->info('Administrator user created successfully.');
 
@@ -766,6 +874,11 @@ class InstallCommand extends Command
 
             return false;
         }
+
+        $this->enabledModules = array_values(array_map(
+            fn (string $module): string => $optionalModules[$module],
+            $selectedModules,
+        ));
 
         $this->info('Module configuration saved successfully.');
 

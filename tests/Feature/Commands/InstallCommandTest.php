@@ -40,6 +40,7 @@ class InstallCommandTest extends TestCase
         $this->databasePath = $this->installationDirectory.'/database.sqlite';
 
         mkdir($this->installationDirectory, 0700, true);
+        mkdir($this->installationDirectory.'/storage', 0700, true);
         touch($this->databasePath);
 
         foreach ($this->environmentKeys() as $key) {
@@ -94,6 +95,7 @@ class InstallCommandTest extends TestCase
 
         @unlink($this->installationDirectory.'/.env');
         @unlink($this->databasePath);
+        @rmdir($this->installationDirectory.'/storage');
         @rmdir($this->installationDirectory);
 
         parent::tearDown();
@@ -120,6 +122,14 @@ class InstallCommandTest extends TestCase
         $this->expectMigrationAfterDatabaseConfiguration();
 
         $this->artisan('install')
+            ->expectsOutput('│      Laravel IPTV CMS        │')
+            ->expectsOutput('Welcome to Laravel IPTV CMS!')
+            ->expectsOutput('Checking requirements...')
+            ->expectsOutput('✓ PDO')
+            ->expectsOutputToContain('✓ Supported PDO driver:')
+            ->expectsOutput('✓ .env writable')
+            ->expectsOutput('✓ storage writable')
+            ->expectsOutput('Database configuration')
             ->expectsQuestion('Database host', 'localhost')
             ->expectsQuestion('Database port', '3306')
             ->expectsQuestion('Database name', $this->databasePath)
@@ -149,7 +159,11 @@ class InstallCommandTest extends TestCase
                     'other' => 'Other',
                 ],
             )
-            ->expectsOutput('Installation completed successfully.')
+            ->expectsOutput('Installation completed successfully!')
+            ->expectsOutput('admin@example.com')
+            ->expectsOutput('✓ Customer')
+            ->expectsOutput('✓ VOD')
+            ->expectsOutput('Your IPTV CMS is ready.')
             ->assertSuccessful();
 
         $this->assertSame(1, $this->migrationProbe->calls);
@@ -191,7 +205,7 @@ class InstallCommandTest extends TestCase
             '--enable-vod' => true,
         ])
             ->expectsOutput('Administrator user already configured.')
-            ->expectsOutput('Installation completed successfully.')
+            ->expectsOutput('Installation completed successfully!')
             ->assertSuccessful();
 
         $this->assertSame(1, $this->migrationProbe->calls);
@@ -212,7 +226,7 @@ class InstallCommandTest extends TestCase
         $this->expectMigrationAfterDatabaseConfiguration();
 
         $this->installerWithRequiredOptions()
-            ->expectsOutput('Installation completed successfully.')
+            ->expectsOutput('Installation completed successfully!')
             ->assertSuccessful();
 
         $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="true"');
@@ -311,7 +325,7 @@ class InstallCommandTest extends TestCase
 
         $this->installerWithRequiredOptions()
             ->expectsOutput('Failed to clear application caches.')
-            ->doesntExpectOutput('Installation completed successfully.')
+            ->doesntExpectOutput('Installation completed successfully!')
             ->assertExitCode(1);
 
         $this->assertSame(1, $this->cacheClearProbe->calls);
