@@ -372,12 +372,64 @@ class InstallCommand extends Command
                 $envContent .= PHP_EOL.$replacement;
             }
 
-            $_ENV[$key] = $value;
-            $_SERVER[$key] = $value;
-            putenv($key.'='.$value);
         }
 
-        return file_put_contents($envPath, $envContent) !== false;
+        $tempPath = $this->createEnvTemporaryFile(dirname($envPath));
+
+        if ($tempPath === false) {
+            $this->error('Could not create a temporary .env file.');
+
+            return false;
+        }
+
+        try {
+            $bytesWritten = $this->writeEnvTemporaryFile($tempPath, $envContent);
+
+            if ($bytesWritten === false || $bytesWritten !== strlen($envContent)) {
+                $this->error('Could not write the temporary .env file.');
+
+                return false;
+            }
+
+            $permissions = fileperms($envPath);
+
+            if ($permissions !== false) {
+                @chmod($tempPath, $permissions & 0777);
+            }
+
+            if (! $this->replaceEnvFile($tempPath, $envPath)) {
+                $this->error('Could not replace the .env file.');
+
+                return false;
+            }
+
+            foreach ($values as $key => $value) {
+                $_ENV[$key] = $value;
+                $_SERVER[$key] = $value;
+                putenv($key.'='.$value);
+            }
+
+            return true;
+        } finally {
+            if (file_exists($tempPath)) {
+                @unlink($tempPath);
+            }
+        }
+    }
+
+    protected function createEnvTemporaryFile(string $directory): string|false
+    {
+        return @tempnam($directory, '.env.tmp.');
+    }
+
+    protected function writeEnvTemporaryFile(string $path, string $contents): int|false
+    {
+        return file_put_contents($path, $contents, LOCK_EX);
+    }
+
+    protected function replaceEnvFile(string $temporaryPath, string $envPath): bool
+    {
+        return @rename($temporaryPath, $envPath);
     }
 
     private function encodeEnvValue(string $value): string
