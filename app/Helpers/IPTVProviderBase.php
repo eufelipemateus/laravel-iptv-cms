@@ -2,14 +2,15 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\ServiceProvider;
-use App\Facades\Menu;
 use App\Facades\Dashboard;
+use App\Facades\Menu;
+use Illuminate\Support\ServiceProvider;
 
-class IPTVProviderBase extends ServiceProvider {
-
-    protected function loadMenusFrom($path){
-        $json = $path.".json";
+class IPTVProviderBase extends ServiceProvider
+{
+    protected function loadMenusFrom($path)
+    {
+        $json = $path.'.json';
         $menu = json_decode(file_get_contents($json), true);
 
         if (is_array($menu)) {
@@ -25,7 +26,8 @@ class IPTVProviderBase extends ServiceProvider {
         Menu::add($menu);
     }
 
-    protected function loadDashFrom($dash){
+    protected function loadDashFrom($dash)
+    {
         Dashboard::add($dash);
     }
 }
