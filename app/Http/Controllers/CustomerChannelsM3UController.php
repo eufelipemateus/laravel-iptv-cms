@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CustomerChannelsM3URequest;
 use App\Models\Channel;
 use App\Models\IPTVConfig;
+use App\Models\IPTVVodVideo;
 
 class CustomerChannelsM3UController extends Controller
 {
@@ -23,6 +24,9 @@ class CustomerChannelsM3UController extends Controller
         }
 
         $data['list'] = Channel::getCustomerChannelListM3u8($slug, $customer->id);
+        $data['vods'] = config('modules.vod.enabled', false)
+            ? IPTVVodVideo::withVideo()->orderBy('name')->get()
+            : [];
 
         $response = response()->view('list_M3U', $data, 200);
         $response->header('Content-Type', 'text/plain; charset=utf-8');

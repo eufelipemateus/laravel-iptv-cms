@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ChannelListM3URequest;
 use App\Models\Channel;
 use App\Models\IPTVConfig;
+use App\Models\IPTVVodVideo;
 
 class ChannelListM3UController extends Controller
 {
@@ -13,10 +13,12 @@ class ChannelListM3UController extends Controller
      *
      * @return response
      */
-    public function show(ChannelListM3URequest $request)
+    public function show($slug)
     {
-        $slug = $request->slug();
         $data['list'] = Channel::getListM3u8($slug);
+        $data['vods'] = config('modules.vod.enabled', false)
+            ? IPTVVodVideo::withVideo()->orderBy('name')->get()
+            : [];
 
         $response = response()->view('list_M3U', $data, 200);
         $response->header('Content-Type', 'text/plain; charset=utf-8');

@@ -7,12 +7,21 @@ use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
 use App\Models\CustomerPlan;
+use App\Models\IPTVVodVideo;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class FormRequestValidationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+    }
 
     public function test_customer_creation_rejects_additional_or_inactive_plan_as_primary_and_invalid_email(): void
     {
@@ -112,7 +121,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $veryLongUrl = 'https://example.test/' . str_repeat('a', 121);
+        $veryLongUrl = 'https://example.test/'.str_repeat('a', 121);
         $this->from(route('show_channel', ['id' => $channel->id]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
@@ -184,5 +193,35 @@ class FormRequestValidationTest extends TestCase
         $this->post(route('delete_customer_plan', ['id' => 999999]))->assertSessionHasErrors(['id']);
         $this->post(route('delete_customer', ['id' => 999999]))->assertSessionHasErrors(['id']);
         $this->post(route('delete_channel_url', ['id' => 999999]))->assertSessionHasErrors(['id']);
+    }
+
+    public function test_vod_requests_validate_required_file_and_mimetype_constraints(): void
+    {
+        config()->set('modules.vod.enabled', true);
+
+        $this->from(route('vods.new'))
+            ->post(route('vods.store'), [
+                'name' => 'Movie without file',
+                'description' => 'invalid payload',
+            ])
+            ->assertSessionHasErrors(['file']);
+
+        $this->from(route('vods.new'))
+            ->post(route('vods.store'), [
+                'name' => 'Movie with invalid mime',
+                'description' => 'invalid payload',
+                'file' => UploadedFile::fake()->create('invalid.txt', 1, 'text/plain'),
+            ])
+            ->assertSessionHasErrors(['file']);
+
+        $vod = IPTVVodVideo::create(['name' => 'Movie to update']);
+
+        $this->from(route('vods.edit', $vod->id))
+            ->post(route('vods.update', $vod->id), [
+                'name' => 'Updated title',
+                'description' => 'invalid update file',
+                'file' => UploadedFile::fake()->create('invalid.txt', 1, 'text/plain'),
+            ])
+            ->assertSessionHasErrors(['file']);
     }
 }

@@ -2,12 +2,12 @@
 
 use FelipeMateus\IPTVCore\Helpers\DashBase;
 
-class DummyClass extends DashBase {
+class DummyClass extends DashBase
+{
+    public static $title = 'Example Dash';
 
-    public static  $title = "Example Dash";
-
-    public static function view(){
+    public static function view()
+    {
         return parent::view();
     }
-
 }

@@ -3,7 +3,9 @@
 namespace Tests\Feature\Playlists;
 
 use App\Models\ChannelCdn;
+use App\Models\IPTVVodVideo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\BuildsIptvFixtures;
 use Tests\TestCase;
 
@@ -64,5 +66,31 @@ class PublicPlaylistTest extends TestCase
         $response->assertOk();
         $this->assertCount(1, $extinfLines);
         $this->assertSame(3, count($lines));
+    }
+
+    public function test_public_playlist_includes_playable_vods_only_when_enabled(): void
+    {
+        $this->enablePublicCdn();
+        config(['modules.vod.enabled' => true]);
+        Storage::fake('vod-master');
+        $cdn = ChannelCdn::factory()->create(['slug' => 'vod-cdn']);
+        $this->makePlayableChannel($cdn, null, ['name' => 'Live channel']);
+        $vod = IPTVVodVideo::create(['name' => 'Movie night']);
+        $path = "vod/{$vod->uuid}/movie.mp4";
+        Storage::disk('vod-master')->put($path, 'video');
+        $vod->update(['disk' => 'vod-master', 'path' => $path]);
+
+        $response = $this->get(route('cdn-playslit', ['slug' => $cdn->slug]));
+
+        $response->assertOk();
+        $response->assertSee('Live channel', false);
+        $response->assertSee('group-title="VOD",Movie night', false);
+        $response->assertSee(route('api.vods.playback', ['id' => $vod->slug]), false);
+
+        config(['modules.vod.enabled' => false]);
+
+        $this->get(route('cdn-playslit', ['slug' => $cdn->slug]))
+            ->assertOk()
+            ->assertDontSee('Movie night', false);
     }
 }
