@@ -29,6 +29,8 @@ class InstallCommandTest extends TestCase
 
     private stdClass $migrationProbe;
 
+    private stdClass $cacheClearProbe;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -141,6 +143,7 @@ class InstallCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame(1, $this->migrationProbe->calls);
+        $this->assertSame(1, $this->cacheClearProbe->calls);
 
         $administrator = User::query()->sole();
 
@@ -180,6 +183,7 @@ class InstallCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame(1, $this->migrationProbe->calls);
+        $this->assertSame(1, $this->cacheClearProbe->calls);
 
         $this->assertSame(1, User::query()->where('is_admin', true)->count());
         $this->assertDatabaseHas('users', ['id' => $administrator->id]);
@@ -238,6 +242,24 @@ class InstallCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
+    public function test_cache_clear_failure_makes_the_install_command_fail(): void
+    {
+        User::factory()->create([
+            'is_admin' => true,
+            'active' => true,
+        ]);
+        $this->expectMigrationAfterDatabaseConfiguration();
+        $this->expectCacheClearAfterEnvPersistence(1);
+
+        $this->installerWithRequiredOptions()
+            ->expectsOutput('Failed to clear application caches.')
+            ->doesntExpectOutput('Installation completed successfully.')
+            ->assertExitCode(1);
+
+        $this->assertSame(1, $this->cacheClearProbe->calls);
+        $this->assertEnvContains('APP_ENV="store"');
+    }
+
     private function expectMigrationAfterDatabaseConfiguration(): void
     {
         $this->migrationProbe = (object) ['calls' => 0];
@@ -258,6 +280,28 @@ class InstallCommandTest extends TestCase
 
         $getArtisan = new ReflectionMethod($this->app->make(Kernel::class), 'getArtisan');
         $getArtisan->invoke($this->app->make(Kernel::class))->add($migrationCommand);
+
+        $this->expectCacheClearAfterEnvPersistence();
+    }
+
+    private function expectCacheClearAfterEnvPersistence(int $exitCode = 0): void
+    {
+        $this->cacheClearProbe = (object) ['calls' => 0];
+        $probe = $this->cacheClearProbe;
+        $envPath = $this->installationDirectory.'/.env';
+
+        $cacheClearCommand = new ClosureCommand('optimize:clear', function () use ($probe, $envPath, $exitCode): int {
+            $probe->calls++;
+            $contents = file_get_contents($envPath);
+
+            Assert::assertIsString($contents);
+            Assert::assertStringContainsString('APP_ENV="store"'.PHP_EOL, $contents);
+
+            return $exitCode;
+        });
+
+        $getArtisan = new ReflectionMethod($this->app->make(Kernel::class), 'getArtisan');
+        $getArtisan->invoke($this->app->make(Kernel::class))->add($cacheClearCommand);
     }
 
     private function assertEnvContains(string $line): void

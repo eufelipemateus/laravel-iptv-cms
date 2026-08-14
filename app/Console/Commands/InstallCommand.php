@@ -85,6 +85,10 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        if (! $this->clearApplicationCaches()) {
+            return self::FAILURE;
+        }
+
         $this->info('Installation completed successfully.');
 
         return self::SUCCESS;
@@ -459,6 +463,22 @@ class InstallCommand extends Command
 
         if ($exitCode !== self::SUCCESS) {
             $this->error('Failed to run migrations.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function clearApplicationCaches(): bool
+    {
+        $this->info('Clearing application caches...');
+
+        $exitCode = Artisan::call('optimize:clear');
+        $this->output->write(Artisan::output());
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Failed to clear application caches.');
 
             return false;
         }

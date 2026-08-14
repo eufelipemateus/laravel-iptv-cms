@@ -73,6 +73,34 @@ class InstallCommandTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_it_clears_application_caches(): void
+    {
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('optimize:clear')
+            ->andReturn(0);
+        Artisan::shouldReceive('output')->once()->andReturn('Caches cleared.');
+
+        [$result, $output] = $this->invokeInstallerStep('clearApplicationCaches');
+
+        $this->assertTrue($result);
+        $this->assertStringContainsString('Caches cleared.', $output);
+    }
+
+    public function test_cache_clear_failure_fails_the_installer_step(): void
+    {
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('optimize:clear')
+            ->andReturn(1);
+        Artisan::shouldReceive('output')->once()->andReturn('Cache clear failed.');
+
+        [$result, $output] = $this->invokeInstallerStep('clearApplicationCaches');
+
+        $this->assertFalse($result);
+        $this->assertStringContainsString('Failed to clear application caches.', $output);
+    }
+
     public function test_it_preserves_an_existing_administrator_when_resuming_installation(): void
     {
         $administrator = User::factory()->create([
