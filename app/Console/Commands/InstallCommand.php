@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Users\CreateUserAdmin;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PDOException;
 use Throwable;
@@ -331,10 +331,10 @@ class InstallCommand extends Command
         $password = $this->askAdminPassword();
 
         try {
-            User::query()->create([
+            CreateUserAdmin::run([
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make($password),
+                'password' => $password,
             ]);
 
             $this->info('Administrator user created successfully.');
