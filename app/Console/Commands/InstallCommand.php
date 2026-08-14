@@ -8,7 +8,9 @@ use Illuminate\Console\Command;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use PDOException;
 use Throwable;
 
@@ -435,20 +437,25 @@ class InstallCommand extends Command
             $password = (string) ($this->secret('Administrator password') ?? '');
             $passwordConfirmation = (string) ($this->secret('Repeat administrator password') ?? '');
 
-            if ($password === '' || $passwordConfirmation === '') {
-                $this->error('Password and confirmation are required.');
-
-                continue;
-            }
-
-            if ($password !== $passwordConfirmation) {
-                $this->error('Passwords do not match. Please try again.');
+            if (! $this->isValidAdminPassword($password, $passwordConfirmation)) {
+                $this->error('Password must contain at least 12 characters and match its confirmation.');
 
                 continue;
             }
 
             return $password;
         }
+    }
+
+    private function isValidAdminPassword(string $password, string $passwordConfirmation): bool
+    {
+        return Validator::make([
+            'password' => $password,
+            'password_confirmation' => $passwordConfirmation,
+        ], [
+            'password' => ['required', 'confirmed', Password::min(12)],
+            'password_confirmation' => ['required'],
+        ])->passes();
     }
 
     private function switchApplicationEnvironmentToStore(): bool

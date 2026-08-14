@@ -91,6 +91,29 @@ class InstallCommandTest extends TestCase
         ]);
     }
 
+    public function test_administrator_password_requires_at_least_twelve_characters(): void
+    {
+        $this->assertFalse($this->isValidAdminPassword('short-pass', 'short-pass'));
+    }
+
+    public function test_administrator_password_requires_matching_confirmation(): void
+    {
+        $this->assertFalse($this->isValidAdminPassword(
+            'a secure password',
+            'a different password',
+        ));
+    }
+
+    public function test_administrator_password_confirmation_is_required(): void
+    {
+        $this->assertFalse($this->isValidAdminPassword('a secure password', ''));
+    }
+
+    public function test_administrator_password_accepts_twelve_characters_without_arbitrary_complexity(): void
+    {
+        $this->assertTrue($this->isValidAdminPassword('abcdefghijkl', 'abcdefghijkl'));
+    }
+
     /**
      * @return array{bool, string}
      */
@@ -114,5 +137,13 @@ class InstallCommandTest extends TestCase
         $result = $method->invoke($command);
 
         return [$result, $buffer->fetch()];
+    }
+
+    private function isValidAdminPassword(string $password, string $confirmation): bool
+    {
+        $command = new InstallCommand;
+        $method = new ReflectionMethod($command, 'isValidAdminPassword');
+
+        return $method->invoke($command, $password, $confirmation);
     }
 }
