@@ -114,6 +114,72 @@ class InstallCommandTest extends TestCase
         $this->assertTrue($this->isValidAdminPassword('abcdefghijkl', 'abcdefghijkl'));
     }
 
+    public function test_non_interactive_admin_configuration_fails_clearly_when_options_are_missing(): void
+    {
+        [$command, $buffer] = $this->makeCommand([], false);
+
+        $method = new ReflectionMethod($command, 'resolveNonInteractiveAdminCredentials');
+        $result = $method->invoke($command);
+
+        $this->assertNull($result);
+        $this->assertStringContainsString(
+            'Missing required administrator options in non-interactive mode: --admin-name, --admin-email, --admin-password.',
+            $buffer->fetch(),
+        );
+    }
+
+    public function test_non_interactive_database_configuration_fails_clearly_when_required_values_are_missing(): void
+    {
+        [$command, $buffer] = $this->makeCommand([], false);
+
+        $method = new ReflectionMethod($command, 'resolveNonInteractiveDatabaseConfiguration');
+        $result = $method->invoke($command, [
+            'DB_HOST' => '',
+            'DB_PORT' => '',
+            'DB_DATABASE' => '',
+            'DB_USERNAME' => '',
+            'DB_PASSWORD' => '',
+        ]);
+
+        $this->assertNull($result);
+        $this->assertStringContainsString(
+            'Missing required database options in non-interactive mode: --db-host, --db-port, --db-database, --db-username.',
+            $buffer->fetch(),
+        );
+    }
+
+    public function test_non_interactive_admin_configuration_uses_explicit_options(): void
+    {
+        [$command] = $this->makeCommand([
+            '--admin-name' => 'Admin User',
+            '--admin-email' => 'ADMIN@example.com',
+            '--admin-password' => 'abcdefghijkl',
+        ], false);
+
+        $method = new ReflectionMethod($command, 'resolveNonInteractiveAdminCredentials');
+
+        $this->assertSame([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'abcdefghijkl',
+        ], $method->invoke($command));
+    }
+
+    public function test_non_interactive_module_configuration_uses_flags_without_prompting(): void
+    {
+        [$command] = $this->makeCommand([
+            '--enable-customer' => true,
+            '--enable-vod' => true,
+        ], false);
+
+        $method = new ReflectionMethod($command, 'selectOptionalModules');
+
+        $this->assertSame(
+            ['customer', 'vod'],
+            $method->invoke($command, ['customer' => 'Customer', 'vod' => 'VOD'], []),
+        );
+    }
+
     /**
      * @return array{bool, string}
      */
@@ -127,16 +193,32 @@ class InstallCommandTest extends TestCase
      */
     private function invokeInstallerStep(string $methodName): array
     {
-        $buffer = new BufferedOutput;
-        $command = new InstallCommand;
-
-        $outputProperty = new ReflectionProperty($command, 'output');
-        $outputProperty->setValue($command, new OutputStyle(new ArrayInput([]), $buffer));
+        [$command, $buffer] = $this->makeCommand();
 
         $method = new ReflectionMethod($command, $methodName);
         $result = $method->invoke($command);
 
         return [$result, $buffer->fetch()];
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     * @return array{InstallCommand, BufferedOutput}
+     */
+    private function makeCommand(array $options = [], bool $interactive = true): array
+    {
+        $command = new InstallCommand;
+        $input = new ArrayInput($options, $command->getDefinition());
+        $input->setInteractive($interactive);
+        $buffer = new BufferedOutput;
+
+        $inputProperty = new ReflectionProperty($command, 'input');
+        $inputProperty->setValue($command, $input);
+
+        $outputProperty = new ReflectionProperty($command, 'output');
+        $outputProperty->setValue($command, new OutputStyle($input, $buffer));
+
+        return [$command, $buffer];
     }
 
     private function isValidAdminPassword(string $password, string $confirmation): bool

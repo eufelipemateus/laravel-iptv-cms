@@ -21,7 +21,17 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'install';
+    protected $signature = 'install
+        {--db-host= : Database host}
+        {--db-port= : Database port}
+        {--db-database= : Database name}
+        {--db-username= : Database username}
+        {--db-password= : Database password}
+        {--admin-name= : Administrator name}
+        {--admin-email= : Administrator email}
+        {--admin-password= : Administrator password}
+        {--enable-customer : Enable the customer module}
+        {--enable-vod : Enable the VOD module}';
 
     /**
      * The console command description.
@@ -112,6 +122,10 @@ class InstallCommand extends Command
             'DB_PASSWORD' => (string) env('DB_PASSWORD', ''),
         ];
 
+        if (! $this->input->isInteractive()) {
+            return $this->resolveNonInteractiveDatabaseConfiguration($currentConfig);
+        }
+
         if ($this->hasDatabaseValues($currentConfig)) {
             $this->info('Validating current database connection...');
 
@@ -150,6 +164,62 @@ class InstallCommand extends Command
     }
 
     /**
+     * @param  array<string, string>  $currentConfig
+     * @return array<string, string>|null
+     */
+    private function resolveNonInteractiveDatabaseConfiguration(array $currentConfig): ?array
+    {
+        $optionNames = [
+            'DB_HOST' => 'db-host',
+            'DB_PORT' => 'db-port',
+            'DB_DATABASE' => 'db-database',
+            'DB_USERNAME' => 'db-username',
+            'DB_PASSWORD' => 'db-password',
+        ];
+
+        $dbConfig = $currentConfig;
+
+        foreach ($optionNames as $key => $optionName) {
+            $value = $this->option($optionName);
+
+            if ($value !== null) {
+                $dbConfig[$key] = (string) $value;
+            }
+        }
+
+        $missing = [];
+
+        foreach (['DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME'] as $key) {
+            if (trim($dbConfig[$key]) === '') {
+                $missing[] = '--'.$optionNames[$key];
+            }
+        }
+
+        if ($missing !== []) {
+            $this->error('Missing required database options in non-interactive mode: '.implode(', ', $missing).'.');
+
+            return null;
+        }
+
+        $this->info('Validating database connection...');
+        $connectionError = $this->testDatabaseConnection($dbConfig);
+
+        if ($connectionError !== null) {
+            $this->error('Failed to connect to the database: '.$connectionError);
+
+            return null;
+        }
+
+        if (! $this->persistEnvValues($dbConfig)) {
+            return null;
+        }
+
+        $this->info('Database configuration was saved to .env successfully.');
+
+        return $dbConfig;
+    }
+
+    /**
      * @param  array<string, string>  $config
      */
     private function hasDatabaseValues(array $config): bool
@@ -176,12 +246,6 @@ class InstallCommand extends Command
 
     private function askRequired(string $question): string
     {
-        if (! $this->input->isInteractive()) {
-            $this->error('Missing required value in non-interactive mode: '.$question.'.');
-
-            throw new \RuntimeException('Required input is missing in non-interactive mode.');
-        }
-
         $maxAttempts = 3;
         $attempts = 0;
 
@@ -388,16 +452,19 @@ class InstallCommand extends Command
             return true;
         }
 
-        $name = $this->askRequired('Administrator name');
+        $credentials = $this->input->isInteractive()
+            ? $this->askAdminCredentials()
+            : $this->resolveNonInteractiveAdminCredentials();
 
-        $email = $this->askAdminEmail();
-        $password = $this->askAdminPassword();
+        if ($credentials === null) {
+            return false;
+        }
 
         try {
             CreateUserAdmin::run([
-                'name' => $name,
-                'email' => $email,
-                'password' => $password,
+                'name' => $credentials['name'],
+                'email' => $credentials['email'],
+                'password' => $credentials['password'],
             ]);
 
             $this->info('Administrator user created successfully.');
@@ -408,6 +475,61 @@ class InstallCommand extends Command
 
             return false;
         }
+    }
+
+    /** @return array{name: string, email: string, password: string} */
+    private function askAdminCredentials(): array
+    {
+        return [
+            'name' => $this->askRequired('Administrator name'),
+            'email' => $this->askAdminEmail(),
+            'password' => $this->askAdminPassword(),
+        ];
+    }
+
+    /** @return array{name: string, email: string, password: string}|null */
+    private function resolveNonInteractiveAdminCredentials(): ?array
+    {
+        $credentials = [
+            'name' => trim((string) ($this->option('admin-name') ?? '')),
+            'email' => trim((string) ($this->option('admin-email') ?? '')),
+            'password' => (string) ($this->option('admin-password') ?? ''),
+        ];
+        $missing = [];
+
+        foreach (['name', 'email', 'password'] as $key) {
+            if ($credentials[$key] === '') {
+                $missing[] = '--admin-'.$key;
+            }
+        }
+
+        if ($missing !== []) {
+            $this->error('Missing required administrator options in non-interactive mode: '.implode(', ', $missing).'.');
+
+            return null;
+        }
+
+        if (! filter_var($credentials['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->error('Invalid value for --admin-email. Provide a valid email address.');
+
+            return null;
+        }
+
+        if (User::query()->where('email', $credentials['email'])->exists()) {
+            $this->error('A user with the --admin-email value already exists.');
+
+            return null;
+        }
+
+        if (! $this->isValidAdminPassword($credentials['password'], $credentials['password'])) {
+            $this->error('Invalid value for --admin-password. The password must contain at least 12 characters.');
+
+            return null;
+        }
+
+        $credentials['email'] = Str::lower($credentials['email']);
+
+        return $credentials;
     }
 
     private function askAdminEmail(): string
@@ -519,9 +641,17 @@ class InstallCommand extends Command
     private function selectOptionalModules(array $optionalModules, array $defaultModules): array
     {
         if (! $this->input->isInteractive()) {
-            $this->warn('Non-interactive mode detected. Using current module defaults from .env.');
+            $selectedModules = [];
 
-            return $defaultModules;
+            if ((bool) $this->option('enable-customer')) {
+                $selectedModules[] = 'customer';
+            }
+
+            if ((bool) $this->option('enable-vod')) {
+                $selectedModules[] = 'vod';
+            }
+
+            return $selectedModules;
         }
 
         $presetOptions = [
