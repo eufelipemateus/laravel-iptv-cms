@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Actions\Users\CreateUserAdmin;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -339,9 +340,18 @@ class InstallCommand extends Command
 
     private function generateApplicationKey(): bool
     {
+        $key = (string) config('app.key', '');
+
+        if ($this->hasValidApplicationKey($key)) {
+            $this->info('Application key already configured.');
+
+            return true;
+        }
+
         $this->info('Generating application key...');
 
-        $exitCode = Artisan::call('key:generate', ['--force' => true]);
+        $options = $key === '' ? [] : ['--force' => true];
+        $exitCode = Artisan::call('key:generate', $options);
         $this->output->write(Artisan::output());
 
         if ($exitCode !== self::SUCCESS) {
@@ -351,6 +361,21 @@ class InstallCommand extends Command
         }
 
         return true;
+    }
+
+    private function hasValidApplicationKey(string $key): bool
+    {
+        if (Str::startsWith($key, 'base64:')) {
+            $decodedKey = base64_decode(Str::after($key, 'base64:'), true);
+
+            if ($decodedKey === false) {
+                return false;
+            }
+
+            $key = $decodedKey;
+        }
+
+        return Encrypter::supported($key, (string) config('app.cipher'));
     }
 
     private function createAdminUser(): bool
