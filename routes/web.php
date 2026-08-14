@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChannelCdnController;
-use App\Http\Controllers\ChannelController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,6 +13,7 @@ use App\Http\Controllers\ChannelController;
 |
 */
 
+use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\ChannelGroupController;
 use App\Http\Controllers\ChannelListM3UController;
 use App\Http\Controllers\ChannelUrlController;
@@ -24,21 +25,52 @@ use App\Http\Controllers\CustomerPlanController;
 use App\Http\Controllers\CustomerPlanGroupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoceController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoVodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
+Route::middleware(['guest'])->group(function () {
+    Route::get('login', [AuthController::class, 'create'])->name('login');
+    Route::post('login', [AuthController::class, 'store'])->middleware('throttle:web')->name('login.store');
+    Route::get('convite/{token}', [AuthController::class, 'invitation'])->name('invitation.show');
+    Route::post('convite/{token}', [AuthController::class, 'acceptInvitation'])->middleware('throttle:web')->name('invitation.accept');
+});
+
+Route::post('logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
+
 Route::group(
     [
-        'middleware' => ['web', 'iptv_locale', 'throttle:web'],
+        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
     ],
     function () {
         Route::get('dashboard', [DashboardController::class, 'view'])->name('dashboard');
+    }
+);
+
+Route::group(
+    [
+        'middleware' => ['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'],
+    ],
+    function () {
         Route::get('iptv/config', [ConfigController::class, 'config'])->name('config');
         Route::post('iptv/config', [ConfigController::class, 'configSave'])->name('config_save');
     }
 );
 
+Route::middleware(['web', 'auth', 'active', 'iptv_locale', 'throttle:web'])->prefix('users')->group(function () {
+    Route::get('me', [UserController::class, 'profile'])->name('user.profile');
+
+});
+
+Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'])->prefix('users')->group(function () {
+    Route::get('/', [UserController::class, 'list'])->name('list_user');
+    Route::get('invite', [UserController::class, 'inviteForm'])->name('users.invite');
+    Route::post('invite', [UserController::class, 'invite'])->name('users.invite.store');
+    Route::get('{user}', [UserController::class, 'show'])->name('users.show');
+    Route::get('{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('{user}', [UserController::class, 'update'])->name('users.update');
+});
 // Channel Routes
 Route::group([
     'prefix' => 'public/m3u8',
@@ -49,7 +81,7 @@ Route::group([
     });
 
 Route::group([
-    'middleware' => ['web', 'iptv_locale', 'throttle:web'],
+    'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
 ],
     function () {
         Route::prefix('channel')->group(function () {
@@ -105,7 +137,7 @@ if (config('modules.customer.enabled', true)) {
 
 if (config('modules.customer.enabled', true)) {
     Route::group([
-        'middleware' => ['web', 'iptv_locale', 'throttle:web'],
+        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
     ],
         function () {
             Route::prefix('plan')->group(function () {
@@ -148,7 +180,7 @@ if (config('modules.customer.enabled', true)) {
 }
 
 Route::group([
-    'middleware' => ['web', 'iptv_locale', 'throttle:web', 'vod.enabled'],
+    'middleware' => ['web', 'vod.enabled', 'auth', 'active', 'iptv_locale', 'throttle:web'],
 ], function () {
     Route::prefix('vods')->group(function () {
         Route::get('list', [VideoVodeController::class, 'list'])->name('vods.list');

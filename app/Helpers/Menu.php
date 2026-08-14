@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Str;
+
 class Menu
 {
     private $menusitens = [];
@@ -20,6 +22,22 @@ class Menu
 
     public function view()
     {
-        return view('menu', ['menusList' => $this->menusitens]);
+        $menusList = array_values(array_filter($this->menusitens, function (array $item): bool {
+            if (! isset($item['enabled_when'])) {
+                return true;
+            }
+
+            $condition = (string) $item['enabled_when'];
+
+            if (Str::startsWith($condition, 'auth.user.')) {
+                $attribute = Str::after($condition, 'auth.user.');
+
+                return (bool) data_get(auth()->user(), $attribute, false);
+            }
+
+            return (bool) config($condition, true);
+        }));
+
+        return view('menu', ['menusList' => $menusList]);
     }
 }

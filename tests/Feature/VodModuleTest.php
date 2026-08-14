@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\IPTVVodVideo;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,7 @@ class VodModuleTest extends TestCase
 
         config(['modules.vod.enabled' => true]);
         Storage::fake('vod-master');
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
     }
 
     public function test_admin_can_create_update_replace_and_delete_a_vod_asset(): void

@@ -55,6 +55,16 @@ return new class extends Migration
             });
         }
 
+        if (Schema::hasColumn('iptv_customers', 'auth_token_id')) {
+            Schema::table('iptv_customers', function (Blueprint $table) {
+                try {
+                    $table->dropUnique('iptv_customers_auth_token_id_unique');
+                } catch (\Throwable $exception) {
+                    // Index may not exist or may already be removed.
+                }
+            });
+        }
+
         Schema::table('iptv_customers', function (Blueprint $table) {
             $columns = [];
 
