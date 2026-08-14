@@ -36,6 +36,17 @@
         ]
     },
     {
+        "title": "VOD",
+        "enabled_when": "modules.vod.enabled",
+        "menus": [
+            {
+                "name": "Videos",
+                "icon": "film",
+                "route": "vods.list"
+            }
+        ]
+    },
+    {
         "title": "Settings",
         "menus": [
             {
