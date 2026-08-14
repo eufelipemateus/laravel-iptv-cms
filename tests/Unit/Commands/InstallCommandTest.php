@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use ReflectionProperty;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -205,6 +206,72 @@ class InstallCommandTest extends TestCase
         $this->assertSame(
             ['customer', 'vod'],
             $method->invoke($command, ['customer' => 'Customer', 'vod' => 'VOD'], []),
+        );
+    }
+
+    public function test_non_interactive_module_configuration_preserves_existing_values_without_flags(): void
+    {
+        [$command] = $this->makeCommand([], false);
+
+        $this->assertSame(
+            ['customer', 'vod'],
+            $this->selectOptionalModules($command, ['customer', 'vod']),
+        );
+    }
+
+    #[DataProvider('explicitModuleOptionsProvider')]
+    public function test_non_interactive_module_configuration_applies_explicit_options(
+        array $options,
+        array $currentModules,
+        array $expectedModules,
+    ): void {
+        [$command] = $this->makeCommand($options, false);
+
+        $this->assertSame($expectedModules, $this->selectOptionalModules($command, $currentModules));
+    }
+
+    public static function explicitModuleOptionsProvider(): array
+    {
+        return [
+            'enable customer' => [['--enable-customer' => true], [], ['customer']],
+            'disable customer' => [['--disable-customer' => true], ['customer', 'vod'], ['vod']],
+            'enable vod' => [['--enable-vod' => true], [], ['vod']],
+            'disable vod' => [['--disable-vod' => true], ['customer', 'vod'], ['customer']],
+        ];
+    }
+
+    #[DataProvider('contradictoryModuleOptionsProvider')]
+    public function test_contradictory_module_options_are_rejected(array $options, string $message): void
+    {
+        [$command, $buffer] = $this->makeCommand($options, false);
+        $method = new ReflectionMethod($command, 'validateModuleOptions');
+
+        $this->assertFalse($method->invoke($command));
+        $this->assertStringContainsString($message, $buffer->fetch());
+    }
+
+    public static function contradictoryModuleOptionsProvider(): array
+    {
+        return [
+            'customer' => [[
+                '--enable-customer' => true,
+                '--disable-customer' => true,
+            ], 'Options --enable-customer and --disable-customer cannot be used together.'],
+            'vod' => [[
+                '--enable-vod' => true,
+                '--disable-vod' => true,
+            ], 'Options --enable-vod and --disable-vod cannot be used together.'],
+        ];
+    }
+
+    private function selectOptionalModules(InstallCommand $command, array $currentModules): array
+    {
+        $method = new ReflectionMethod($command, 'selectOptionalModules');
+
+        return $method->invoke(
+            $command,
+            ['customer' => 'Customer', 'vod' => 'VOD'],
+            $currentModules,
         );
     }
 

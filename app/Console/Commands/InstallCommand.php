@@ -31,7 +31,9 @@ class InstallCommand extends Command
         {--admin-email= : Administrator email}
         {--admin-password= : Administrator password}
         {--enable-customer : Enable the customer module}
-        {--enable-vod : Enable the VOD module}';
+        {--disable-customer : Disable the customer module}
+        {--enable-vod : Enable the VOD module}
+        {--disable-vod : Disable the VOD module}';
 
     /**
      * The console command description.
@@ -48,6 +50,10 @@ class InstallCommand extends Command
         if (! app()->environment('install')) {
             $this->error('This command can only be executed when APP_ENV=install.');
 
+            return self::FAILURE;
+        }
+
+        if (! $this->validateModuleOptions()) {
             return self::FAILURE;
         }
 
@@ -715,6 +721,23 @@ class InstallCommand extends Command
         return true;
     }
 
+    private function validateModuleOptions(): bool
+    {
+        foreach (['customer', 'vod'] as $module) {
+            if ($this->option('enable-'.$module) && $this->option('disable-'.$module)) {
+                $this->error(sprintf(
+                    'Options --enable-%s and --disable-%s cannot be used together.',
+                    $module,
+                    $module,
+                ));
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @param  array<string, string>  $optionalModules
      * @param  array<int, string>  $defaultModules
@@ -723,17 +746,21 @@ class InstallCommand extends Command
     private function selectOptionalModules(array $optionalModules, array $defaultModules): array
     {
         if (! $this->input->isInteractive()) {
-            $selectedModules = [];
+            $selectedModules = $defaultModules;
 
             if ((bool) $this->option('enable-customer')) {
                 $selectedModules[] = 'customer';
+            } elseif ((bool) $this->option('disable-customer')) {
+                $selectedModules = array_values(array_diff($selectedModules, ['customer']));
             }
 
             if ((bool) $this->option('enable-vod')) {
                 $selectedModules[] = 'vod';
+            } elseif ((bool) $this->option('disable-vod')) {
+                $selectedModules = array_values(array_diff($selectedModules, ['vod']));
             }
 
-            return $selectedModules;
+            return array_values(array_unique($selectedModules));
         }
 
         $presetOptions = [

@@ -163,6 +163,8 @@ class InstallCommandTest extends TestCase
             'active' => true,
         ]);
         $applicationKey = (string) config('app.key');
+        $this->setEnvironmentValue('MODULE_CUSTOMER_ENABLED', 'false');
+        $this->setEnvironmentValue('MODULE_VOD_ENABLED', 'false');
 
         $this->expectMigrationAfterDatabaseConfiguration();
 
@@ -190,6 +192,32 @@ class InstallCommandTest extends TestCase
         $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="false"');
         $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
         $this->assertEnvContains('APP_KEY='.$applicationKey);
+    }
+
+    public function test_non_interactive_reinstallation_preserves_modules_without_explicit_options(): void
+    {
+        User::factory()->create(['is_admin' => true, 'active' => true]);
+        $this->setEnvironmentValue('MODULE_CUSTOMER_ENABLED', 'true');
+        $this->setEnvironmentValue('MODULE_VOD_ENABLED', 'true');
+        $this->expectMigrationAfterDatabaseConfiguration();
+
+        $this->installerWithRequiredOptions()
+            ->expectsOutput('Installation completed successfully.')
+            ->assertSuccessful();
+
+        $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="true"');
+        $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
+    }
+
+    public function test_contradictory_module_options_fail_before_installation_starts(): void
+    {
+        $this->artisan('install', [
+            '--no-interaction' => true,
+            '--enable-vod' => true,
+            '--disable-vod' => true,
+        ])
+            ->expectsOutput('Options --enable-vod and --disable-vod cannot be used together.')
+            ->assertExitCode(1);
     }
 
     public function test_database_connection_exception_details_are_not_written_to_the_terminal(): void
