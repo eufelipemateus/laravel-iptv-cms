@@ -8,10 +8,10 @@ use Illuminate\Console\Command;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
-use PDOException;
 use Throwable;
 
 class InstallCommand extends Command
@@ -137,7 +137,7 @@ class InstallCommand extends Command
                 return $currentConfig;
             }
 
-            $this->warn('Current database connection is invalid: '.$currentConnectionError);
+            $this->warn('Current database connection is invalid. Verify the credentials and try again.');
         } else {
             $this->warn('Database settings are not configured in .env yet.');
         }
@@ -147,7 +147,7 @@ class InstallCommand extends Command
             $connectionError = $this->testDatabaseConnection($dbConfig);
 
             if ($connectionError !== null) {
-                $this->error('Failed to connect to the database: '.$connectionError);
+                $this->error('Failed to connect to the database. Verify the credentials and try again.');
                 $this->warn('Please provide the database credentials again.');
 
                 continue;
@@ -205,7 +205,7 @@ class InstallCommand extends Command
         $connectionError = $this->testDatabaseConnection($dbConfig);
 
         if ($connectionError !== null) {
-            $this->error('Failed to connect to the database: '.$connectionError);
+            $this->error('Failed to connect to the database. Verify the credentials and try again.');
 
             return null;
         }
@@ -296,10 +296,12 @@ class InstallCommand extends Command
             DB::connection('install_test')->getPdo();
 
             return null;
-        } catch (PDOException $exception) {
-            return $exception->getMessage();
         } catch (Throwable $exception) {
-            return $exception->getMessage();
+            Log::error('Database connection failed during installation.', [
+                'exception' => $exception,
+            ]);
+
+            return 'connection_failed';
         } finally {
             DB::disconnect('install_test');
             DB::purge('install_test');
@@ -329,7 +331,10 @@ class InstallCommand extends Command
 
             return true;
         } catch (Throwable $exception) {
-            $this->error('Could not apply the database configuration: '.$exception->getMessage());
+            Log::error('Applying the database configuration failed during installation.', [
+                'exception' => $exception,
+            ]);
+            $this->error('Could not apply the database configuration.');
 
             return false;
         }

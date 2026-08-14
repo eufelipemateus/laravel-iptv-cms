@@ -7,8 +7,12 @@ use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Console\ClosureCommand;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Testing\PendingCommand;
+use Mockery;
 use PHPUnit\Framework\Assert;
 use ReflectionMethod;
+use RuntimeException;
 use stdClass;
 use Tests\TestCase;
 
@@ -184,6 +188,56 @@ class InstallCommandTest extends TestCase
         $this->assertEnvContains('APP_KEY='.$applicationKey);
     }
 
+    public function test_database_connection_exception_details_are_not_written_to_the_terminal(): void
+    {
+        $exception = new RuntimeException('PDO leaked host=10.0.0.8 database=private username=root');
+        $connection = Mockery::mock();
+        $connection->shouldReceive('getPdo')->once()->andThrow($exception);
+
+        DB::shouldReceive('purge')->twice()->with('install_test');
+        DB::shouldReceive('connection')->once()->with('install_test')->andReturn($connection);
+        DB::shouldReceive('disconnect')->once()->with('install_test');
+        DB::shouldReceive('disconnect')->once()->with('sqlite');
+        Log::shouldReceive('error')->once()->with(
+            'Database connection failed during installation.',
+            Mockery::on(fn (array $context): bool => $context === ['exception' => $exception]),
+        );
+
+        $this->installerWithRequiredOptions()
+            ->expectsOutput('Failed to connect to the database. Verify the credentials and try again.')
+            ->doesntExpectOutputToContain('10.0.0.8')
+            ->doesntExpectOutputToContain('private')
+            ->doesntExpectOutputToContain('root')
+            ->assertExitCode(1);
+    }
+
+    public function test_apply_database_exception_details_are_not_written_to_the_terminal(): void
+    {
+        $exception = new RuntimeException('PDO leaked driver=mysql port=3306 host=db.internal');
+        $connectionTest = Mockery::mock();
+        $connectionTest->shouldReceive('getPdo')->once()->andReturn(new stdClass);
+        $configuredConnection = Mockery::mock();
+        $configuredConnection->shouldReceive('getPdo')->once()->andThrow($exception);
+
+        DB::shouldReceive('purge')->twice()->with('install_test');
+        DB::shouldReceive('connection')->once()->with('install_test')->andReturn($connectionTest);
+        DB::shouldReceive('disconnect')->once()->with('install_test');
+        DB::shouldReceive('purge')->once()->with('sqlite');
+        DB::shouldReceive('reconnect')->once()->with('sqlite')->andReturn($configuredConnection);
+        DB::shouldReceive('disconnect')->once()->with('sqlite');
+        Log::shouldReceive('error')->once()->with(
+            'Applying the database configuration failed during installation.',
+            Mockery::on(fn (array $context): bool => $context === ['exception' => $exception]),
+        );
+
+        $this->installerWithRequiredOptions()
+            ->expectsOutput('Could not apply the database configuration.')
+            ->doesntExpectOutputToContain('mysql')
+            ->doesntExpectOutputToContain('3306')
+            ->doesntExpectOutputToContain('db.internal')
+            ->assertExitCode(1);
+    }
+
     private function expectMigrationAfterDatabaseConfiguration(): void
     {
         $this->migrationProbe = (object) ['calls' => 0];
@@ -212,6 +266,21 @@ class InstallCommandTest extends TestCase
 
         $this->assertIsString($contents);
         $this->assertStringContainsString($line.PHP_EOL, $contents);
+    }
+
+    private function installerWithRequiredOptions(): PendingCommand
+    {
+        return $this->artisan('install', [
+            '--no-interaction' => true,
+            '--db-host' => 'localhost',
+            '--db-port' => '3306',
+            '--db-database' => $this->databasePath,
+            '--db-username' => 'installer',
+            '--db-password' => 'database-secret',
+            '--admin-name' => 'Installation Admin',
+            '--admin-email' => 'admin@example.com',
+            '--admin-password' => 'a-secure-password',
+        ]);
     }
 
     private function setEnvironmentValue(string $key, string $value): void
