@@ -10,7 +10,7 @@
 
 - PHP 8.4+
 - Composer
-- MySQL
+- MySQL | Postgres
 
 ### Install IPTV CMS
 
