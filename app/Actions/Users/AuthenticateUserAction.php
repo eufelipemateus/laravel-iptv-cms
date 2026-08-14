@@ -14,7 +14,6 @@ class AuthenticateUserAction
     {
         return Auth::attempt($credentials + [
             'active' => true,
-            'is_admin' => true,
         ], $remember);
     }
 }
