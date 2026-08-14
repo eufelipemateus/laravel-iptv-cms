@@ -14,6 +14,7 @@ class FindInvitedUserAction
         return User::query()
             ->where('invitation_token', hash('sha256', $token))
             ->where('invitation_expires_at', '>', now())
+            ->where('active', true)
             ->first();
     }
 }

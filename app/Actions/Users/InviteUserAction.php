@@ -26,6 +26,7 @@ class InviteUserAction
                 'is_admin' => $isAdmin,
                 'invitation_token' => hash('sha256', $token),
                 'invitation_expires_at' => now()->addDays(7),
+                'active' => true,
             ]);
 
             Mail::to($user)->send(new UserInvitationMail($user, $token));
