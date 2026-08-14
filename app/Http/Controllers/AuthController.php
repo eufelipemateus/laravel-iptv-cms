@@ -59,8 +59,6 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        $route = $user->is_admin ? 'dashboard' : 'user.profile';
-
-        return redirect()->route($route)->with('status', __('AUTH_INVITATION_ACCEPTED'));
+        return redirect()->route('dashboard')->with('status', __('AUTH_INVITATION_ACCEPTED'));
     }
 }
