@@ -26,7 +26,7 @@ class AuthenticationAndInvitationTest extends TestCase
         $this->get(route('dashboard'))->assertOk();
     }
 
-    public function test_active_non_admin_user_can_log_in_and_is_redirected_to_profile(): void
+    public function test_active_non_admin_user_can_log_in_and_is_redirected_to_dashboard(): void
     {
         $user = User::factory()->create([
             'active' => true,
@@ -35,10 +35,10 @@ class AuthenticationAndInvitationTest extends TestCase
         ]);
 
         $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect(route('user.profile'));
+            ->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
-        $this->get(route('user.profile'))->assertOk();
+        $this->get(route('dashboard'))->assertOk();
     }
 
     public function test_inactive_user_cannot_log_in(): void
@@ -100,14 +100,14 @@ class AuthenticationAndInvitationTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_non_admin_accepting_invitation_is_redirected_to_profile(): void
+    public function test_non_admin_accepting_invitation_is_redirected_to_dashboard(): void
     {
         [$user, $token] = $this->invitedUser(false);
 
         $this->post(route('invitation.accept', $token), [
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
-        ])->assertRedirect(route('user.profile'));
+        ])->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
     }

@@ -15,11 +15,13 @@ class AdminAuthenticationScopeTest extends TestCase
         $this->get(route('dashboard'))->assertRedirect(route('login'));
     }
 
-    public function test_regular_users_cannot_access_administrative_routes(): void
+    public function test_regular_users_can_access_dashboard_but_not_administrative_routes(): void
     {
         $this->actingAs(User::factory()->create(['is_admin' => false]));
 
-        foreach (['dashboard', 'config', 'list_user', 'users.invite'] as $route) {
+        $this->get(route('dashboard'))->assertOk();
+
+        foreach (['config', 'list_user', 'users.invite'] as $route) {
             $this->get(route($route))->assertForbidden();
         }
     }
