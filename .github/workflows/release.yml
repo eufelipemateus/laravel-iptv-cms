@@ -102,6 +102,8 @@ jobs:
 
           MIX_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
           MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+          MODULE_CUSTOMER_ENABLED=true
+          MODULE_VOD_ENABLED=true
           ENV
 
       - name: Install Composer dependencies

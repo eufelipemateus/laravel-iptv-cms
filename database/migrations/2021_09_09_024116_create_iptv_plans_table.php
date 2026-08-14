@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('iptv_plans', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
+            $table->string('name');
             $table->double('price', 8, 2);
             $table->boolean('active')->default(false);
             $table->boolean('additional')->default(false);

@@ -19,8 +19,7 @@ class UpdateCustomerAction
         bool $isActive,
         bool $regenerateToken,
         bool $revokeToken,
-    ): Customer
-    {
+    ): Customer {
         if ($revokeToken) {
             $customer->revokeAuthToken();
 

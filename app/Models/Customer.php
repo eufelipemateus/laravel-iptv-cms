@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
-use DateTimeInterface;
+use Illuminate\Support\Str;
 
 class Customer extends Model
 {
@@ -65,7 +65,7 @@ class Customer extends Model
             'auth_token_revoked_at' => null,
         ])->save();
 
-        return $tokenId . '.' . $secret;
+        return $tokenId.'.'.$secret;
     }
 
     public function revokeAuthToken(): void

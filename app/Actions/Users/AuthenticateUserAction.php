@@ -12,6 +12,9 @@ class AuthenticateUserAction
     /** @param array<string, string> $credentials */
     public function handle(array $credentials, bool $remember): bool
     {
-        return Auth::attempt($credentials, $remember);
+        return Auth::attempt($credentials + [
+            'active' => true,
+            'is_admin' => true,
+        ], $remember);
     }
 }

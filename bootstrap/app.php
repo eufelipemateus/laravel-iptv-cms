@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Middleware\CustomerMiddleware;
+use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureVodModuleIsEnabled;
+use App\Http\Middleware\IPTVLocaleMiddleware;
+use App\Http\Middleware\PublicCdnMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,10 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'iptv_locale' => App\Http\Middleware\IPTVLocaleMiddleware::class,
-            'client' => App\Http\Middleware\CustomerMiddleware::class,
-            'public_cdn' => App\Http\Middleware\PublicCdnMiddleware::class,
-            'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
+            'iptv_locale' => IPTVLocaleMiddleware::class,
+            'client' => CustomerMiddleware::class,
+            'public_cdn' => PublicCdnMiddleware::class,
+            'admin' => EnsureUserIsAdmin::class,
+            'vod.enabled' => EnsureVodModuleIsEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

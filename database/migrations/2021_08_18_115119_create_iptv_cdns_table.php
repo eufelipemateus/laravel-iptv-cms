@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('iptv_cdns', function (Blueprint $table) {
             $table->id();
-            $table->string("slug",50)->unique();
-            $table->string("name",90);
+            $table->string('slug', 50)->unique();
+            $table->string('name', 90);
             $table->timestamps();
         });
     }

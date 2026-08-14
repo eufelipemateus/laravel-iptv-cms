@@ -4,11 +4,12 @@ namespace App\Helpers;
 
 use Illuminate\Support\Str;
 
-class Menu {
-
+class Menu
+{
     private $menusitens = [];
 
-    public function add($menu){
+    public function add($menu)
+    {
         if (is_array($menu) && isset($menu[0]) && is_array($menu[0])) {
             // Array de menus
             foreach ($menu as $item) {
@@ -19,7 +20,8 @@ class Menu {
         }
     }
 
-    public function view(){
+    public function view()
+    {
         $menusList = array_values(array_filter($this->menusitens, function (array $item): bool {
             if (! isset($item['enabled_when'])) {
                 return true;
