@@ -34,9 +34,6 @@ This project includes a simple VOD module for uploading, listing and playing vid
 
 See [docs/VOD.md](docs/VOD.md) for environment variables, storage disks, and API routes.
 
-## Extra
-
-- [Telegram Group to discussion about sugestion,Feature and etc.](https://t.me/laravel_iptv)
 
 ## License
 
