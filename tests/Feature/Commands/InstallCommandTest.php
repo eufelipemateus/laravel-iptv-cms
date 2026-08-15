@@ -122,8 +122,8 @@ class InstallCommandTest extends TestCase
         $this->expectMigrationAfterDatabaseConfiguration();
 
         $this->artisan('install')
-            ->expectsOutput('│      Laravel IPTV CMS        │')
-            ->expectsOutput('Welcome to Laravel IPTV CMS!')
+            ->expectsOutput('│           IPTV CMS           │')
+            ->expectsOutput('Welcome to IPTV CMS!')
             ->expectsOutput('Checking requirements...')
             ->expectsOutput('✓ PDO')
             ->expectsOutputToContain('✓ Supported PDO driver:')
