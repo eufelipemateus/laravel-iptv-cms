@@ -97,7 +97,7 @@ class ChannelCdnController extends Controller
     public function list()
     {
 
-        $data['list'] = ChannelCdn::all();
+        $data['list'] = ChannelCdn::orderBy('name')->paginate(25);
 
         $data['url_cdn'] = IPTVConfig::get('URL_CDN');
         $data['donwload'] = IPTVConfig::get('DOWNLOAD_FILE');
