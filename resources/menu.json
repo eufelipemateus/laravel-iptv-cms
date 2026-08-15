@@ -19,6 +19,27 @@
             }
         ]
     },
+     {
+        "title": "EPG",
+        "enabled_when": "modules.epg.enabled",
+        "menus": [
+            {
+                "name": "EPG Sources",
+                "icon": "satellite-dish",
+                "route": "epg.sources.index"
+            },
+            {
+                "name": "EPG Channels",
+                "icon": "tv",
+                "route": "epg.channels.index"
+            },
+            {
+                "name": "Programmes",
+                "icon": "calendar-alt",
+                "route": "epg.programmes.index"
+            }
+        ]
+    },
     {
         "title": "Customers",
         "enabled_when": "modules.customer.enabled",
@@ -46,6 +67,7 @@
             }
         ]
     },
+
     {
         "title": "Settings",
         "enabled_when": "auth.user.is_admin",

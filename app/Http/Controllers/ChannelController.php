@@ -12,6 +12,7 @@ use App\Models\Channel;
 use App\Models\ChannelCdn;
 use App\Models\ChannelGroup;
 use App\Models\ChannelUrl;
+use App\Models\EpgSource;
 use App\Models\IPTVConfig;
 use Illuminate\Http\RedirectResponse;
 
@@ -36,6 +37,7 @@ class ChannelController extends Controller
     {
         $data['Groupslist'] = ChannelGroup::get();
         $data['radio_stream'] = IPTVConfig::get('RADIO_STREAM');
+        $data['EpgSources'] = config('modules.epg.enabled', true) ? EpgSource::where('enabled', true)->orderBy('name')->get() : collect();
 
         return view('channel', $data);
     }
@@ -48,11 +50,12 @@ class ChannelController extends Controller
      */
     public function show($id)
     {
-        $data['Channel'] = Channel::findOrFail($id);
+        $data['Channel'] = Channel::with('epgChannel.source')->findOrFail($id);
         $data['Groupslist'] = ChannelGroup::get();
         $data['Cdnslist'] = ChannelCdn::all();
         $data['urls'] = ChannelUrl::where('iptv_channel_id', $id)->get();
         $data['radio_stream'] = IPTVConfig::get('RADIO_STREAM');
+        $data['EpgSources'] = config('modules.epg.enabled', true) ? EpgSource::where('enabled', true)->orderBy('name')->get() : collect();
 
         return view('channel', $data);
     }

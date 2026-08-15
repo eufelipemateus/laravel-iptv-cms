@@ -5,6 +5,7 @@ namespace App\Http;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CustomerMiddleware;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnsureEpgModuleIsEnabled;
 use App\Http\Middleware\IPTVLocaleMiddleware;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\PublicCdnMiddleware;
@@ -90,5 +91,6 @@ class Kernel extends HttpKernel
         'iptv_locale' => IPTVLocaleMiddleware::class,
         'client' => CustomerMiddleware::class,
         'public_cdn' => PublicCdnMiddleware::class,
+        'epg.enabled' => EnsureEpgModuleIsEnabled::class,
     ];
 }

@@ -27,6 +27,9 @@ class CustomerChannelsM3UController extends Controller
         $data['vods'] = config('modules.vod.enabled', false)
             ? IPTVVodVideo::withVideo()->orderBy('name')->get()
             : [];
+        $data['epg_url'] = config('modules.epg.enabled', true)
+            ? route('epg.customer', ['slug' => $slug])
+            : null;
 
         $response = response()->view('list_M3U', $data, 200);
         $response->header('Content-Type', 'text/plain; charset=utf-8');

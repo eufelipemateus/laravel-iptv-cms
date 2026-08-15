@@ -2,9 +2,14 @@
     $line = fn ($value) => str_replace(["\r", "\n"], '', (string) $value);
     $attr = fn ($value) => str_replace(['"', "\r", "\n"], ["'", '', ''], (string) $value);
 @endphp
-#EXTM3U
+#EXTM3U{!! !empty($epg_url) ? ' url-tvg="'.$attr($epg_url).'"' : '' !!}
 @foreach($list as $Channel)
-#EXTINF:-1 type="stream" @if($Channel->radio) radio=true @else tvg-id="{!! $attr($Channel->number) !!}" tvg-name="{!! $attr($Channel->name) !!}" @endif tvg-logo="{!! $attr(url($Channel->logo)) !!}" group-title="{!! $attr($Channel->group_name) !!}",{!! $line($Channel->name) !!}
+@php
+    $streamAttributes = $Channel->radio
+        ? ' radio=true'
+        : (!empty($Channel->epg_external_id) ? ' tvg-id="'.$attr($Channel->epg_external_id).'"' : '').' tvg-name="'.$attr($Channel->name).'"';
+@endphp
+#EXTINF:-1 type="stream"{!! $streamAttributes !!} tvg-logo="{!! $attr(url($Channel->logo)) !!}" group-title="{!! $attr($Channel->group_name) !!}",{!! $line($Channel->name) !!}
 {!! $line($Channel->url_stream) !!}
 @endforeach
 @foreach(($vods ?? []) as $vod)

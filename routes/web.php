@@ -24,12 +24,16 @@ use App\Http\Controllers\CustomerPlanAdditionalController;
 use App\Http\Controllers\CustomerPlanController;
 use App\Http\Controllers\CustomerPlanGroupController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EpgSourceController;
+use App\Http\Controllers\EpgXmlController;
 use App\Http\Controllers\InvoceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoVodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
+
+Route::get('epg.xml', [EpgXmlController::class, 'public'])->middleware(['api', 'epg.enabled'])->name('epg.public');
 Route::middleware(['guest'])->group(function () {
     Route::get('login', [AuthController::class, 'create'])->name('login');
     Route::post('login', [AuthController::class, 'store'])->middleware('throttle:web')->name('login.store');
@@ -134,6 +138,24 @@ if (config('modules.customer.enabled', true)) {
             Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name('client-playlist');
         });
 }
+
+Route::get('client/epg/{slug}.xml', [EpgXmlController::class, 'customer'])
+    ->middleware(['api', 'epg.enabled', 'client'])
+    ->name('epg.customer');
+
+Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web', 'epg.enabled'])
+    ->prefix('epg')->name('epg.')->group(function () {
+        Route::get('sources', [EpgSourceController::class, 'index'])->name('sources.index');
+        Route::get('sources/create', [EpgSourceController::class, 'create'])->name('sources.create');
+        Route::post('sources', [EpgSourceController::class, 'store'])->name('sources.store');
+        Route::get('sources/{source}/edit', [EpgSourceController::class, 'edit'])->name('sources.edit');
+        Route::put('sources/{source}', [EpgSourceController::class, 'update'])->name('sources.update');
+        Route::delete('sources/{source}', [EpgSourceController::class, 'destroy'])->name('sources.destroy');
+        Route::post('sources/{source}/sync', [EpgSourceController::class, 'sync'])->name('sources.sync');
+        Route::get('channels', [EpgSourceController::class, 'channels'])->name('channels.index');
+        Route::get('channels/search', [EpgSourceController::class, 'searchChannels'])->name('channels.search');
+        Route::get('programmes', [EpgSourceController::class, 'programmes'])->name('programmes.index');
+    });
 
 if (config('modules.customer.enabled', true)) {
     Route::group([
