@@ -136,7 +136,7 @@
                 </div>
                 <div class="card-body">
                     @foreach ($urls as $url)
-                    <form class="form-vertical" role="form" method="POST" action="{{ route('update_channel_url',['id'=>$url->id], false)  }}" enctype="multipart/form-data">
+                    <form class="form-vertical" role="form" method="POST" action="{{ route('update_channel_url',['channelUrl'=>$url], false)  }}" enctype="multipart/form-data">
                     <input type="hidden" id="channel_id_{{$url->id}}" name="iptv_channel_id" value="{{$url->iptv_channel_id}}">
                     {{ csrf_field() }}
 

@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CustomerPlans\DeleteCustomerPlanAction;
+use App\Actions\CustomerPlans\GetCustomerPlanFormDataAction;
+use App\Actions\CustomerPlans\ListCustomerPlansAction;
 use App\Actions\CustomerPlans\StoreCustomerPlanAction;
 use App\Actions\CustomerPlans\UpdateCustomerPlanAction;
 use App\Http\Requests\CustomerPlanRequest;
-use App\Http\Requests\DeleteCustomerPlanRequest;
 use App\Models\CustomerPlan;
-use FelipeMateus\IPTVGatewayPayment\Models\IPTVTaxVat;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class CustomerPlanController extends Controller
 {
@@ -26,17 +27,11 @@ class CustomerPlanController extends Controller
     /**
      * Return new page _blank.
      *
-     * @return view -> customer_plan
+     * @return View -> customer_plan
      */
-    public function new()
+    public function new(): View
     {
-        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVTaxVat')) {
-            $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
-        } else {
-            $data['TaxVatList'] = [];
-        }
-
-        return view('customer_plan', $data);
+        return view('customer_plan', GetCustomerPlanFormDataAction::run());
     }
 
     /**
@@ -61,18 +56,9 @@ class CustomerPlanController extends Controller
      * @param id -> from plan
      * @return redirect -> list_customer_plan
      */
-    public function show($id)
+    public function show(CustomerPlan $customerPlan): View
     {
-        $data['Plan'] = CustomerPlan::findOrFail($id);
-        $data['GroupList'] = $data['Plan']->groupsList();
-        $data['PlanGroupList'] = $data['Plan']->groups;
-        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVTaxVat')) {
-            $data['TaxVatList'] = IPTVTaxVat::where('active', true)->get();
-        } else {
-            $data['TaxVatList'] = [];
-        }
-
-        return view('customer_plan', $data);
+        return view('customer_plan', GetCustomerPlanFormDataAction::run($customerPlan));
     }
 
     /**
@@ -81,11 +67,10 @@ class CustomerPlanController extends Controller
      * @param id from plan
      * @return redirect -> list_customer_plan
      */
-    public function update($id, CustomerPlanRequest $request): RedirectResponse
+    public function update(CustomerPlan $customerPlan, CustomerPlanRequest $request): RedirectResponse
     {
-        $plan = CustomerPlan::findOrFail($id);
         UpdateCustomerPlanAction::run(
-            $plan,
+            $customerPlan,
             $request->validated(),
             $request->boolean('active'),
             $request->boolean('additional'),
@@ -100,9 +85,9 @@ class CustomerPlanController extends Controller
      * @param id from plan
      * @return redirect -> list_customer_plan
      */
-    public function delete(DeleteCustomerPlanRequest $request): RedirectResponse
+    public function delete(CustomerPlan $customerPlan): RedirectResponse
     {
-        DeleteCustomerPlanAction::run(CustomerPlan::findOrFail($request->id()));
+        DeleteCustomerPlanAction::run($customerPlan);
 
         return redirect()->route('list_customer_plan');
     }
@@ -113,9 +98,9 @@ class CustomerPlanController extends Controller
      * @param id from group
      * @return redirect -> list_customer_plan
      */
-    public function list()
+    public function list(): View
     {
-        $data['list'] = CustomerPlan::get();
+        $data['list'] = ListCustomerPlansAction::run();
 
         return view('customer_plan_list', $data);
     }
