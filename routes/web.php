@@ -88,9 +88,9 @@ Route::group([
             Route::get('list', [ChannelController::class, 'list'])->name('list_channel');
             Route::get('add', [ChannelController::class, 'new'])->name('add_channel');
             Route::post('add', [ChannelController::class, 'create'])->name('create_channel');
-            Route::get('/{id}', [ChannelController::class, 'show'])->name('show_channel');
-            Route::post('/{id}', [ChannelController::class, 'update'])->name('update_channel');
-            Route::post('/del/{id}', [ChannelController::class, 'delete'])->name('delete_channel');
+            Route::get('/{channel}', [ChannelController::class, 'show'])->name('show_channel');
+            Route::post('/{channel}', [ChannelController::class, 'update'])->name('update_channel');
+            Route::post('/del/{channel}', [ChannelController::class, 'delete'])->name('delete_channel');
         });
 
         Route::prefix('group')->group(function () {
@@ -99,10 +99,10 @@ Route::group([
             Route::get('/add', [ChannelGroupController::class, 'new'])->name('add_channel_group');
             Route::post('/add', [ChannelGroupController::class, 'create'])->name('create_channel_group');
 
-            Route::get('/{id}', [ChannelGroupController::class, 'show'])->name('show_channel_group');
+            Route::get('/{channelGroup}', [ChannelGroupController::class, 'show'])->name('show_channel_group');
 
-            Route::post('/{id}', [ChannelGroupController::class, 'update'])->name('update_channel_group');
-            Route::post('/del/{id}', [ChannelGroupController::class, 'delete'])->name('delete_channel_group');
+            Route::post('/{channelGroup}', [ChannelGroupController::class, 'update'])->name('update_channel_group');
+            Route::post('/del/{channelGroup}', [ChannelGroupController::class, 'delete'])->name('delete_channel_group');
         });
 
         Route::prefix('cdn')->group(function () {
@@ -111,16 +111,16 @@ Route::group([
             Route::get('/add', [ChannelCdnController::class, 'new'])->name('add_channel_cdn');
             Route::post('/add', [ChannelCdnController::class, 'create'])->name('create_channel_cdn');
 
-            Route::get('/{id}', [ChannelCdnController::class, 'show'])->name('show_channel_cdn');
-            Route::post('/{id}', [ChannelCdnController::class, 'update'])->name('update_channel_cdn');
+            Route::get('/{channelCdn}', [ChannelCdnController::class, 'show'])->name('show_channel_cdn');
+            Route::post('/{channelCdn}', [ChannelCdnController::class, 'update'])->name('update_channel_cdn');
 
-            Route::post('/del/{id}', [ChannelCdnController::class, 'delete'])->name('delete_channel_cdn');
+            Route::post('/del/{channelCdn}', [ChannelCdnController::class, 'delete'])->name('delete_channel_cdn');
         });
 
         Route::prefix('url')->group(function () {
             Route::post('/add', [ChannelUrlController::class, 'create'])->name('create_channel_url');
-            Route::post('/{id}', [ChannelUrlController::class, 'update'])->name('update_channel_url');
-            Route::post('/del/{id}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
+            Route::post('/{channelUrl}', [ChannelUrlController::class, 'update'])->name('update_channel_url');
+            Route::post('/del/{channelUrl}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
         });
     });
 
@@ -146,13 +146,13 @@ if (config('modules.customer.enabled', true)) {
                 Route::get('/add', [CustomerPlanController::class, 'new'])->name('add_customer_plan');
                 Route::post('/add', [CustomerPlanController::class, 'create'])->name('create_customer_plan');
 
-                Route::get('/{id}', [CustomerPlanController::class, 'show'])->name('show_customer_plan');
-                Route::post('/{id}', [CustomerPlanController::class, 'update'])->name('update_customer_plan');
+                Route::get('/{customerPlan}', [CustomerPlanController::class, 'show'])->name('show_customer_plan');
+                Route::post('/{customerPlan}', [CustomerPlanController::class, 'update'])->name('update_customer_plan');
 
-                Route::post('/del/{id}', [CustomerPlanController::class, 'delete'])->name('delete_customer_plan');
+                Route::post('/del/{customerPlan}', [CustomerPlanController::class, 'delete'])->name('delete_customer_plan');
 
-                Route::post('/{plan_id}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
-                Route::post('/{plan_id}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
+                Route::post('/{customerPlan}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
+                Route::post('/{customerPlan}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
 
             });
 
@@ -160,17 +160,17 @@ if (config('modules.customer.enabled', true)) {
                 Route::get('list', [CustomerController::class, 'list'])->name('list_customer');
                 Route::get('add', [CustomerController::class, 'new'])->name('add_customer');
                 Route::post('add', [CustomerController::class, 'create'])->name('create_customer');
-                Route::get('/{id}', [CustomerController::class, 'show'])->name('show_customer');
-                Route::post('/{id}', [CustomerController::class, 'update'])->name('update_customer');
-                Route::post('/del/{id}', [CustomerController::class, 'delete'])->name('delete_customer');
+                Route::get('/{customer}', [CustomerController::class, 'show'])->name('show_customer');
+                Route::post('/{customer}', [CustomerController::class, 'update'])->name('update_customer');
+                Route::post('/del/{customer}', [CustomerController::class, 'delete'])->name('delete_customer');
 
-                Route::post('/{customer_id}/plan_additional/add', [CustomerPlanAdditionalController::class, 'add'])->name('add_additional');
-                Route::post('/{customer_id}/plan_additional/del', [CustomerPlanAdditionalController::class, 'del'])->name('del_additional');
+                Route::post('/{customer}/plan_additional/add', [CustomerPlanAdditionalController::class, 'add'])->name('add_additional');
+                Route::post('/{customer}/plan_additional/del', [CustomerPlanAdditionalController::class, 'del'])->name('del_additional');
 
-                Route::get('/{customer_id}/invoces/new', [InvoceController::class, 'new'])->name('new_customer_invoce');
-                Route::post('/{customer_id}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
-                Route::post('/{customer_id}/invoces/{id}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
-                Route::post('/{customer_id}/invoces/{id}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
+                Route::get('/{customer}/invoces/new', [InvoceController::class, 'new'])->name('new_customer_invoce');
+                Route::post('/{customer}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
+                Route::post('/{customer}/invoces/{customerInvoce}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
+                Route::post('/{customer}/invoces/{customerInvoce}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
 
             });
 

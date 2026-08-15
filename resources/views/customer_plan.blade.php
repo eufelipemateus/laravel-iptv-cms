@@ -109,7 +109,7 @@
                                         <b>{{  $group->name}}</b>
                                     </div>
                                     <div class="col-md-6">
-                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('add_group_customer_plan', ['plan_id' => $Plan->id]) }}" method="POST">
+                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('add_group_customer_plan', ['customerPlan' => $Plan]) }}" method="POST">
                                             {{ csrf_field() }}
                                             <input type="hidden" id="iptv-group-id" name="iptv_group_id" value="{{$group->id}}">
                                             <button  id="id-group-{{$group->id}}"type="submit" class="btn btn-link">add group</button>
@@ -129,7 +129,7 @@
                                         <b>{{  $group->name}}</b>
                                     </div>
                                     <div class="col-md-6">
-                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('delete_group_customer_plan', ['plan_id' => $Plan->id]) }}" method="POST">
+                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('delete_group_customer_plan', ['customerPlan' => $Plan]) }}" method="POST">
                                             {{ csrf_field() }}
                                             <input type="hidden" id="iptv-group-id" name="iptv_group_id" value="{{$group->id}}">
                                             <button  id="id-group-{{$group->id}}"type="submit" class="btn btn-link">delete group</button>

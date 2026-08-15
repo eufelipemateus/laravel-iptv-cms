@@ -3,16 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Customers\DeleteCustomerAction;
+use App\Actions\Customers\GetCustomerFormDataAction;
+use App\Actions\Customers\ListCustomersAction;
 use App\Actions\Customers\StoreCustomerAction;
 use App\Actions\Customers\UpdateCustomerAction;
-use App\Http\Requests\DeleteCustomerRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
-use App\Models\ChannelCdn;
 use App\Models\Customer;
-use App\Models\CustomerPlan;
-use FelipeMateus\IPTVGatewayPayment\Models\IPTVGateway;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
@@ -29,37 +28,22 @@ class CustomerController extends Controller
     /**
      * Show new customer page.
      *
-     * @return view -> customer
+     * @return View -> customer
      */
-    public function new()
+    public function new(): View
     {
-        $data['Planslist'] = CustomerPlan::activePlanList();
-        $data['Cdnslist'] = ChannelCdn::all();
-
-        return view('customer', $data);
+        return view('customer', GetCustomerFormDataAction::run());
     }
 
     /**
      * Show page from customer with id.
      *
      * @param  $id  - customer id
-     * @return view -> IPTV::customer
+     * @return View -> IPTV::customer
      */
-    public function show($id)
+    public function show(Customer $customer): View
     {
-        $data['Customer'] = Customer::findOrFail($id);
-        $data['Planslist'] = CustomerPlan::activePlanList();
-        $data['PlansAdditionallist'] = $data['Customer']->planAditionalList();
-        $data['Cdnslist'] = ChannelCdn::all();
-        $data['CustomerPlansAddionalList'] = $data['Customer']->plans_additional()->get();
-        $data['CustomerInvoceList'] = $data['Customer']->customer_invoce()->get();
-        if (class_exists('FelipeMateus\\IPTVGatewayPayment\\Models\\IPTVGateway')) {
-            $data['GatewaysList'] = IPTVGateway::where('active', 1)->get();
-        } else {
-            $data['GatewaysList'] = [];
-        }
-
-        return view('customer', $data);
+        return view('customer', GetCustomerFormDataAction::run($customer));
     }
 
     /**
@@ -71,7 +55,7 @@ class CustomerController extends Controller
     {
         $customer = StoreCustomerAction::run($request->validated());
 
-        return redirect()->route('show_customer', ['id' => $customer->id])
+        return redirect()->route('show_customer', ['customer' => $customer])
             ->with('auth_token', $customer->getRelation('plainAuthToken'));
     }
 
@@ -81,10 +65,8 @@ class CustomerController extends Controller
      * @param id from customer
      * @return redirect -> list_customers
      */
-    public function update($id, UpdateCustomerRequest $request): RedirectResponse
+    public function update(Customer $customer, UpdateCustomerRequest $request): RedirectResponse
     {
-        $customer = Customer::findOrFail($id);
-
         UpdateCustomerAction::run(
             $customer,
             $request->validated(),
@@ -93,7 +75,7 @@ class CustomerController extends Controller
             $request->filled('revoke_token'),
         );
 
-        $redirect = redirect()->route('show_customer', ['id' => $customer->id]);
+        $redirect = redirect()->route('show_customer', ['customer' => $customer]);
 
         if ($request->filled('regenerate')) {
             return $redirect->with('auth_token', $customer->getRelation('plainAuthToken'));
@@ -112,9 +94,9 @@ class CustomerController extends Controller
      * @param id from customer
      * @return redirect -> list_customer
      */
-    public function delete(DeleteCustomerRequest $request): RedirectResponse
+    public function delete(Customer $customer): RedirectResponse
     {
-        DeleteCustomerAction::run(Customer::findOrFail($request->id()));
+        DeleteCustomerAction::run($customer);
 
         return redirect()->route('list_customer');
     }
@@ -122,13 +104,11 @@ class CustomerController extends Controller
     /**
      * Return a customer List from database.
      *
-     * @return view -> IPTV::customer_list
+     * @return View -> IPTV::customer_list
      */
-    public function list()
+    public function list(): View
     {
-        $data['list'] = Customer::with('plan')
-            ->orderBy('name')
-            ->paginate(25);
+        $data['list'] = ListCustomersAction::run();
 
         return view('customer_list', $data);
     }

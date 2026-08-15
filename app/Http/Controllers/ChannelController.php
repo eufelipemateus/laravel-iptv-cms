@@ -3,17 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Channels\DeleteChannelAction;
+use App\Actions\Channels\GetChannelFormDataAction;
+use App\Actions\Channels\ListChannelsAction;
 use App\Actions\Channels\StoreChannelAction;
 use App\Actions\Channels\UpdateChannelAction;
-use App\Http\Requests\DeleteChannelRequest;
 use App\Http\Requests\StoreChannelRequest;
 use App\Http\Requests\UpdateChannelRequest;
 use App\Models\Channel;
-use App\Models\ChannelCdn;
-use App\Models\ChannelGroup;
-use App\Models\ChannelUrl;
-use App\Models\IPTVConfig;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ChannelController extends Controller
 {
@@ -30,31 +28,23 @@ class ChannelController extends Controller
     /**
      * Show new channewl page.
      *
-     * @return view -> IPTV:chanel
+     * @return View -> IPTV:chanel
      */
-    public function new()
+    public function new(): View
     {
-        $data['Groupslist'] = ChannelGroup::get();
-        $data['radio_stream'] = IPTVConfig::get('RADIO_STREAM');
-
-        return view('channel', $data);
+        return view('channel', GetChannelFormDataAction::run());
     }
 
     /**
      * Show page from channel with id.
      *
-     * @param  $id  - channewl id
-     * @return view -> IPTV:chanel
+     * @param  $channel  - channewl id
+     * @return View -> IPTV:chanel
      */
-    public function show($id)
+    public function show(Channel $channel): View
     {
-        $data['Channel'] = Channel::findOrFail($id);
-        $data['Groupslist'] = ChannelGroup::get();
-        $data['Cdnslist'] = ChannelCdn::all();
-        $data['urls'] = ChannelUrl::where('iptv_channel_id', $id)->get();
-        $data['radio_stream'] = IPTVConfig::get('RADIO_STREAM');
 
-        return view('channel', $data);
+        return view('channel', GetChannelFormDataAction::run($channel));
     }
 
     /**
@@ -79,10 +69,8 @@ class ChannelController extends Controller
      * @param id from channel
      * @return redirect -> list_channels
      */
-    public function update($id, UpdateChannelRequest $request): RedirectResponse
+    public function update(Channel $channel, UpdateChannelRequest $request): RedirectResponse
     {
-        $channel = Channel::findOrFail($id);
-
         UpdateChannelAction::run(
             $channel,
             $request->validated(),
@@ -99,9 +87,9 @@ class ChannelController extends Controller
      * @param id from channel
      * @return redirect -> list_channel
      */
-    public function delete(DeleteChannelRequest $request): RedirectResponse
+    public function delete(Channel $channel): RedirectResponse
     {
-        DeleteChannelAction::run(Channel::findOrFail($request->id()));
+        DeleteChannelAction::run($channel);
 
         return redirect()->route('list_channel');
     }
@@ -109,14 +97,11 @@ class ChannelController extends Controller
     /**
      * Return a channel List from database.
      *
-     * @return view -> IPTV::channel_list
+     * @return View -> IPTV::channel_list
      */
-    public function list()
+    public function list(): View
     {
-        $data['list'] = Channel::with('group')
-            ->orderBy('radio')
-            ->orderBy('number')
-            ->paginate(25);
+        $data['list'] = ListChannelsAction::run();
 
         return view('channel_list', $data);
     }
