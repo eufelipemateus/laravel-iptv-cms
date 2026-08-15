@@ -92,7 +92,7 @@ class ChannelGroupController extends Controller
      */
     public function list()
     {
-        $data['list'] = ChannelGroup::get();
+        $data['list'] = ChannelGroup::orderBy('name')->paginate(25);
 
         return view('channel_group_list', $data);
     }

@@ -12,6 +12,7 @@ use App\Models\CustomerPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class CrudFlowTest extends TestCase
@@ -51,6 +52,27 @@ class CrudFlowTest extends TestCase
             'val' => 'en',
             'type' => 'locale',
         ]);
+    }
+
+    public function test_large_lists_are_paginated_at_database_level(): void
+    {
+        $plan = CustomerPlan::factory()->create();
+        $cdn = ChannelCdn::factory()->create();
+        $group = ChannelGroup::factory()->create();
+
+        Channel::factory()->count(26)->create(['group_id' => $group->id]);
+        Customer::factory()->count(26)->create(['iptv_plan_id' => $plan->id, 'iptv_cdn_id' => $cdn->id]);
+        ChannelCdn::factory()->count(25)->create();
+        ChannelGroup::factory()->count(25)->create();
+        CustomerPlan::factory()->count(25)->create();
+
+        foreach (['list_channel', 'list_customer', 'list_channel_cdn', 'list_channel_group', 'list_customer_plan'] as $route) {
+            $this->get(route($route))
+                ->assertOk()
+                ->assertViewHas('list', fn ($list): bool => $list instanceof LengthAwarePaginator
+                    && $list->count() === 25
+                    && $list->hasMorePages());
+        }
     }
 
     public function test_channel_group_crud_endpoints(): void

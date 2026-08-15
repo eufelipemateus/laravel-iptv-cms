@@ -115,7 +115,7 @@ class CustomerPlanController extends Controller
      */
     public function list()
     {
-        $data['list'] = CustomerPlan::get();
+        $data['list'] = CustomerPlan::orderBy('name')->paginate(25);
 
         return view('customer_plan_list', $data);
     }

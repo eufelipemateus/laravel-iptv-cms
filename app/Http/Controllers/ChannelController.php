@@ -113,7 +113,10 @@ class ChannelController extends Controller
      */
     public function list()
     {
-        $data['list'] = Channel::getList();
+        $data['list'] = Channel::with('group')
+            ->orderBy('radio')
+            ->orderBy('number')
+            ->paginate(25);
 
         return view('channel_list', $data);
     }
