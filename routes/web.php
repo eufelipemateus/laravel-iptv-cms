@@ -64,7 +64,6 @@ Route::group(
 
 Route::middleware(['web', 'auth', 'active', 'iptv_locale', 'throttle:web'])->prefix('users')->group(function () {
     Route::get('me', [UserController::class, 'profile'])->name('user.profile');
-
 });
 
 Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'])->prefix('users')->group(function () {
@@ -76,17 +75,20 @@ Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:we
     Route::put('{user}', [UserController::class, 'update'])->name('users.update');
 });
 // Channel Routes
-Route::group([
-    'prefix' => 'public/m3u8',
-    'middleware' => ['api', 'public_cdn'],
-],
+Route::group(
+    [
+        'prefix' => 'public/m3u8',
+        'middleware' => ['api', 'public_cdn'],
+    ],
     function () {
         Route::get('/{slug}', [ChannelListM3UController::class, 'show'])->name('cdn-playslit');
-    });
+    }
+);
 
-Route::group([
-    'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
-],
+Route::group(
+    [
+        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
+    ],
     function () {
         Route::prefix('channel')->group(function () {
             Route::get('list', [ChannelController::class, 'list'])->name('list_channel');
@@ -126,17 +128,20 @@ Route::group([
             Route::post('/{id}', [ChannelUrlController::class, 'update'])->name('update_channel_url');
             Route::post('/del/{id}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
         });
-    });
+    }
+);
 
 // IPTV Customers Routes
 if (config('modules.customer.enabled', true)) {
-    Route::group([
-        'prefix' => 'client/m3u8',
-        'middleware' => ['api', 'client'],
-    ],
+    Route::group(
+        [
+            'prefix' => 'client/m3u8',
+            'middleware' => ['api', 'client'],
+        ],
         function () {
             Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name('client-playlist');
-        });
+        }
+    );
 }
 
 Route::get('client/epg/{slug}.xml', [EpgXmlController::class, 'customer'])
@@ -158,9 +163,10 @@ Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:we
     });
 
 if (config('modules.customer.enabled', true)) {
-    Route::group([
-        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
-    ],
+    Route::group(
+        [
+            'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
+        ],
         function () {
             Route::prefix('plan')->group(function () {
                 Route::get('/list', [CustomerPlanController::class, 'list'])->name('list_customer_plan');
@@ -175,7 +181,6 @@ if (config('modules.customer.enabled', true)) {
 
                 Route::post('/{plan_id}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
                 Route::post('/{plan_id}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
-
             });
 
             Route::prefix('customer')->group(function () {
@@ -193,7 +198,6 @@ if (config('modules.customer.enabled', true)) {
                 Route::post('/{customer_id}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
                 Route::post('/{customer_id}/invoces/{id}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
                 Route::post('/{customer_id}/invoces/{id}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
-
             });
 
             // Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
