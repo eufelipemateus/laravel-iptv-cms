@@ -135,49 +135,48 @@ if (config('modules.customer.enabled', true)) {
         });
 }
 
-if (config('modules.customer.enabled', true)) {
-    Route::group([
-        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
-    ],
-        function () {
-            Route::prefix('plan')->group(function () {
-                Route::get('/list', [CustomerPlanController::class, 'list'])->name('list_customer_plan');
+Route::group([
+    'middleware' => ['web', 'customer.enabled', 'auth', 'active', 'iptv_locale', 'throttle:web'],
+],
+    function () {
+        Route::prefix('plan')->group(function () {
+            Route::get('/list', [CustomerPlanController::class, 'list'])->name('list_customer_plan');
 
-                Route::get('/add', [CustomerPlanController::class, 'new'])->name('add_customer_plan');
-                Route::post('/add', [CustomerPlanController::class, 'create'])->name('create_customer_plan');
+            Route::get('/add', [CustomerPlanController::class, 'new'])->name('add_customer_plan');
+            Route::post('/add', [CustomerPlanController::class, 'create'])->name('create_customer_plan');
 
-                Route::get('/{customerPlan}', [CustomerPlanController::class, 'show'])->name('show_customer_plan');
-                Route::post('/{customerPlan}', [CustomerPlanController::class, 'update'])->name('update_customer_plan');
+            Route::get('/{customerPlan}', [CustomerPlanController::class, 'show'])->name('show_customer_plan');
+            Route::post('/{customerPlan}', [CustomerPlanController::class, 'update'])->name('update_customer_plan');
 
-                Route::post('/del/{customerPlan}', [CustomerPlanController::class, 'delete'])->name('delete_customer_plan');
+            Route::post('/del/{customerPlan}', [CustomerPlanController::class, 'delete'])->name('delete_customer_plan');
 
-                Route::post('/{customerPlan}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
-                Route::post('/{customerPlan}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
+            Route::post('/{customerPlan}/group/add', [CustomerPlanGroupController::class, 'add'])->name('add_group_customer_plan');
+            Route::post('/{customerPlan}/group/delete', [CustomerPlanGroupController::class, 'delete'])->name('delete_group_customer_plan');
 
-            });
+        });
 
-            Route::prefix('customer')->group(function () {
-                Route::get('list', [CustomerController::class, 'list'])->name('list_customer');
-                Route::get('add', [CustomerController::class, 'new'])->name('add_customer');
-                Route::post('add', [CustomerController::class, 'create'])->name('create_customer');
-                Route::get('/{customer}', [CustomerController::class, 'show'])->name('show_customer');
-                Route::post('/{customer}', [CustomerController::class, 'update'])->name('update_customer');
-                Route::post('/del/{customer}', [CustomerController::class, 'delete'])->name('delete_customer');
+        Route::prefix('customer')->group(function () {
+            Route::get('list', [CustomerController::class, 'list'])->name('list_customer');
+            Route::get('add', [CustomerController::class, 'new'])->name('add_customer');
+            Route::post('add', [CustomerController::class, 'create'])->name('create_customer');
+            Route::get('/{customer}', [CustomerController::class, 'show'])->name('show_customer');
+            Route::post('/{customer}', [CustomerController::class, 'update'])->name('update_customer');
+            Route::post('/del/{customer}', [CustomerController::class, 'delete'])->name('delete_customer');
 
-                Route::post('/{customer}/plan_additional/add', [CustomerPlanAdditionalController::class, 'add'])->name('add_additional');
-                Route::post('/{customer}/plan_additional/del', [CustomerPlanAdditionalController::class, 'del'])->name('del_additional');
+            Route::post('/{customer}/plan_additional/add', [CustomerPlanAdditionalController::class, 'add'])->name('add_additional');
+            Route::post('/{customer}/plan_additional/del', [CustomerPlanAdditionalController::class, 'del'])->name('del_additional');
 
-                Route::get('/{customer}/invoces/new', [InvoceController::class, 'new'])->name('new_customer_invoce');
-                Route::post('/{customer}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
-                Route::post('/{customer}/invoces/{customerInvoce}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
-                Route::post('/{customer}/invoces/{customerInvoce}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
+            Route::get('/{customer}/invoces/new', [InvoceController::class, 'new'])->name('new_customer_invoce');
+            Route::post('/{customer}/invoces/new', [InvoceController::class, 'create'])->name('create_customer_invoce');
+            Route::post('/{customer}/invoces/{customerInvoce}/pay', [InvoceController::class, 'pay'])->name('pay_customer_invoce');
+            Route::post('/{customer}/invoces/{customerInvoce}/cancel', [InvoceController::class, 'cancel'])->name('cancel_customer_invoce');
 
-            });
+        });
 
-            // Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
-        }
-    );
-}
+        // Route::get('/pay/{cod}/{invoce_id}', 'FelipeMateus\IPTVCustomers\Controllers\PayController@checkout')->name('pay');
+    }
+);
+
 
 Route::group([
     'middleware' => ['web', 'vod.enabled', 'auth', 'active', 'iptv_locale', 'throttle:web'],

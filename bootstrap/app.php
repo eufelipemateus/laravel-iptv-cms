@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureCustomerModuleIsEnabled;
 use App\Http\Middleware\CustomerMiddleware;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => EnsureUserIsActive::class,
             'admin' => EnsureUserIsAdmin::class,
             'vod.enabled' => EnsureVodModuleIsEnabled::class,
+            'customer.enabled' => EnsureCustomerModuleIsEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
