@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('last_success_at')->nullable();
             $table->timestamp('last_error_at')->nullable();
             $table->text('last_error')->nullable();
+            $table->uuid('active_sync_generation')->nullable()->index();
             $table->timestamps();
         });
 
@@ -50,9 +51,11 @@ return new class extends Migration
             $table->timestamp('start_at')->index();
             $table->timestamp('end_at')->index();
             $table->json('metadata')->nullable();
+            $table->uuid('sync_generation');
             $table->timestamps();
             $table->index(['epg_channel_id', 'start_at', 'end_at']);
-            $table->unique(['epg_channel_id', 'external_id']);
+            $table->unique(['epg_channel_id', 'external_id', 'sync_generation']);
+            $table->index(['sync_generation', 'epg_channel_id']);
         });
 
         Schema::table('iptv_channels', function (Blueprint $table): void {

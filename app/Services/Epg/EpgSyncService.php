@@ -11,7 +11,6 @@ class EpgSyncService
     public function __construct(
         private XmltvDownloader $downloader,
         private XmltvImporter $importer,
-        private EpgCache $cache,
     ) {}
 
     /** @return array{channels:int,programmes:int} */
@@ -21,7 +20,11 @@ class EpgSyncService
             throw new EpgImportException('The EPG module is disabled.');
         }
 
-        $lock = Cache::lock('epg:sync:'.$source->id, max(60, (int) config('modules.epg.request_timeout') * 4));
+        if (! $source->enabled) {
+            throw new EpgImportException('The EPG source is disabled.');
+        }
+
+        $lock = Cache::lock('epg:sync:'.$source->id, (int) config('modules.epg.sync_lock_seconds', 1800));
         if (! $lock->get()) {
             throw new EpgImportException('This EPG source is already being synchronized.');
         }
@@ -32,8 +35,6 @@ class EpgSyncService
             $path = $this->downloader->download($source->url);
             $result = $this->importer->import($source, $path);
             $source->forceFill(['last_success_at' => now(), 'last_error' => null, 'last_error_at' => null])->save();
-            $this->cache->invalidate();
-
             return $result;
         } catch (Throwable $exception) {
             $source->forceFill([

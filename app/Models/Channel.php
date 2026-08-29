@@ -18,11 +18,11 @@ class Channel extends Model
      */
     protected $fillable = [
         'group_id',
-        'epg_channel_id',
         'number',
         'name',
         'logo',
         'radio',
+        'epg_channel_id',
     ];
 
     protected $table = 'iptv_channels';
@@ -37,7 +37,7 @@ class Channel extends Model
 
     public function epgChannel()
     {
-        return $this->belongsTo(EpgChannel::class, 'epg_channel_id');
+        return $this->belongsTo(EpgChannel::class);
     }
 
     /**
@@ -61,6 +61,7 @@ class Channel extends Model
                 'iptv_channels.radio',
                 DB::raw('iptv_channel_groups.name as group_name'),
                 'iptv_urls.url_stream',
+                'epg_channels.epg_source_id',
                 DB::raw('epg_channels.external_id as epg_external_id')
             )
             ->where('iptv_cdns.slug', $cdn_slug)
@@ -73,6 +74,7 @@ class Channel extends Model
                 'iptv_channel_groups.name',
                 'iptv_urls.url_stream',
                 'iptv_channels.id',
+                'epg_channels.epg_source_id',
                 'epg_channels.external_id',
             )
             ->orderBy(
@@ -135,6 +137,7 @@ class Channel extends Model
                 'iptv_channels.radio',
                 DB::raw('iptv_channel_groups.name as group_name'),
                 'iptv_urls.url_stream',
+                'epg_channels.epg_source_id',
                 DB::raw('epg_channels.external_id as epg_external_id')
             )
             ->where('iptv_cdns.slug', $cdn_slug)
@@ -148,6 +151,7 @@ class Channel extends Model
                 'iptv_channel_groups.name',
                 'iptv_urls.url_stream',
                 'iptv_channels.id',
+                'epg_channels.epg_source_id',
                 'epg_channels.external_id',
             )
             ->orderBy(
@@ -169,6 +173,7 @@ class Channel extends Model
                 'iptv_channels.radio',
                 DB::raw('iptv_channel_groups.name as group_name'),
                 'iptv_urls.url_stream',
+                'epg_channels.epg_source_id',
                 DB::raw('epg_channels.external_id as epg_external_id')
             )
             ->where('iptv_cdns.slug', $cdn_slug)
@@ -182,6 +187,7 @@ class Channel extends Model
                 'iptv_channel_groups.name',
                 'iptv_urls.url_stream',
                 'iptv_channels.id',
+                'epg_channels.epg_source_id',
                 'epg_channels.external_id',
             )
             ->orderBy(

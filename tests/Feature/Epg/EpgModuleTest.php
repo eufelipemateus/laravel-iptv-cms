@@ -33,7 +33,7 @@ class EpgModuleTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('url-tvg="'.route('epg.public').'"', false);
-        $response->assertSee('tvg-id="news.br"', false);
+        $response->assertSee('tvg-id="'.$epg->xmltvId().'"', false);
         $this->assertSame($epg->id, $channel->epgChannel->id);
     }
 
@@ -51,13 +51,14 @@ class EpgModuleTest extends TestCase
             'description' => 'A & B',
             'start_at' => $startAt,
             'end_at' => $endAt,
+            'sync_generation' => $epg->source->active_sync_generation,
         ]);
 
         $response = $this->get(route('epg.public'));
         $content = $response->streamedContent();
 
         $response->assertOk()->assertHeader('Content-Type', 'application/xml; charset=utf-8');
-        $this->assertStringContainsString('<channel id="news.br">', $content);
+        $this->assertStringContainsString('<channel id="'.$epg->xmltvId().'">', $content);
         $this->assertStringContainsString('News &amp; More', $content);
         $this->assertStringContainsString('News &lt;Live&gt;', $content);
         $this->assertStringContainsString('start="'.$startAt->format('YmdHis O').'"', $content);
@@ -79,8 +80,8 @@ class EpgModuleTest extends TestCase
         [$id, $secret] = explode('.', $customer->issueAuthToken(), 2);
         $content = $this->withBasicAuth($id, $secret)->get($url)->streamedContent();
 
-        $this->assertStringContainsString('id="allowed"', $content);
-        $this->assertStringNotContainsString('id="denied"', $content);
+        $this->assertStringContainsString('id="'.$allowed->xmltvId().'"', $content);
+        $this->assertStringNotContainsString('id="'.$denied->xmltvId().'"', $content);
     }
 
     public function test_disabled_module_returns_404_and_keeps_playlist_without_epg_metadata(): void
@@ -94,11 +95,43 @@ class EpgModuleTest extends TestCase
         $response->assertOk()->assertDontSee('url-tvg=', false);
     }
 
+    public function test_duplicate_external_ids_are_unique_and_consistent_across_xmltv_and_m3u(): void
+    {
+        $this->enablePublicCdn();
+        $cdn = ChannelCdn::factory()->create(['slug' => 'multi-source']);
+        $first = $this->epgChannel('news', 'First News');
+        $second = $this->epgChannel('news', 'Second News');
+        $this->makePlayableChannel($cdn, null, ['name' => 'First', 'number' => 201, 'epg_channel_id' => $first->id]);
+        $this->makePlayableChannel($cdn, null, ['name' => 'Second', 'number' => 202, 'epg_channel_id' => $second->id]);
+
+        foreach ([$first, $second] as $index => $epg) {
+            EpgProgramme::create([
+                'epg_channel_id' => $epg->id,
+                'external_id' => 'show-'.$index,
+                'title' => 'Programme '.$index,
+                'start_at' => now()->addHour(),
+                'end_at' => now()->addHours(2),
+                'sync_generation' => $epg->source->active_sync_generation,
+            ]);
+        }
+
+        $xml = $this->get(route('epg.public'))->streamedContent();
+        $playlist = $this->get(route('cdn-playslit', $cdn->slug))->getContent();
+
+        $this->assertNotSame($first->xmltvId(), $second->xmltvId());
+        foreach ([$first, $second] as $epg) {
+            $this->assertStringContainsString('<channel id="'.$epg->xmltvId().'">', $xml);
+            $this->assertStringContainsString('channel="'.$epg->xmltvId().'"', $xml);
+            $this->assertStringContainsString('tvg-id="'.$epg->xmltvId().'"', $playlist);
+        }
+    }
+
     private function epgChannel(string $externalId, string $name): EpgChannel
     {
         $source = EpgSource::create([
             'name' => 'Guide', 'url' => 'https://example.com/guide.xml', 'enabled' => true,
             'format' => 'xmltv', 'timezone' => 'UTC', 'refresh_interval' => 60,
+            'active_sync_generation' => '00000000-0000-4000-8000-000000000001',
         ]);
 
         return EpgChannel::create(['epg_source_id' => $source->id, 'external_id' => $externalId, 'display_name' => $name, 'name' => $name]);

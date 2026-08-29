@@ -32,7 +32,6 @@ use App\Http\Controllers\VideoVodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
-
 Route::get('epg.xml', [EpgXmlController::class, 'public'])->middleware(['api', 'epg.enabled'])->name('epg.public');
 Route::middleware(['guest'])->group(function () {
     Route::get('login', [AuthController::class, 'create'])->name('login');
@@ -64,6 +63,7 @@ Route::group(
 
 Route::middleware(['web', 'auth', 'active', 'iptv_locale', 'throttle:web'])->prefix('users')->group(function () {
     Route::get('me', [UserController::class, 'profile'])->name('user.profile');
+
 });
 
 Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'])->prefix('users')->group(function () {
@@ -75,28 +75,25 @@ Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:we
     Route::put('{user}', [UserController::class, 'update'])->name('users.update');
 });
 // Channel Routes
-Route::group(
-    [
-        'prefix' => 'public/m3u8',
-        'middleware' => ['api', 'public_cdn'],
-    ],
+Route::group([
+    'prefix' => 'public/m3u8',
+    'middleware' => ['api', 'public_cdn'],
+],
     function () {
         Route::get('/{slug}', [ChannelListM3UController::class, 'show'])->name('cdn-playslit');
-    }
-);
+    });
 
-Route::group(
-    [
-        'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
-    ],
+Route::group([
+    'middleware' => ['web', 'auth', 'active', 'iptv_locale', 'throttle:web'],
+],
     function () {
         Route::prefix('channel')->group(function () {
             Route::get('list', [ChannelController::class, 'list'])->name('list_channel');
             Route::get('add', [ChannelController::class, 'new'])->name('add_channel');
             Route::post('add', [ChannelController::class, 'create'])->name('create_channel');
-            Route::get('/{id}', [ChannelController::class, 'show'])->name('show_channel');
-            Route::post('/{id}', [ChannelController::class, 'update'])->name('update_channel');
-            Route::post('/del/{id}', [ChannelController::class, 'delete'])->name('delete_channel');
+            Route::get('/{channel}', [ChannelController::class, 'show'])->name('show_channel');
+            Route::post('/{channel}', [ChannelController::class, 'update'])->name('update_channel');
+            Route::post('/del/{channel}', [ChannelController::class, 'delete'])->name('delete_channel');
         });
 
         Route::prefix('group')->group(function () {
@@ -105,10 +102,10 @@ Route::group(
             Route::get('/add', [ChannelGroupController::class, 'new'])->name('add_channel_group');
             Route::post('/add', [ChannelGroupController::class, 'create'])->name('create_channel_group');
 
-            Route::get('/{id}', [ChannelGroupController::class, 'show'])->name('show_channel_group');
+            Route::get('/{channelGroup}', [ChannelGroupController::class, 'show'])->name('show_channel_group');
 
-            Route::post('/{id}', [ChannelGroupController::class, 'update'])->name('update_channel_group');
-            Route::post('/del/{id}', [ChannelGroupController::class, 'delete'])->name('delete_channel_group');
+            Route::post('/{channelGroup}', [ChannelGroupController::class, 'update'])->name('update_channel_group');
+            Route::post('/del/{channelGroup}', [ChannelGroupController::class, 'delete'])->name('delete_channel_group');
         });
 
         Route::prefix('cdn')->group(function () {
@@ -117,31 +114,28 @@ Route::group(
             Route::get('/add', [ChannelCdnController::class, 'new'])->name('add_channel_cdn');
             Route::post('/add', [ChannelCdnController::class, 'create'])->name('create_channel_cdn');
 
-            Route::get('/{id}', [ChannelCdnController::class, 'show'])->name('show_channel_cdn');
-            Route::post('/{id}', [ChannelCdnController::class, 'update'])->name('update_channel_cdn');
+            Route::get('/{channelCdn}', [ChannelCdnController::class, 'show'])->name('show_channel_cdn');
+            Route::post('/{channelCdn}', [ChannelCdnController::class, 'update'])->name('update_channel_cdn');
 
-            Route::post('/del/{id}', [ChannelCdnController::class, 'delete'])->name('delete_channel_cdn');
+            Route::post('/del/{channelCdn}', [ChannelCdnController::class, 'delete'])->name('delete_channel_cdn');
         });
 
         Route::prefix('url')->group(function () {
             Route::post('/add', [ChannelUrlController::class, 'create'])->name('create_channel_url');
-            Route::post('/{id}', [ChannelUrlController::class, 'update'])->name('update_channel_url');
-            Route::post('/del/{id}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
+            Route::post('/{channelUrl}', [ChannelUrlController::class, 'update'])->name('update_channel_url');
+            Route::post('/del/{channelUrl}', [ChannelUrlController::class, 'delete'])->name('delete_channel_url');
         });
-    }
-);
+    });
 
 // IPTV Customers Routes
 if (config('modules.customer.enabled', true)) {
-    Route::group(
-        [
-            'prefix' => 'client/m3u8',
-            'middleware' => ['api', 'client'],
-        ],
+    Route::group([
+        'prefix' => 'client/m3u8',
+        'middleware' => ['api', 'client'],
+    ],
         function () {
             Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name('client-playlist');
-        }
-    );
+        });
 }
 
 Route::get('client/epg/{slug}.xml', [EpgXmlController::class, 'customer'])

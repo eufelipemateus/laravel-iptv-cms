@@ -21,7 +21,7 @@ class UpdateChannelRequest extends FormRequest
             'number' => [
                 'required',
                 'numeric',
-                Rule::unique('iptv_channels', 'number')->ignore($this->route('id')),
+                Rule::unique('iptv_channels', 'number')->ignore($this->route('channel')),
             ],
             'name' => ['required', 'string', 'max:60'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],

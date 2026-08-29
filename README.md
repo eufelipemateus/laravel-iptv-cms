@@ -37,7 +37,7 @@ See [docs/VOD.md](docs/VOD.md) for environment variables, storage disks, and API
 
 ### EPG and XMLTV
 
-The optional EPG module imports XMLTV guides, maps guide channels to live channels, enriches M3U playlists, and provides global and customer-filtered XMLTV feeds.
+The optional EPG module imports normal or gzip XMLTV guides, maps guide channels to live channels, reconciles updates safely, and provides globally unique channel IDs in public and customer-filtered XMLTV/M3U feeds.
 
 See [docs/EPG.md](docs/EPG.md) for setup, synchronization, security, endpoints, and retention.
 

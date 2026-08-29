@@ -89,6 +89,53 @@ XML;
         }
     }
 
+    public function test_reconciles_changed_programmes_without_leaving_ghosts(): void
+    {
+        $source = $this->source();
+        $this->importXml($source, '<tv><channel id="news"><display-name>News</display-name></channel><programme start="20260814180000 +0000" stop="20260814190000 +0000" channel="news"><title>Bulletin</title></programme></tv>');
+        $firstGeneration = $source->fresh()->active_sync_generation;
+
+        $this->importXml($source, '<tv><channel id="news"><display-name>News</display-name></channel><programme start="20260814183000 +0000" stop="20260814193000 +0000" channel="news"><title>Bulletin</title></programme></tv>');
+
+        $this->assertDatabaseCount('epg_programmes', 1);
+        $programme = EpgProgramme::firstOrFail();
+        $this->assertSame('2026-08-14 18:30:00', $programme->start_at->format('Y-m-d H:i:s'));
+        $this->assertNotSame($firstGeneration, $source->fresh()->active_sync_generation);
+    }
+
+    public function test_failed_import_preserves_the_previous_active_generation(): void
+    {
+        $source = $this->source();
+        $this->importXml($source, '<tv><channel id="news"><display-name>News</display-name></channel><programme id="valid" start="20260814180000 +0000" stop="20260814190000 +0000" channel="news"><title>Valid</title></programme></tv>');
+        $generation = $source->fresh()->active_sync_generation;
+
+        config(['modules.epg.max_programmes_per_import' => 1]);
+        try {
+            $this->importXml($source, '<tv><channel id="news"><display-name>News</display-name></channel><programme id="new" start="20260814200000 +0000" stop="20260814210000 +0000" channel="news"><title>New</title></programme><programme id="overflow" start="20260814210000 +0000" stop="20260814220000 +0000" channel="news"><title>Overflow</title></programme></tv>');
+            $this->fail('The import should have exceeded the programme limit.');
+        } catch (EpgImportException) {
+            $this->assertSame($generation, $source->fresh()->active_sync_generation);
+            $this->assertDatabaseHas('epg_programmes', ['external_id' => 'valid', 'sync_generation' => $generation]);
+            $this->assertDatabaseMissing('epg_programmes', ['external_id' => 'new']);
+        }
+    }
+
+    public function test_rejects_empty_wrong_root_and_excess_programmes(): void
+    {
+        foreach (['', '<guide/>'] as $xml) {
+            try {
+                $this->importXml($this->source(), $xml);
+                $this->fail('Invalid XMLTV should be rejected.');
+            } catch (EpgImportException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+
+        config(['modules.epg.max_programmes_per_import' => 0]);
+        $this->expectException(EpgImportException::class);
+        $this->importXml($this->source(), '<tv><channel id="x"><display-name>X</display-name></channel><programme start="20260814180000" stop="20260814190000" channel="x"><title>X</title></programme></tv>');
+    }
+
     private function source(): EpgSource
     {
         return EpgSource::create(['name' => 'Guide', 'url' => 'https://example.com/guide.xml', 'enabled' => true, 'format' => 'xmltv', 'timezone' => 'UTC', 'refresh_interval' => 60]);
@@ -100,5 +147,15 @@ XML;
         file_put_contents($path, $xml);
 
         return $path;
+    }
+
+    private function importXml(EpgSource $source, string $xml): array
+    {
+        $path = $this->temporaryXml($xml);
+        try {
+            return app(XmltvImporter::class)->import($source, $path);
+        } finally {
+            @unlink($path);
+        }
     }
 }

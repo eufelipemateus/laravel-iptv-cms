@@ -17,6 +17,6 @@ return [
         'retention_days' => (int) env('EPG_RETENTION_DAYS', 7),
         'default_timezone' => env('EPG_DEFAULT_TIMEZONE', 'UTC'),
         'max_redirects' => (int) env('EPG_MAX_REDIRECTS', 3),
-        'cache_ttl' => (int) env('EPG_CACHE_TTL', 0),
+        'sync_lock_seconds' => (int) env('EPG_SYNC_LOCK_SECONDS', 1800),
     ],
 ];

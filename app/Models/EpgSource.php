@@ -11,7 +11,7 @@ class EpgSource extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'url', 'enabled', 'format', 'timezone', 'refresh_interval'];
+    protected $fillable = ['name', 'url', 'enabled', 'format', 'timezone', 'refresh_interval', 'active_sync_generation'];
 
     protected $casts = [
         'enabled' => 'boolean',

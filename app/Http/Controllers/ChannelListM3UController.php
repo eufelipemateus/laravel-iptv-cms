@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Channel;
-use App\Models\IPTVConfig;
-use App\Models\IPTVVodVideo;
+use App\Actions\Channels\GetPublicPlaylistDataAction;
 
 class ChannelListM3UController extends Controller
 {
@@ -13,18 +11,14 @@ class ChannelListM3UController extends Controller
      *
      * @return response
      */
-    public function show($slug)
+    public function show(string $slug)
     {
-        $data['list'] = Channel::getListM3u8($slug);
-        $data['vods'] = config('modules.vod.enabled', false)
-            ? IPTVVodVideo::withVideo()->orderBy('name')->get()
-            : [];
-        $data['epg_url'] = config('modules.epg.enabled', true) ? route('epg.public') : null;
+        $data = GetPublicPlaylistDataAction::run($slug);
 
         $response = response()->view('list_M3U', $data, 200);
         $response->header('Content-Type', 'text/plain; charset=utf-8');
 
-        if (IPTVConfig::get('DOWNLOAD_FILE')) {
+        if ($data['download']) {
             $response->header('Cache-Control', 'public');
             $response->header('Content-Description', 'File Transfer');
             $response->header('Content-Disposition', 'attachment; filename='.$slug.'.m3u8');

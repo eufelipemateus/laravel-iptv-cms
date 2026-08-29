@@ -12,7 +12,7 @@ class EpgProgramme extends Model
 
     protected $fillable = [
         'epg_channel_id', 'external_id', 'title', 'subtitle', 'description', 'category',
-        'icon_url', 'language', 'start_at', 'end_at', 'metadata',
+        'icon_url', 'language', 'start_at', 'end_at', 'metadata', 'sync_generation',
     ];
 
     protected $casts = ['start_at' => 'datetime', 'end_at' => 'datetime', 'metadata' => 'array'];

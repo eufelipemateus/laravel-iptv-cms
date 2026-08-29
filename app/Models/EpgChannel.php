@@ -15,6 +15,16 @@ class EpgChannel extends Model
 
     protected $casts = ['metadata' => 'array'];
 
+    public function xmltvId(): string
+    {
+        return self::makeXmltvId($this->epg_source_id, $this->external_id);
+    }
+
+    public static function makeXmltvId(int|string $sourceId, string $externalId): string
+    {
+        return $sourceId.':'.$externalId;
+    }
+
     public function source(): BelongsTo
     {
         return $this->belongsTo(EpgSource::class, 'epg_source_id');

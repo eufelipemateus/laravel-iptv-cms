@@ -3,7 +3,6 @@
 namespace App\Actions\Channels;
 
 use App\Models\Channel;
-use App\Services\Epg\EpgCache;
 use Illuminate\Http\UploadedFile;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -23,10 +22,6 @@ class StoreChannelAction
         $channel = Channel::create($data);
         $channel->logo = $image;
         $channel->save();
-
-        if ($channel->epg_channel_id) {
-            app(EpgCache::class)->invalidate();
-        }
 
         return $channel;
     }

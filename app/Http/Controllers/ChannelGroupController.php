@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ChannelGroups\DeleteChannelGroupAction;
+use App\Actions\ChannelGroups\ListChannelGroupsAction;
 use App\Actions\ChannelGroups\StoreChannelGroupAction;
 use App\Actions\ChannelGroups\UpdateChannelGroupAction;
 use App\Http\Requests\ChannelGroupRequest;
-use App\Http\Requests\DeleteChannelGroupRequest;
 use App\Models\ChannelGroup;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ChannelGroupController extends Controller
 {
@@ -25,9 +26,9 @@ class ChannelGroupController extends Controller
     /**
      * Return new page _blank.
      *
-     * @return view -> IPTV::group
+     * @return View -> IPTV::group
      */
-    public function new()
+    public function new(): View
     {
         return view('channel_group');
     }
@@ -50,9 +51,9 @@ class ChannelGroupController extends Controller
      * @param id -> from group
      * @return redirect -> list_channel_group
      */
-    public function show($id)
+    public function show(ChannelGroup $channelGroup): View
     {
-        $data['Group'] = ChannelGroup::findOrFail($id);
+        $data['Group'] = $channelGroup;
 
         return view('channel_group', $data);
     }
@@ -63,10 +64,9 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_channel_group
      */
-    public function update($id, ChannelGroupRequest $request): RedirectResponse
+    public function update(ChannelGroup $channelGroup, ChannelGroupRequest $request): RedirectResponse
     {
-        $group = ChannelGroup::findOrFail($id);
-        UpdateChannelGroupAction::run($group, $request->validated());
+        UpdateChannelGroupAction::run($channelGroup, $request->validated());
 
         return redirect()->route('list_channel_group');
     }
@@ -77,9 +77,9 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_group
      */
-    public function delete(DeleteChannelGroupRequest $request): RedirectResponse
+    public function delete(ChannelGroup $channelGroup): RedirectResponse
     {
-        DeleteChannelGroupAction::run(ChannelGroup::findOrFail($request->id()));
+        DeleteChannelGroupAction::run($channelGroup);
 
         return redirect()->route('list_channel_group');
     }
@@ -90,9 +90,9 @@ class ChannelGroupController extends Controller
      * @param id from group
      * @return redirect -> list_group
      */
-    public function list()
+    public function list(): View
     {
-        $data['list'] = ChannelGroup::get();
+        $data['list'] = ListChannelGroupsAction::run();
 
         return view('channel_group_list', $data);
     }
