@@ -39,6 +39,8 @@ class EpgModuleTest extends TestCase
 
     public function test_global_xmltv_escapes_values_and_formats_programmes(): void
     {
+        $startAt = now()->addHour()->startOfMinute();
+        $endAt = $startAt->copy()->addHour();
         $epg = $this->epgChannel('news.br', 'News & More');
         $cdn = ChannelCdn::factory()->create();
         $this->makePlayableChannel($cdn, null, ['epg_channel_id' => $epg->id]);
@@ -47,8 +49,8 @@ class EpgModuleTest extends TestCase
             'external_id' => 'show-1',
             'title' => 'News <Live>',
             'description' => 'A & B',
-            'start_at' => '2026-08-14 18:00:00',
-            'end_at' => '2026-08-14 19:00:00',
+            'start_at' => $startAt,
+            'end_at' => $endAt,
         ]);
 
         $response = $this->get(route('epg.public'));
@@ -58,7 +60,7 @@ class EpgModuleTest extends TestCase
         $this->assertStringContainsString('<channel id="news.br">', $content);
         $this->assertStringContainsString('News &amp; More', $content);
         $this->assertStringContainsString('News &lt;Live&gt;', $content);
-        $this->assertStringContainsString('start="20260814180000 +0000"', $content);
+        $this->assertStringContainsString('start="'.$startAt->format('YmdHis O').'"', $content);
     }
 
     public function test_private_xmltv_requires_auth_and_only_contains_customer_channels(): void
