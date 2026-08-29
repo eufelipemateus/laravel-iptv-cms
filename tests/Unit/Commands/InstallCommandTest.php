@@ -199,13 +199,14 @@ class InstallCommandTest extends TestCase
         [$command] = $this->makeCommand([
             '--enable-customer' => true,
             '--enable-vod' => true,
+            '--enable-epg' => true,
         ], false);
 
         $method = new ReflectionMethod($command, 'selectOptionalModules');
 
         $this->assertSame(
-            ['customer', 'vod'],
-            $method->invoke($command, ['customer' => 'Customer', 'vod' => 'VOD'], []),
+            ['customer', 'vod', 'epg'],
+            $method->invoke($command, ['customer' => 'Customer', 'vod' => 'VOD', 'epg' => 'EPG'], []),
         );
     }
 
@@ -214,8 +215,8 @@ class InstallCommandTest extends TestCase
         [$command] = $this->makeCommand([], false);
 
         $this->assertSame(
-            ['customer', 'vod'],
-            $this->selectOptionalModules($command, ['customer', 'vod']),
+            ['customer', 'vod', 'epg'],
+            $this->selectOptionalModules($command, ['customer', 'vod', 'epg']),
         );
     }
 
@@ -237,6 +238,8 @@ class InstallCommandTest extends TestCase
             'disable customer' => [['--disable-customer' => true], ['customer', 'vod'], ['vod']],
             'enable vod' => [['--enable-vod' => true], [], ['vod']],
             'disable vod' => [['--disable-vod' => true], ['customer', 'vod'], ['customer']],
+            'enable epg' => [['--enable-epg' => true], [], ['epg']],
+            'disable epg' => [['--disable-epg' => true], ['customer', 'vod', 'epg'], ['customer', 'vod']],
         ];
     }
 
@@ -261,6 +264,10 @@ class InstallCommandTest extends TestCase
                 '--enable-vod' => true,
                 '--disable-vod' => true,
             ], 'Options --enable-vod and --disable-vod cannot be used together.'],
+            'epg' => [[
+                '--enable-epg' => true,
+                '--disable-epg' => true,
+            ], 'Options --enable-epg and --disable-epg cannot be used together.'],
         ];
     }
 
@@ -270,7 +277,7 @@ class InstallCommandTest extends TestCase
 
         return $method->invoke(
             $command,
-            ['customer' => 'Customer', 'vod' => 'VOD'],
+            ['customer' => 'Customer', 'vod' => 'VOD', 'epg' => 'EPG'],
             $currentModules,
         );
     }

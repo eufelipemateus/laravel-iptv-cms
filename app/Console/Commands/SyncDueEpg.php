@@ -14,7 +14,7 @@ class SyncDueEpg extends Command
 
     public function handle(): int
     {
-        if (! config('modules.epg.enabled', true)) {
+        if (! config('modules.epg.enabled', false)) {
             return self::SUCCESS;
         }
         foreach (EpgSource::due() as $source) {

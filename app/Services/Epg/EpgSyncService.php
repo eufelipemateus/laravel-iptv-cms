@@ -16,7 +16,7 @@ class EpgSyncService
     /** @return array{channels:int,programmes:int} */
     public function sync(EpgSource $source): array
     {
-        if (! config('modules.epg.enabled', true)) {
+        if (! config('modules.epg.enabled', false)) {
             throw new EpgImportException('The EPG module is disabled.');
         }
 

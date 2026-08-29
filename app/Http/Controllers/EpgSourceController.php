@@ -12,6 +12,7 @@ use App\Models\EpgChannel;
 use App\Models\EpgProgramme;
 use App\Models\EpgSource;
 use Illuminate\Http\Request;
+use Throwable;
 
 class EpgSourceController extends Controller
 {
@@ -57,7 +58,11 @@ class EpgSourceController extends Controller
             return back()->withErrors(['sync' => 'The EPG source is disabled.']);
         }
 
-        SyncEpgSource::dispatch($source);
+        try {
+            SyncEpgSource::dispatch($source);
+        } catch (Throwable) {
+            return back()->withErrors(['sync' => 'Unable to queue EPG synchronization.']);
+        }
 
         return back()->with('success', 'EPG synchronization queued.');
     }

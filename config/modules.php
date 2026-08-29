@@ -8,7 +8,7 @@ return [
         'enabled' => (bool) env('MODULE_VOD_ENABLED', false),
     ],
     'epg' => [
-        'enabled' => (bool) env('MODULE_EPG_ENABLED', true),
+        'enabled' => (bool) env('MODULE_EPG_ENABLED', false),
         'request_timeout' => (int) env('EPG_REQUEST_TIMEOUT', 15),
         'connect_timeout' => (int) env('EPG_CONNECT_TIMEOUT', 5),
         'max_download_bytes' => (int) env('EPG_MAX_DOWNLOAD_BYTES', 52428800),
@@ -18,5 +18,7 @@ return [
         'default_timezone' => env('EPG_DEFAULT_TIMEZONE', 'UTC'),
         'max_redirects' => (int) env('EPG_MAX_REDIRECTS', 3),
         'sync_lock_seconds' => (int) env('EPG_SYNC_LOCK_SECONDS', 1800),
+        'queue_connection' => env('EPG_QUEUE_CONNECTION', 'database'),
+        'queue' => env('EPG_QUEUE', 'epg'),
     ],
 ];

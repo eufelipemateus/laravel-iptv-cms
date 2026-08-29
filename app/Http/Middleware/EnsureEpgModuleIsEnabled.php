@@ -9,7 +9,7 @@ class EnsureEpgModuleIsEnabled
 {
     public function handle(Request $request, Closure $next)
     {
-        abort_unless(config('modules.epg.enabled', true), 404);
+        abort_unless(config('modules.epg.enabled', false), 404);
 
         return $next($request);
     }

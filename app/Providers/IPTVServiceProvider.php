@@ -52,7 +52,7 @@ class IPTVServiceProvider extends IPTVProviderBase
             $this->loadDashFrom(Vods::class);
         }
 
-        if (config('modules.epg.enabled', true)) {
+        if (config('modules.epg.enabled', false)) {
             $this->loadDashFrom(Epg::class);
         }
     }

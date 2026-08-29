@@ -15,7 +15,7 @@ class SyncEpg extends Command
 
     public function handle(EpgSyncService $sync): int
     {
-        if (! config('modules.epg.enabled', true)) {
+        if (! config('modules.epg.enabled', false)) {
             $this->warn('The EPG module is disabled.');
 
             return self::SUCCESS;

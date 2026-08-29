@@ -13,7 +13,7 @@ class PruneEpg extends Command
 
     public function handle(): int
     {
-        if (! config('modules.epg.enabled', true)) {
+        if (! config('modules.epg.enabled', false)) {
             return self::SUCCESS;
         }
         $deleted = EpgProgramme::where('end_at', '<', now()->subDays((int) config('modules.epg.retention_days', 7)))->delete();

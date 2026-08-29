@@ -6,6 +6,9 @@ The EPG module imports external XMLTV guides, maps stable guide channel IDs to l
 
 ```env
 MODULE_EPG_ENABLED=true
+EPG_QUEUE_CONNECTION=database
+EPG_QUEUE=epg
+DATABASE_QUEUE_RETRY_AFTER=2100
 EPG_REQUEST_TIMEOUT=15
 EPG_CONNECT_TIMEOUT=5
 EPG_MAX_REDIRECTS=3
@@ -17,7 +20,7 @@ EPG_RETENTION_DAYS=7
 EPG_DEFAULT_TIMEZONE=UTC
 ```
 
-Then run `php artisan config:clear` and `php artisan migrate`. When disabled, EPG admin screens are hidden, XMLTV endpoints return 404, synchronization does no work, and playlists contain no EPG metadata.
+Then run `php artisan config:clear` and `php artisan migrate`. The migration creates the database-backed `jobs` table used by EPG. When disabled, EPG admin screens are hidden, XMLTV endpoints return 404, synchronization does no work, and playlists contain no EPG metadata. Fresh installations keep EPG disabled unless it is selected interactively or `php artisan install --enable-epg` is used; `--disable-epg` explicitly disables it.
 
 ## Sources and synchronization
 
@@ -30,7 +33,14 @@ php artisan epg:sync-due          # queue due sources
 php artisan epg:prune             # remove expired programmes
 ```
 
-The scheduler checks due sources every minute and prunes daily. Run both `php artisan schedule:work` and `php artisan queue:work` in production. Queued synchronization jobs are unique per source, and a second cache lock prevents concurrent imports for `EPG_SYNC_LOCK_SECONDS`.
+The scheduler checks due sources every minute and prunes daily. Run both processes in production:
+
+```bash
+php artisan schedule:work
+php artisan queue:work database --queue=epg --timeout=1800 --tries=3
+```
+
+EPG jobs explicitly use `EPG_QUEUE_CONNECTION` and `EPG_QUEUE`, so clicking **Sync now** never performs the import inside the HTTP request even when the application's global `QUEUE_CONNECTION` is `sync`. Keep `DATABASE_QUEUE_RETRY_AFTER` greater than the worker/job timeout. Jobs retry with increasing delays, are unique per source, and use a second cache lock to prevent concurrent imports for `EPG_SYNC_LOCK_SECONDS`.
 
 Every successful import creates a new programme generation. XMLReader processes the document as a stream and programmes are written in small batches. The new generation is exposed only after the entire document succeeds; missing programmes are then reconciled and the previous generation is removed. A failed import is discarded without replacing the last valid guide. `EPG_RETENTION_DAYS` controls how far expired programmes remain eligible for output and pruning.
 

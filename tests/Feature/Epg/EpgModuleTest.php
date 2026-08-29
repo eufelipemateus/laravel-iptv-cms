@@ -10,8 +10,10 @@ use App\Models\EpgChannel;
 use App\Models\EpgProgramme;
 use App\Models\EpgSource;
 use App\Models\User;
+use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Mockery;
 use Tests\Concerns\BuildsIptvFixtures;
 use Tests\TestCase;
 
@@ -145,6 +147,38 @@ class EpgModuleTest extends TestCase
             ->assertSessionHas('success', 'EPG synchronization queued.');
 
         Queue::assertPushed(SyncEpgSource::class, fn (SyncEpgSource $job) => $job->source->is($source));
+    }
+
+    public function test_admin_sync_action_rejects_a_disabled_source_without_queueing(): void
+    {
+        Queue::fake();
+        $admin = User::factory()->create(['is_admin' => true, 'active' => true]);
+        $source = EpgSource::create([
+            'name' => 'Disabled guide', 'url' => 'https://example.com/guide.xml', 'enabled' => false,
+            'format' => 'xmltv', 'timezone' => 'UTC', 'refresh_interval' => 60,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('epg.sources.sync', $source))
+            ->assertSessionHasErrors(['sync' => 'The EPG source is disabled.']);
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_admin_sync_action_reports_queue_infrastructure_failure(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'active' => true]);
+        $source = EpgSource::create([
+            'name' => 'Unavailable queue', 'url' => 'https://example.com/guide.xml', 'enabled' => true,
+            'format' => 'xmltv', 'timezone' => 'UTC', 'refresh_interval' => 60,
+        ]);
+        $dispatcher = Mockery::mock(Dispatcher::class);
+        $dispatcher->shouldReceive('dispatch')->once()->andThrow(new \RuntimeException('Database unavailable'));
+        $this->app->instance(Dispatcher::class, $dispatcher);
+
+        $this->actingAs($admin)
+            ->post(route('epg.sources.sync', $source))
+            ->assertSessionHasErrors(['sync' => 'Unable to queue EPG synchronization.']);
     }
 
     private function epgChannel(string $externalId, string $name): EpgChannel

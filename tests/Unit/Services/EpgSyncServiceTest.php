@@ -9,8 +9,10 @@ use App\Services\Epg\EpgSyncService;
 use App\Services\Epg\XmltvDownloader;
 use App\Services\Epg\XmltvImporter;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Mockery;
 use Tests\TestCase;
 
@@ -26,13 +28,36 @@ class EpgSyncServiceTest extends TestCase
 
     public function test_job_is_unique_per_source_for_the_configured_duration(): void
     {
-        config(['modules.epg.sync_lock_seconds' => 900]);
+        config([
+            'modules.epg.sync_lock_seconds' => 900,
+            'modules.epg.queue_connection' => 'database',
+            'modules.epg.queue' => 'epg',
+        ]);
         $source = $this->source();
         $job = new SyncEpgSource($source);
 
         $this->assertInstanceOf(ShouldBeUnique::class, $job);
+        $this->assertInstanceOf(ShouldQueue::class, $job);
         $this->assertSame((string) $source->id, $job->uniqueId());
         $this->assertSame(900, $job->uniqueFor());
+        $this->assertSame('database', $job->connection);
+        $this->assertSame('epg', $job->queue);
+        $this->assertSame(1800, $job->timeout);
+        $this->assertSame(3, $job->tries);
+        $this->assertSame([60, 300, 900], $job->backoff());
+    }
+
+    public function test_database_queue_storage_is_available(): void
+    {
+        $this->assertTrue(Schema::hasTable('jobs'));
+        $this->assertTrue(Schema::hasTable('failed_jobs'));
+    }
+
+    public function test_default_epg_queue_connection_is_asynchronous(): void
+    {
+        $this->assertSame('database', config('modules.epg.queue_connection'));
+        $this->assertNotSame('sync', config('modules.epg.queue_connection'));
+        $this->assertSame('epg', config('modules.epg.queue'));
     }
 
     public function test_success_and_failure_update_sync_metadata(): void
