@@ -19,7 +19,7 @@
             }
         ]
     },
-     {
+    {
         "title": "EPG",
         "enabled_when": "modules.epg.enabled",
         "menus": [
