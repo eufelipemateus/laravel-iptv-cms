@@ -4,39 +4,29 @@
 
 ![Screenshot Dashboard Feipe Mateus IPTV Channels](/.github/screenshots/dashboard.png?raw=true)
 
-## Instaling
+## Installation
 
+### Requirements
 
-### Install
+- PHP 8.4+
+- Composer
+- MySQL | Postgres | SqlLite
 
-```bash
-composer create-project felipemateus/iptv-cms  iptv-project
-```
+### Install IPTV CMS
 
-### Config
-
-generate  app key
-
-```bash
-    php artisan key:generate
-```
-
-Replace  .env with your database info.
-
-```env
-    DB_CONNECTION=mysql
-    DB_HOST=´Your Host´
-    DB_PORT=3306
-    DB_DATABASE=´Your Database´
-    DB_USERNAME=´Your Root´
-    DB_PASSWORD=´Your Password´
-```
-
-### Migrate the database
+Run:
 
 ```bash
-php artisan migrate --seed
+composer create-project felipemateus/iptv-cms my-iptv
 ```
+
+### Run the installer again
+
+```bash
+cd my-iptv
+php artisan install
+```
+
 
 ### VOD
 

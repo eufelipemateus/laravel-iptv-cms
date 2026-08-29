@@ -1,0 +1,975 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Actions\Users\CreateUserAdmin;
+use App\Models\User;
+use Illuminate\Console\Command;
+use Illuminate\Encryption\Encrypter;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
+use Throwable;
+
+class InstallCommand extends Command
+{
+    private ?string $administratorEmail = null;
+
+    /** @var list<string> */
+    private array $enabledModules = [];
+
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'install
+        {--db-host= : Database host}
+        {--db-port= : Database port}
+        {--db-database= : Database name}
+        {--db-username= : Database username}
+        {--db-password= : Database password}
+        {--admin-name= : Administrator name}
+        {--admin-email= : Administrator email}
+        {--admin-password= : Administrator password}
+        {--app-env= : Final application environment}
+        {--enable-customer : Enable the customer module}
+        {--disable-customer : Disable the customer module}
+        {--enable-vod : Enable the VOD module}
+        {--disable-vod : Disable the VOD module}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Install application when APP_ENV=install.';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(): int
+    {
+        $this->displayInstallerHeader();
+
+        if (! app()->environment('install')) {
+            $this->error('This command can only be executed when APP_ENV=install.');
+
+            return self::FAILURE;
+        }
+
+        if (! $this->validateModuleOptions()) {
+            return self::FAILURE;
+        }
+
+        if (! $this->checkRequirements()) {
+            return self::FAILURE;
+        }
+
+        $this->displaySection('Database configuration');
+        $dbConfig = $this->resolveDatabaseConfiguration();
+
+        if ($dbConfig === null) {
+            return self::FAILURE;
+        }
+
+        if (! $this->applyDatabaseConfiguration($dbConfig)) {
+            return self::FAILURE;
+        }
+
+        if (! $this->generateApplicationKey()) {
+            return self::FAILURE;
+        }
+
+        if (! $this->runMigrations()) {
+            return self::FAILURE;
+        }
+
+        $this->displaySection('Module configuration');
+
+        if (! $this->configureModules()) {
+            return self::FAILURE;
+        }
+
+        $this->displaySection('Administrator configuration');
+
+        if (! $this->createAdminUser()) {
+            return self::FAILURE;
+        }
+
+        $this->displaySection('Application environment');
+
+        if (! $this->switchApplicationEnvironment()) {
+            return self::FAILURE;
+        }
+
+        if (! $this->clearApplicationCaches()) {
+            return self::FAILURE;
+        }
+
+        $this->displayInstallationSummary();
+
+        return self::SUCCESS;
+    }
+
+    private function displayInstallerHeader(): void
+    {
+        $this->newLine();
+        $this->line('┌──────────────────────────────┐');
+        $this->line('│           IPTV CMS           │');
+        $this->line('│          Installer           │');
+        $this->line('└──────────────────────────────┘');
+        $this->newLine();
+        $this->info('Welcome to IPTV CMS!');
+        $this->line('This wizard will configure your installation.');
+        $this->newLine();
+    }
+
+    private function checkRequirements(): bool
+    {
+        $this->line('Checking requirements...');
+        $this->newLine();
+
+        $pdoDrivers = $this->supportedPdoDrivers();
+        $pdoDriverLabel = $pdoDrivers === []
+            ? 'Supported PDO driver'
+            : 'Supported PDO driver: '.implode(', ', $pdoDrivers);
+
+        $requirements = [
+            ['PHP '.PHP_VERSION, version_compare(PHP_VERSION, '8.4.0', '>=')],
+            ['PDO', extension_loaded('pdo')],
+            [$pdoDriverLabel, $pdoDrivers !== []],
+            ['.env writable', $this->isEnvFileWritable()],
+            ['storage writable', is_dir(storage_path()) && is_writable(storage_path())],
+        ];
+        $passed = true;
+
+        foreach ($requirements as [$label, $satisfied]) {
+            $this->line(($satisfied ? '<info>✓</info>' : '<error>✗</error>').' '.$label);
+            $passed = $passed && $satisfied;
+        }
+
+        $this->newLine();
+
+        if (! $passed) {
+            $this->error('Installation requirements are not satisfied. Fix the items above and try again.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /** @return list<string> */
+    private function supportedPdoDrivers(): array
+    {
+        $drivers = [
+            'pdo_mysql' => 'MySQL',
+            'pdo_pgsql' => 'PostgreSQL',
+            'pdo_sqlite' => 'SQLite',
+        ];
+
+        return array_values(array_filter(
+            $drivers,
+            fn (string $name): bool => extension_loaded($name),
+            ARRAY_FILTER_USE_KEY,
+        ));
+    }
+
+    private function isEnvFileWritable(): bool
+    {
+        return file_exists(base_path('.env')) && is_writable(base_path('.env'));
+    }
+
+    private function displaySection(string $title): void
+    {
+        $this->newLine();
+        $this->line($title);
+        $this->line(str_repeat('─', mb_strlen($title)));
+    }
+
+    private function displayInstallationSummary(): void
+    {
+        $this->newLine();
+        $this->info('Installation completed successfully!');
+        $this->newLine();
+        $this->line('Administrator:');
+        $this->line($this->administratorEmail ?? 'Not configured');
+        $this->newLine();
+        $this->line('Enabled modules:');
+
+        if ($this->enabledModules === []) {
+            $this->line('None');
+        } else {
+            foreach ($this->enabledModules as $module) {
+                $this->line('<info>✓</info> '.$module);
+            }
+        }
+
+        $this->newLine();
+        $this->info('Your IPTV CMS is ready.');
+    }
+
+    private function ensureEnvFileIsWritable(): bool
+    {
+        $envPath = base_path('.env');
+
+        if (! file_exists($envPath)) {
+            $this->error('.env file not found.');
+
+            return false;
+        }
+
+        if (! is_writable($envPath)) {
+            $this->error('No write permission for .env file. Adjust permissions and try again.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    private function resolveDatabaseConfiguration(): ?array
+    {
+        $currentConfig = [
+            'DB_HOST' => (string) env('DB_HOST', ''),
+            'DB_PORT' => (string) env('DB_PORT', ''),
+            'DB_DATABASE' => (string) env('DB_DATABASE', ''),
+            'DB_USERNAME' => (string) env('DB_USERNAME', ''),
+            'DB_PASSWORD' => (string) env('DB_PASSWORD', ''),
+        ];
+
+        if (! $this->input->isInteractive()) {
+            return $this->resolveNonInteractiveDatabaseConfiguration($currentConfig);
+        }
+
+        if ($this->hasDatabaseValues($currentConfig)) {
+            $this->info('Validating current database connection...');
+
+            $currentConnectionError = $this->testDatabaseConnection($currentConfig);
+
+            if ($currentConnectionError === null) {
+                $this->info('Database connection validated successfully.');
+
+                return $currentConfig;
+            }
+
+            $this->warn('Current database connection is invalid. Verify the credentials and try again.');
+        } else {
+            $this->warn('Database settings are not configured in .env yet.');
+        }
+
+        while (true) {
+            $dbConfig = $this->askDatabaseConfiguration();
+            $connectionError = $this->testDatabaseConnection($dbConfig);
+
+            if ($connectionError !== null) {
+                $this->error('Failed to connect to the database. Verify the credentials and try again.');
+                $this->warn('Please provide the database credentials again.');
+
+                continue;
+            }
+
+            if (! $this->persistEnvValues($dbConfig)) {
+                return null;
+            }
+
+            $this->info('Database configuration was saved to .env successfully.');
+
+            return $dbConfig;
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $currentConfig
+     * @return array<string, string>|null
+     */
+    private function resolveNonInteractiveDatabaseConfiguration(array $currentConfig): ?array
+    {
+        $optionNames = [
+            'DB_HOST' => 'db-host',
+            'DB_PORT' => 'db-port',
+            'DB_DATABASE' => 'db-database',
+            'DB_USERNAME' => 'db-username',
+            'DB_PASSWORD' => 'db-password',
+        ];
+
+        $dbConfig = $currentConfig;
+
+        foreach ($optionNames as $key => $optionName) {
+            $value = $this->option($optionName);
+
+            if ($value !== null) {
+                $dbConfig[$key] = (string) $value;
+            }
+        }
+
+        $missing = [];
+
+        foreach (['DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME'] as $key) {
+            if (trim($dbConfig[$key]) === '') {
+                $missing[] = '--'.$optionNames[$key];
+            }
+        }
+
+        if ($missing !== []) {
+            $this->error('Missing required database options in non-interactive mode: '.implode(', ', $missing).'.');
+
+            return null;
+        }
+
+        $this->info('Validating database connection...');
+        $connectionError = $this->testDatabaseConnection($dbConfig);
+
+        if ($connectionError !== null) {
+            $this->error('Failed to connect to the database. Verify the credentials and try again.');
+
+            return null;
+        }
+
+        if (! $this->persistEnvValues($dbConfig)) {
+            return null;
+        }
+
+        $this->info('Database configuration was saved to .env successfully.');
+
+        return $dbConfig;
+    }
+
+    /**
+     * @param  array<string, string>  $config
+     */
+    private function hasDatabaseValues(array $config): bool
+    {
+        return $config['DB_HOST'] !== ''
+            && $config['DB_PORT'] !== ''
+            && $config['DB_DATABASE'] !== ''
+            && $config['DB_USERNAME'] !== '';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function askDatabaseConfiguration(): array
+    {
+        return [
+            'DB_HOST' => (string) $this->ask('Database host', '127.0.0.1'),
+            'DB_PORT' => (string) $this->ask('Database port', '3306'),
+            'DB_DATABASE' => (string) $this->askRequired('Database name'),
+            'DB_USERNAME' => (string) $this->askRequired('Database username'),
+            'DB_PASSWORD' => (string) $this->secret('Database password') ?? '',
+        ];
+    }
+
+    private function askRequired(string $question): string
+    {
+        $maxAttempts = 3;
+        $attempts = 0;
+
+        while (true) {
+            if ($attempts >= $maxAttempts) {
+                throw new \RuntimeException('Too many empty attempts while reading: '.$question.'.');
+            }
+
+            $value = trim((string) $this->ask($question));
+
+            if ($value !== '') {
+                return $value;
+            }
+
+            $this->error('This field is required.');
+            $attempts++;
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $dbConfig
+     */
+    private function testDatabaseConnection(array $dbConfig): ?string
+    {
+        $driver = (string) env('DB_CONNECTION', config('database.default', 'mysql'));
+
+        $temporaryConfig = array_merge(config("database.connections.{$driver}", []), [
+            'driver' => $driver,
+            'host' => $dbConfig['DB_HOST'],
+            'port' => $dbConfig['DB_PORT'],
+            'database' => $dbConfig['DB_DATABASE'],
+            'username' => $dbConfig['DB_USERNAME'],
+            'password' => $dbConfig['DB_PASSWORD'],
+        ]);
+
+        config(['database.connections.install_test' => $temporaryConfig]);
+        DB::purge('install_test');
+
+        try {
+            DB::connection('install_test')->getPdo();
+
+            return null;
+        } catch (Throwable $exception) {
+            Log::error('Database connection failed during installation.', [
+                'exception' => $exception,
+            ]);
+
+            return 'connection_failed';
+        } finally {
+            DB::disconnect('install_test');
+            DB::purge('install_test');
+            config()->offsetUnset('database.connections.install_test');
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $dbConfig
+     */
+    private function applyDatabaseConfiguration(array $dbConfig): bool
+    {
+        $connection = (string) config('database.default');
+
+        config([
+            "database.connections.{$connection}.host" => $dbConfig['DB_HOST'],
+            "database.connections.{$connection}.port" => $dbConfig['DB_PORT'],
+            "database.connections.{$connection}.database" => $dbConfig['DB_DATABASE'],
+            "database.connections.{$connection}.username" => $dbConfig['DB_USERNAME'],
+            "database.connections.{$connection}.password" => $dbConfig['DB_PASSWORD'],
+        ]);
+
+        DB::purge($connection);
+
+        try {
+            DB::reconnect($connection)->getPdo();
+
+            return true;
+        } catch (Throwable $exception) {
+            Log::error('Applying the database configuration failed during installation.', [
+                'exception' => $exception,
+            ]);
+            $this->error('Could not apply the database configuration.');
+
+            return false;
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $values
+     */
+    private function persistEnvValues(array $values): bool
+    {
+        $envPath = base_path('.env');
+
+        if (! file_exists($envPath)) {
+            $this->error('.env file not found.');
+
+            return false;
+        }
+
+        $envContent = file_get_contents($envPath);
+
+        if ($envContent === false) {
+            $this->error('Could not read .env file.');
+
+            return false;
+        }
+
+        foreach ($values as $key => $value) {
+            $encodedValue = $this->encodeEnvValue($value);
+            $pattern = '/^'.preg_quote($key, '/').'=.*/m';
+            $replacement = $key.'='.$encodedValue;
+
+            if (preg_match($pattern, $envContent) === 1) {
+                $envContent = (string) preg_replace_callback(
+                    $pattern,
+                    static fn (): string => $replacement,
+                    $envContent,
+                );
+            } else {
+                $envContent .= PHP_EOL.$replacement;
+            }
+
+        }
+
+        $tempPath = $this->createEnvTemporaryFile(dirname($envPath));
+
+        if ($tempPath === false) {
+            $this->error('Could not create a temporary .env file.');
+
+            return false;
+        }
+
+        try {
+            $bytesWritten = $this->writeEnvTemporaryFile($tempPath, $envContent);
+
+            if ($bytesWritten === false || $bytesWritten !== strlen($envContent)) {
+                $this->error('Could not write the temporary .env file.');
+
+                return false;
+            }
+
+            $permissions = fileperms($envPath);
+
+            if ($permissions !== false) {
+                @chmod($tempPath, $permissions & 0777);
+            }
+
+            if (! $this->replaceEnvFile($tempPath, $envPath)) {
+                $this->error('Could not replace the .env file.');
+
+                return false;
+            }
+
+            foreach ($values as $key => $value) {
+                $_ENV[$key] = $value;
+                $_SERVER[$key] = $value;
+                putenv($key.'='.$value);
+            }
+
+            return true;
+        } finally {
+            if (file_exists($tempPath)) {
+                @unlink($tempPath);
+            }
+        }
+    }
+
+    protected function createEnvTemporaryFile(string $directory): string|false
+    {
+        return @tempnam($directory, '.env.tmp.');
+    }
+
+    protected function writeEnvTemporaryFile(string $path, string $contents): int|false
+    {
+        return file_put_contents($path, $contents, LOCK_EX);
+    }
+
+    protected function replaceEnvFile(string $temporaryPath, string $envPath): bool
+    {
+        return @rename($temporaryPath, $envPath);
+    }
+
+    private function encodeEnvValue(string $value): string
+    {
+        return '"'.strtr($value, [
+            '\\' => '\\\\',
+            '"' => '\\"',
+            '$' => '\\$',
+            "\n" => '\\n',
+            "\r" => '\\r',
+            "\t" => '\\t',
+            "\f" => '\\f',
+            "\v" => '\\v',
+        ]).'"';
+    }
+
+    private function runMigrations(): bool
+    {
+        $this->info('Running migrations...');
+
+        $exitCode = Artisan::call('migrate', ['--force' => true]);
+        $this->output->write(Artisan::output());
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Failed to run migrations.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function clearApplicationCaches(): bool
+    {
+        $this->info('Clearing application caches...');
+
+        $exitCode = Artisan::call('optimize:clear');
+        $this->output->write(Artisan::output());
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Failed to clear application caches.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function generateApplicationKey(): bool
+    {
+        $key = (string) config('app.key', '');
+
+        if ($this->hasValidApplicationKey($key)) {
+            $this->info('Application key already configured.');
+
+            return true;
+        }
+
+        $this->info('Generating application key...');
+
+        $options = $key === '' ? [] : ['--force' => true];
+        $exitCode = Artisan::call('key:generate', $options);
+        $this->output->write(Artisan::output());
+
+        if ($exitCode !== self::SUCCESS) {
+            $this->error('Failed to generate application key.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function hasValidApplicationKey(string $key): bool
+    {
+        if (Str::startsWith($key, 'base64:')) {
+            $decodedKey = base64_decode(Str::after($key, 'base64:'), true);
+
+            if ($decodedKey === false) {
+                return false;
+            }
+
+            $key = $decodedKey;
+        }
+
+        return Encrypter::supported($key, (string) config('app.cipher'));
+    }
+
+    private function createAdminUser(): bool
+    {
+        $administrator = User::query()->where('is_admin', true)->first();
+
+        if ($administrator !== null) {
+            $this->administratorEmail = $administrator->email;
+            $this->info('Administrator user already configured.');
+
+            return true;
+        }
+
+        $credentials = $this->input->isInteractive()
+            ? $this->askAdminCredentials()
+            : $this->resolveNonInteractiveAdminCredentials();
+
+        if ($credentials === null) {
+            return false;
+        }
+
+        try {
+            CreateUserAdmin::run([
+                'name' => $credentials['name'],
+                'email' => $credentials['email'],
+                'password' => $credentials['password'],
+            ]);
+            $this->administratorEmail = $credentials['email'];
+
+            $this->info('Administrator user created successfully.');
+
+            return true;
+        } catch (Throwable $exception) {
+            $this->error('Could not create administrator user: '.$exception->getMessage());
+
+            return false;
+        }
+    }
+
+    /** @return array{name: string, email: string, password: string} */
+    private function askAdminCredentials(): array
+    {
+        return [
+            'name' => $this->askRequired('Administrator name'),
+            'email' => $this->askAdminEmail(),
+            'password' => $this->askAdminPassword(),
+        ];
+    }
+
+    /** @return array{name: string, email: string, password: string}|null */
+    private function resolveNonInteractiveAdminCredentials(): ?array
+    {
+        $credentials = [
+            'name' => trim((string) ($this->option('admin-name') ?? '')),
+            'email' => trim((string) ($this->option('admin-email') ?? '')),
+            'password' => (string) ($this->option('admin-password') ?? ''),
+        ];
+        $missing = [];
+
+        foreach (['name', 'email', 'password'] as $key) {
+            if ($credentials[$key] === '') {
+                $missing[] = '--admin-'.$key;
+            }
+        }
+
+        if ($missing !== []) {
+            $this->error('Missing required administrator options in non-interactive mode: '.implode(', ', $missing).'.');
+
+            return null;
+        }
+
+        if (! filter_var($credentials['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->error('Invalid value for --admin-email. Provide a valid email address.');
+
+            return null;
+        }
+
+        if (User::query()->where('email', $credentials['email'])->exists()) {
+            $this->error('A user with the --admin-email value already exists.');
+
+            return null;
+        }
+
+        if (! $this->isValidAdminPassword($credentials['password'], $credentials['password'])) {
+            $this->error('Invalid value for --admin-password. The password must contain at least 12 characters.');
+
+            return null;
+        }
+
+        $credentials['email'] = Str::lower($credentials['email']);
+
+        return $credentials;
+    }
+
+    private function askAdminEmail(): string
+    {
+        while (true) {
+            $email = trim((string) $this->ask('Administrator email'));
+
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->error('Invalid email. Please provide a valid email address.');
+
+                continue;
+            }
+
+            if (User::query()->where('email', $email)->exists()) {
+                $this->error('A user with this email already exists. Please provide a different email.');
+
+                continue;
+            }
+
+            return Str::lower($email);
+        }
+    }
+
+    private function askAdminPassword(): string
+    {
+        while (true) {
+            $password = (string) ($this->secret('Administrator password') ?? '');
+            $passwordConfirmation = (string) ($this->secret('Repeat administrator password') ?? '');
+
+            if (! $this->isValidAdminPassword($password, $passwordConfirmation)) {
+                $this->error('Password must contain at least 12 characters and match its confirmation.');
+
+                continue;
+            }
+
+            return $password;
+        }
+    }
+
+    private function isValidAdminPassword(string $password, string $passwordConfirmation): bool
+    {
+        return Validator::make([
+            'password' => $password,
+            'password_confirmation' => $passwordConfirmation,
+        ], [
+            'password' => ['required', 'confirmed', Password::min(12)],
+            'password_confirmation' => ['required'],
+        ])->passes();
+    }
+
+    private function switchApplicationEnvironment(): bool
+    {
+        $environment = $this->resolveApplicationEnvironment();
+
+        if ($environment === null) {
+            return false;
+        }
+
+        $this->info(sprintf('Updating APP_ENV to %s...', $environment));
+
+        $updated = $this->persistEnvValues([
+            'APP_ENV' => $environment,
+        ]);
+
+        if (! $updated) {
+            $this->error('Could not update APP_ENV in .env.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function resolveApplicationEnvironment(): ?string
+    {
+        if (! $this->input->isInteractive()) {
+            $environment = trim((string) ($this->option('app-env') ?: 'store'));
+
+            if ($environment === '') {
+                $this->error('The final application environment cannot be empty.');
+
+                return null;
+            }
+
+            return $environment;
+        }
+
+        $environment = (string) $this->choice(
+            'Select the final application environment',
+            [
+                'production' => 'Production',
+                'local' => 'Local',
+                'store' => 'Store',
+                'other' => 'Other',
+            ],
+            'store',
+        );
+
+        if ($environment !== 'other') {
+            return $environment;
+        }
+
+        return (string) $this->ask(
+            'Enter the final application environment',
+            null,
+            function (?string $value): string {
+                $environment = trim((string) $value);
+
+                if ($environment === '') {
+                    throw new \InvalidArgumentException('The final application environment cannot be empty.');
+                }
+
+                return $environment;
+            },
+        );
+    }
+
+    private function configureModules(): bool
+    {
+        $this->info('Configuring modules...');
+        $optionalModules = [
+            'customer' => 'Customer',
+            'vod' => 'VOD',
+        ];
+
+        $defaultModules = [];
+
+        if ((bool) env('MODULE_CUSTOMER_ENABLED', false)) {
+            $defaultModules[] = 'customer';
+        }
+
+        if ((bool) env('MODULE_VOD_ENABLED', false)) {
+            $defaultModules[] = 'vod';
+        }
+
+        $selectedModules = $this->selectOptionalModules($optionalModules, $defaultModules);
+
+        $saved = $this->persistEnvValues([
+            'MODULE_CUSTOMER_ENABLED' => in_array('customer', $selectedModules, true) ? 'true' : 'false',
+            'MODULE_VOD_ENABLED' => in_array('vod', $selectedModules, true) ? 'true' : 'false',
+        ]);
+
+        if (! $saved) {
+            $this->error('Could not save module configuration in .env.');
+
+            return false;
+        }
+
+        $this->enabledModules = array_values(array_map(
+            fn (string $module): string => $optionalModules[$module],
+            $selectedModules,
+        ));
+
+        $this->info('Module configuration saved successfully.');
+
+        return true;
+    }
+
+    private function validateModuleOptions(): bool
+    {
+        foreach (['customer', 'vod'] as $module) {
+            if ($this->option('enable-'.$module) && $this->option('disable-'.$module)) {
+                $this->error(sprintf(
+                    'Options --enable-%s and --disable-%s cannot be used together.',
+                    $module,
+                    $module,
+                ));
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  array<string, string>  $optionalModules
+     * @param  array<int, string>  $defaultModules
+     * @return array<int, string>
+     */
+    private function selectOptionalModules(array $optionalModules, array $defaultModules): array
+    {
+        if (! $this->input->isInteractive()) {
+            $selectedModules = $defaultModules;
+
+            if ((bool) $this->option('enable-customer')) {
+                $selectedModules[] = 'customer';
+            } elseif ((bool) $this->option('disable-customer')) {
+                $selectedModules = array_values(array_diff($selectedModules, ['customer']));
+            }
+
+            if ((bool) $this->option('enable-vod')) {
+                $selectedModules[] = 'vod';
+            } elseif ((bool) $this->option('disable-vod')) {
+                $selectedModules = array_values(array_diff($selectedModules, ['vod']));
+            }
+
+            return array_values(array_unique($selectedModules));
+        }
+
+        $presetOptions = [
+            'none' => 'None',
+            'customer' => 'Customer',
+            'vod' => 'VOD',
+            'customer,vod' => 'Customer + VOD',
+        ];
+
+        $defaultPreset = $this->buildModulePresetDefault($defaultModules);
+
+        $selectedPreset = (string) $this->choice(
+            'Select modules to enable (use keyboard arrows and Enter)',
+            $presetOptions,
+            $defaultPreset,
+        );
+
+        return match ($selectedPreset) {
+            'customer' => ['customer'],
+            'vod' => ['vod'],
+            'customer,vod' => ['customer', 'vod'],
+            default => [],
+        };
+    }
+
+    /**
+     * @param  array<int, string>  $defaultModules
+     */
+    private function buildModulePresetDefault(array $defaultModules): string
+    {
+        $hasCustomer = in_array('customer', $defaultModules, true);
+        $hasVod = in_array('vod', $defaultModules, true);
+
+        if ($hasCustomer && $hasVod) {
+            return 'customer,vod';
+        }
+
+        if ($hasCustomer) {
+            return 'customer';
+        }
+
+        if ($hasVod) {
+            return 'vod';
+        }
+
+        return 'none';
+    }
+}
