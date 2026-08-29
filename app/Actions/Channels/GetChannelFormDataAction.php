@@ -6,8 +6,8 @@ use App\Models\Channel;
 use App\Models\ChannelCdn;
 use App\Models\ChannelGroup;
 use App\Models\ChannelUrl;
-use App\Models\IPTVConfig;
 use App\Models\EpgSource;
+use App\Models\IPTVConfig;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class GetChannelFormDataAction

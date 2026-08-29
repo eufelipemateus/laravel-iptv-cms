@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Middleware\EnsureCustomerModuleIsEnabled;
+use App\Http\Middleware\BlockWhenInstalling;
 use App\Http\Middleware\CustomerMiddleware;
+use App\Http\Middleware\EnsureCustomerModuleIsEnabled;
 use App\Http\Middleware\EnsureEpgModuleIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(App\Http\Middleware\BlockWhenInstalling::class);
+        $middleware->prepend(BlockWhenInstalling::class);
 
         $middleware->alias([
             'iptv_locale' => IPTVLocaleMiddleware::class,

@@ -40,8 +40,8 @@ class GenerateInvoces extends Command
      */
     public function handle()
     {
-        if (!config('modules.customer.enabled', false)) {
-            $this->error("Customer is disabled!!");
+        if (! config('modules.customer.enabled', false)) {
+            $this->error('Customer is disabled!!');
             exit;
         }
         $now = Date::now();

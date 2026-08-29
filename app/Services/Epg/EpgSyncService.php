@@ -35,6 +35,7 @@ class EpgSyncService
             $path = $this->downloader->download($source->url);
             $result = $this->importer->import($source, $path);
             $source->forceFill(['last_success_at' => now(), 'last_error' => null, 'last_error_at' => null])->save();
+
             return $result;
         } catch (Throwable $exception) {
             $source->forceFill([

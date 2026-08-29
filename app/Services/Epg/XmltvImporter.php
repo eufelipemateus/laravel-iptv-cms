@@ -64,6 +64,7 @@ class XmltvImporter
             $reader->close();
             libxml_clear_errors();
         }
+
         return $count;
     }
 
@@ -96,6 +97,7 @@ class XmltvImporter
             $reader->close();
             libxml_clear_errors();
         }
+
         return $count;
     }
 
@@ -110,6 +112,7 @@ class XmltvImporter
         if (! $reader->open($path, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_NOBLANKS)) {
             throw new EpgImportException('Unable to open the XMLTV document.');
         }
+
         return $reader;
     }
 
@@ -125,6 +128,7 @@ class XmltvImporter
                     throw new EpgImportException('Invalid XMLTV root element.');
                 }
                 $seenRoot = true;
+
                 continue;
             }
             $callback($reader);
@@ -161,7 +165,7 @@ class XmltvImporter
     }
 
     /** @param array<string, int> $channelMap
-     *  @return array<string, mixed>|null
+     * @return array<string, mixed>|null
      */
     private function programmeData(EpgSource $source, string $xml, array $channelMap, string $generation): ?array
     {
@@ -180,6 +184,7 @@ class XmltvImporter
         $externalId = trim((string) $node['id']);
         $externalId = $externalId !== '' ? $externalId : hash('sha256', implode('|', [$externalChannel, $start->timestamp, $end->timestamp, $title]));
         $now = now();
+
         return [
             'epg_channel_id' => $channelId,
             'external_id' => $externalId,
@@ -252,6 +257,7 @@ class XmltvImporter
             gzclose($input);
             fclose($output);
         }
+
         return $outputPath;
     }
 
@@ -261,6 +267,7 @@ class XmltvImporter
         if (! $node) {
             throw new EpgImportException('Malformed XMLTV element.');
         }
+
         return $node;
     }
 

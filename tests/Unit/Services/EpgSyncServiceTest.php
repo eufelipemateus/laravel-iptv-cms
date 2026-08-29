@@ -18,6 +18,12 @@ class EpgSyncServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['modules.epg.enabled' => true]);
+    }
+
     public function test_job_is_unique_per_source_for_the_configured_duration(): void
     {
         config(['modules.epg.sync_lock_seconds' => 900]);

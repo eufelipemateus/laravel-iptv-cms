@@ -50,7 +50,7 @@ class XmltvDownloader
 
             $prefix = file_get_contents($temporaryPath, false, null, 0, 4096);
             $isGzip = is_string($prefix) && str_starts_with($prefix, "\x1f\x8b");
-            if (! is_string($prefix) || (! $isGzip && (stripos($prefix, '<!DOCTYPE') !== false || ! preg_match('/<tv(?:\s|>)/i', $prefix)))) {
+            if (! is_string($prefix) || (! $isGzip && (stripos($prefix, '<!DOCTYPE') !== false || ! preg_match('/<tv(?:\s|\/?>)/i', $prefix)))) {
                 throw new EpgImportException('The response is not a safe XMLTV document.');
             }
 
