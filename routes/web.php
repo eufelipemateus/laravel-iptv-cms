@@ -139,7 +139,7 @@ if (config('modules.customer.enabled', true)) {
 }
 
 Route::get('client/epg/{slug}.xml', [EpgXmlController::class, 'customer'])
-    ->middleware(['api', 'epg.enabled', 'client'])
+    ->middleware(['api', 'customer.enabled', 'epg.enabled', 'client'])
     ->name('epg.customer');
 
 Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web', 'epg.enabled'])

@@ -10,7 +10,7 @@
     <div class="form-group"><label>Name</label><input class="form-control" name="name" required maxlength="255" value="{{ old('name', $source->name ?? '') }}"></div>
     <div class="form-group"><label>XMLTV URL</label><input class="form-control" type="url" name="url" required value="{{ old('url', $source->url ?? '') }}"></div>
     <input type="hidden" name="format" value="xmltv">
-    <div class="form-group"><label>Timezone</label><input class="form-control" name="timezone" required value="{{ old('timezone', $source->timezone ?? config('epg.default_timezone')) }}"></div>
+    <div class="form-group"><label>Timezone</label><input class="form-control" name="timezone" required value="{{ old('timezone', $source->timezone ?? config('modules.epg.default_timezone')) }}"></div>
     <div class="form-group"><label>Refresh interval (minutes)</label><input class="form-control" type="number" min="5" max="43200" name="refresh_interval" required value="{{ old('refresh_interval', $source->refresh_interval ?? 360) }}"></div>
     <div class="form-check mb-3"><input type="hidden" name="enabled" value="0"><input class="form-check-input" type="checkbox" name="enabled" value="1" id="enabled" @checked(old('enabled', $source->enabled ?? true))><label class="form-check-label" for="enabled">Enabled</label></div>
     <button class="btn btn-primary">Save</button>

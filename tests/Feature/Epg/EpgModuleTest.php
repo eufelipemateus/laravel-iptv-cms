@@ -2,13 +2,16 @@
 
 namespace Tests\Feature\Epg;
 
+use App\Jobs\SyncEpgSource;
 use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerPlan;
 use App\Models\EpgChannel;
 use App\Models\EpgProgramme;
 use App\Models\EpgSource;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\Concerns\BuildsIptvFixtures;
 use Tests\TestCase;
 
@@ -124,6 +127,24 @@ class EpgModuleTest extends TestCase
             $this->assertStringContainsString('channel="'.$epg->xmltvId().'"', $xml);
             $this->assertStringContainsString('tvg-id="'.$epg->xmltvId().'"', $playlist);
         }
+    }
+
+    public function test_admin_sync_action_queues_the_source(): void
+    {
+        Queue::fake();
+        $admin = User::factory()->create(['is_admin' => true, 'active' => true]);
+        $source = EpgSource::create([
+            'name' => 'Queued guide', 'url' => 'https://example.com/guide.xml', 'enabled' => true,
+            'format' => 'xmltv', 'timezone' => 'UTC', 'refresh_interval' => 60,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('epg.sources.index'))
+            ->post(route('epg.sources.sync', $source))
+            ->assertRedirect(route('epg.sources.index'))
+            ->assertSessionHas('success', 'EPG synchronization queued.');
+
+        Queue::assertPushed(SyncEpgSource::class, fn (SyncEpgSource $job) => $job->source->is($source));
     }
 
     private function epgChannel(string $externalId, string $name): EpgChannel

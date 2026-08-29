@@ -7,12 +7,11 @@ use App\Actions\EpgSources\StoreEpgSourceAction;
 use App\Actions\EpgSources\UpdateEpgSourceAction;
 use App\Http\Requests\StoreEpgSourceRequest;
 use App\Http\Requests\UpdateEpgSourceRequest;
+use App\Jobs\SyncEpgSource;
 use App\Models\EpgChannel;
 use App\Models\EpgProgramme;
 use App\Models\EpgSource;
-use App\Services\Epg\EpgSyncService;
 use Illuminate\Http\Request;
-use Throwable;
 
 class EpgSourceController extends Controller
 {
@@ -52,15 +51,15 @@ class EpgSourceController extends Controller
         return redirect()->route('epg.sources.index')->with('success', 'EPG source deleted.');
     }
 
-    public function sync(EpgSource $source, EpgSyncService $sync)
+    public function sync(EpgSource $source)
     {
-        try {
-            $result = $sync->sync($source);
-
-            return back()->with('success', "Imported {$result['channels']} channels and {$result['programmes']} programmes.");
-        } catch (Throwable $exception) {
-            return back()->withErrors(['sync' => $exception->getMessage()]);
+        if (! $source->enabled) {
+            return back()->withErrors(['sync' => 'The EPG source is disabled.']);
         }
+
+        SyncEpgSource::dispatch($source);
+
+        return back()->with('success', 'EPG synchronization queued.');
     }
 
     public function channels(Request $request)

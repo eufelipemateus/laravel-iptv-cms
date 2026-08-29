@@ -2,9 +2,10 @@
     $line = fn ($value) => str_replace(["\r", "\n"], '', (string) $value);
     $attr = fn ($value) => str_replace(['"', "\r", "\n"], ["'", '', ''], (string) $value);
 @endphp
-#EXTM3U
 @if(!empty($epg_url))
 #EXTM3U url-tvg="{!! $attr($epg_url) !!}"
+@else
+#EXTM3U
 @endif
 @foreach($list as $Channel)
 @php
