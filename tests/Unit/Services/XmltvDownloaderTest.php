@@ -76,6 +76,7 @@ class XmltvDownloaderTest extends TestCase
         $guard->shouldReceive('assertAllowed')->zeroOrMoreTimes();
         $client = Mockery::mock(ClientInterface::class);
         $client->shouldReceive('request')->times(count($responses))->andReturn(...$responses);
+
         return (new XmltvDownloader($guard, $client))->download($url);
     }
 

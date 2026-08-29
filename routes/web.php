@@ -198,7 +198,6 @@ Route::group([
     }
 );
 
-
 Route::group([
     'middleware' => ['web', 'vod.enabled', 'auth', 'active', 'iptv_locale', 'throttle:web'],
 ], function () {
