@@ -27,15 +27,18 @@ class Menu
                 return true;
             }
 
-            $condition = (string) $item['enabled_when'];
+            $conditions = is_array($item['enabled_when']) ? $item['enabled_when'] : [$item['enabled_when']];
 
-            if (Str::startsWith($condition, 'auth.user.')) {
-                $attribute = Str::after($condition, 'auth.user.');
+            return collect($conditions)->every(function ($condition): bool {
+                $condition = (string) $condition;
+                if (Str::startsWith($condition, 'auth.user.')) {
+                    $attribute = Str::after($condition, 'auth.user.');
 
-                return (bool) data_get(auth()->user(), $attribute, false);
-            }
+                    return (bool) data_get(auth()->user(), $attribute, false);
+                }
 
-            return (bool) config($condition, true);
+                return (bool) config($condition, true);
+            });
         }));
 
         return view('menu', ['menusList' => $menusList]);

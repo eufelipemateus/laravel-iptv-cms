@@ -1,7 +1,9 @@
 <?php
 
-use App\Http\Middleware\EnsureCustomerModuleIsEnabled;
+use App\Http\Middleware\BlockWhenInstalling;
 use App\Http\Middleware\CustomerMiddleware;
+use App\Http\Middleware\EnsureCustomerModuleIsEnabled;
+use App\Http\Middleware\EnsureEpgModuleIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureVodModuleIsEnabled;
@@ -19,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(App\Http\Middleware\BlockWhenInstalling::class);
+        $middleware->prepend(BlockWhenInstalling::class);
 
         $middleware->alias([
             'iptv_locale' => IPTVLocaleMiddleware::class,
@@ -28,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => EnsureUserIsActive::class,
             'admin' => EnsureUserIsAdmin::class,
             'vod.enabled' => EnsureVodModuleIsEnabled::class,
+            'epg.enabled' => EnsureEpgModuleIsEnabled::class,
             'customer.enabled' => EnsureCustomerModuleIsEnabled::class,
         ]);
     })

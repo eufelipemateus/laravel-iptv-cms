@@ -23,6 +23,9 @@ class GetCustomerPlaylistDataAction
                 ? IPTVVodVideo::withVideo()->orderBy('name')->get()
                 : [],
             'download' => IPTVConfig::get('DOWNLOAD_FILE'),
+            'epg_url' => config('modules.epg.enabled', false)
+                ? route('epg.customer', ['slug' => $slug])
+                : null,
         ];
     }
 }

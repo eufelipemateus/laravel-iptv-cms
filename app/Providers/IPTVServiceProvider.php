@@ -7,6 +7,7 @@ use App\Dashs\ChannelGroups;
 use App\Dashs\Channels;
 use App\Dashs\CustomerPlans;
 use App\Dashs\Customers;
+use App\Dashs\Epg;
 use App\Dashs\Vods;
 use App\Helpers\Dashboard;
 use App\Helpers\IPTVProviderBase;
@@ -49,6 +50,10 @@ class IPTVServiceProvider extends IPTVProviderBase
 
         if (config('modules.vod.enabled', false)) {
             $this->loadDashFrom(Vods::class);
+        }
+
+        if (config('modules.epg.enabled', false)) {
+            $this->loadDashFrom(Epg::class);
         }
     }
 }
