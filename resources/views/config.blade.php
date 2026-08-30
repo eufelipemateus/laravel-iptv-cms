@@ -27,9 +27,9 @@
                         @foreach($config_list  as $config)
 
                         <div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="flexSwitchCheckDefault-{{$config['id']}}"  value='1'  name="{{$config['name']}}" @if(@$config['val']) checked @endif>
-                                <label class="form-check-label" for="flexSwitchCheckDefault-{{$config['id']}}">{{ __($config['name']) }}<label>
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input" type="checkbox" id="flexSwitchCheckDefault-{{$config['id']}}" value="1" name="{{$config['name']}}" @if(@$config['val']) checked @endif>
+                                <label class="custom-control-label" for="flexSwitchCheckDefault-{{$config['id']}}">{{ __($config['name']) }}</label>
                             </div>
                         </div>
                         @endforeach
