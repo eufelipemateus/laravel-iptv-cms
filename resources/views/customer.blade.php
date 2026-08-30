@@ -238,15 +238,15 @@
 
                         @if(@$Customer)
                         <div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input"
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input"
                                 type="checkbox"
                                 id="active-switch"
                                 value='1'
                                 name="active"
                                 @if(@$Customer->active) checked @endif>
-                                <label class="form-check-label"
-                                for="active-switch">{{ __('Customer Active') }}<label>
+                                <label class="custom-control-label"
+                                for="active-switch">{{ __('Customer Active') }}</label>
                             </div>
                         </div>
                         @endif
@@ -316,7 +316,7 @@
                                         <b>{{  $plan->name}}</b>
                                     </div>
                                     <div class="col-md-6">
-                                        <form id="form-plan-{{$plan->id}}" class="form-list-group"  action="{{ route('add_additional', ['customer_id' => $Customer->id], false) }}" method="POST">
+                                        <form id="form-plan-{{$plan->id}}" class="form-list-group"  action="{{ route('add_additional', ['customer' => $Customer], false) }}" method="POST">
                                             {{ csrf_field() }}
                                             <input type="hidden" id="iptv-plan-id" name="iptv_plan_id" value="{{$plan->id}}">
                                             <button  id="id-plan-{{$plan->id}}"type="submit" class="btn btn-link">add plan</button>
@@ -337,7 +337,7 @@
                                         <b>{{  $plan->name}}</b>
                                     </div>
                                     <div class="col-md-6">
-                                        <form id="form-plan-{{$plan->id}}" class="form-list-group"  action="{{ route('del_additional', ['customer_id' => $Customer->id], false) }}" method="POST">
+                                        <form id="form-plan-{{$plan->id}}" class="form-list-group"  action="{{ route('del_additional', ['customer' => $Customer], false) }}" method="POST">
                                             {{ csrf_field() }}
                                             <input type="hidden" id="iptv-plan-id" name="iptv_plan_id" value="{{$plan->id}}">
                                             <button  id="id-plan-{{$plan->id}}"type="submit" class="btn btn-link">delete plan</button>
@@ -383,7 +383,7 @@
                                         <div class="col-md-3">
 
 
-                                            <form id="form-invoce-{{$invoce->id}}" class="form-list-group"  action="{{ route('pay_customer_invoce', ['customer_id' => $Customer->id, 'id'=> $invoce->id], false) }}" method="POST">
+                                            <form id="form-invoce-{{$invoce->id}}" class="form-list-group"  action="{{ route('pay_customer_invoce', ['customer' => $Customer, 'customerInvoce' => $invoce], false) }}" method="POST">
                                                 {{ csrf_field() }}
                                                 <input type="hidden" id="iptv-invoce-id" name="iptv_invoce_id" value="{{$invoce->id}}">
                                                 <button  id="id-invoce-{{$invoce->id}}"type="submit" class="btn btn-link">Pagar</button>
@@ -391,7 +391,7 @@
 
 
 
-                                            <form id="form-invoce-cancel-{{$invoce->id}}" class="form-list-group"  action="{{ route('cancel_customer_invoce', ['customer_id' => $Customer->id, 'id'=> $invoce->id], false) }}" method="POST">
+                                            <form id="form-invoce-cancel-{{$invoce->id}}" class="form-list-group"  action="{{ route('cancel_customer_invoce', ['customer' => $Customer, 'customerInvoce' => $invoce], false) }}" method="POST">
                                                 {{ csrf_field() }}
                                                 <input type="hidden" id="iptv-invoce-id" name="iptv_invoce_id" value="{{$invoce->id}}">
                                                 <button  id="id-invoce-cancel-{{$invoce->id}}"type="submit" class="btn btn-link">Cancelar</button>

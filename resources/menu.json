@@ -1,15 +1,5 @@
 [
     {
-        "title": "Settings",
-        "menus": [
-            {
-                "name": "Settings",
-                "icon": "cog",
-                "route": "config"
-            }
-        ]
-    },
-    {
         "title": "Channels",
         "menus": [
             {
@@ -31,6 +21,7 @@
     },
     {
         "title": "Customers",
+        "enabled_when": "modules.customer.enabled",
         "menus": [
             {
                 "name": "Customers",
@@ -41,6 +32,34 @@
                 "name": "Plans",
                 "icon": "file-contract",
                 "route": "list_customer_plan"
+            }
+        ]
+    },
+    {
+        "title": "VOD",
+        "enabled_when": "modules.vod.enabled",
+        "menus": [
+            {
+                "name": "Videos",
+                "icon": "film",
+                "route": "vods.list"
+            }
+        ]
+    },
+    {
+        "title": "Settings",
+        "enabled_when": "auth.user.is_admin",
+
+        "menus": [
+            {
+                "name": "Settings",
+                "icon": "cog",
+                "route": "config"
+            },
+            {
+                "name": "Users",
+                "icon": "users",
+                "route": "list_user"
             }
         ]
     }

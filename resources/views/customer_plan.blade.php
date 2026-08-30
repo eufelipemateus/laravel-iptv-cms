@@ -64,17 +64,17 @@
 
 
                         <div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="active"  value='1'  name="active" @if(@$Plan->active) checked @endif>
-                                <label class="form-check-label" for="active">{{ __('Plan Active?') }}<label>
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input" type="checkbox" id="active" value="1" name="active" @if(@$Plan->active) checked @endif>
+                                <label class="custom-control-label" for="active">{{ __('Plan Active?') }}</label>
                             </div>
                         </div>
 
 
                         <div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="additional"  value='1'  name="additional" @if(@$Plan->additional) checked @endif>
-                                <label class="form-check-label" for="additional">{{ __('Is additional?') }}<label>
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input" type="checkbox" id="additional" value="1" name="additional" @if(@$Plan->additional) checked @endif>
+                                <label class="custom-control-label" for="additional">{{ __('Is additional?') }}</label>
                             </div>
                         </div>
 
@@ -109,7 +109,7 @@
                                         <b>{{  $group->name}}</b>
                                     </div>
                                     <div class="col-md-6">
-                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('add_group_customer_plan', ['plan_id' => $Plan->id]) }}" method="POST">
+                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('add_group_customer_plan', ['customerPlan' => $Plan]) }}" method="POST">
                                             {{ csrf_field() }}
                                             <input type="hidden" id="iptv-group-id" name="iptv_group_id" value="{{$group->id}}">
                                             <button  id="id-group-{{$group->id}}"type="submit" class="btn btn-link">add group</button>
@@ -129,7 +129,7 @@
                                         <b>{{  $group->name}}</b>
                                     </div>
                                     <div class="col-md-6">
-                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('delete_group_customer_plan', ['plan_id' => $Plan->id]) }}" method="POST">
+                                        <form id="form-group-{{$group->id}}" class="form-list-group"  action="{{ route('delete_group_customer_plan', ['customerPlan' => $Plan]) }}" method="POST">
                                             {{ csrf_field() }}
                                             <input type="hidden" id="iptv-group-id" name="iptv_group_id" value="{{$group->id}}">
                                             <button  id="id-group-{{$group->id}}"type="submit" class="btn btn-link">delete group</button>

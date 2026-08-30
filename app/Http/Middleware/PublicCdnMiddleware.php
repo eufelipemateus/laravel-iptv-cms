@@ -1,11 +1,11 @@
 <?php
 
-namespace  App\Http\Middleware;
+namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
 use App\Models\IPTVConfig;
 use App\Services\OperationModeService;
+use Closure;
+use Illuminate\Http\Request;
 
 class PublicCdnMiddleware
 {
@@ -16,8 +16,6 @@ class PublicCdnMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -26,9 +24,10 @@ class PublicCdnMiddleware
             abort(404);
         }
 
-        if(!IPTVConfig::get('URL_CDN')){
+        if (! IPTVConfig::get('URL_CDN')) {
             return response(['Url cdn is disabled.'], 503);
         }
-        return  $next($request);
+
+        return $next($request);
     }
 }

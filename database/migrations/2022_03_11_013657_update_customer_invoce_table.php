@@ -27,6 +27,6 @@ return new class extends Migration
     {
         Schema::table('iptv_customer_invoces', function (Blueprint $table) {
             $table->dropColumn('payment_data');
-       });
+        });
     }
 };

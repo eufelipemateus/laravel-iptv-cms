@@ -1,64 +1,49 @@
 @extends('app')
 
 @section('content')
-<!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">{{ __('CDN')   }}</h1>
-    <a href="{{ route('add_channel_cdn') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-         class="fas fa-plus fa-sm text-white-50"></i> {{ __('Add CDN')}}</a>
+    <h1 class="h3 mb-0 text-gray-800">{{ __('CDN') }}</h1>
+    <a href="{{ route('add_channel_cdn') }}" class="btn btn-sm btn-primary shadow-sm mt-3 mt-sm-0">
+        <i class="fas fa-plus fa-sm text-white-50"></i> {{ __('Add CDN') }}
+    </a>
 </div>
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-					<div class="row">
-						<div class="col-md-3"><h3>CDN List</h3></div>
-					</div>
-				</div>
 
-                <div class="card-body">
-					@foreach($list as $cdn)
-						<div class="row">
-
-                            <div class="col-md-3">
-								{{ $cdn->slug }}
-							</div>
-
-							<div class="col-md-3">
-								{{ $cdn->name }}
-							</div>
-
-                            @if($show_m3u8_links && $url_cdn && !$donwload)
-                            <div class="col-md-2">
-							    <a href="{{  route('cdn-playslit',$cdn->slug) }}" target="_blank">Playslit</a>
-							</div>
-                            @endif
-                            @if ($show_m3u8_links && $url_cdn && $donwload)
-                            <div class="col-md-2">
-							  <a href="{{  route('cdn-playslit',$cdn->slug) }}">Donwload</a>
-							</div>
-                            @endif
-
-							<div class="col-md-2">
-							  <a href="{{  route('show_channel_cdn',$cdn->id) }}">{{ __('edit') }}</a>
-							</div>
-                            @if ($cdn->canDelete())
-							<div class="col-md-2">
-                                <form action="{{ route('delete_channel_cdn', $cdn->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-link p-0 align-baseline">{{ __('delete')}}</button>
-                                </form>
-							</div>
-                            @endif
-
-						</div>
-					@endforeach
-
-
-                </div>
-            </div>
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>{{ __('Slug') }}</th><th>{{ __('Name') }}</th><th>{{ __('Playlist') }}</th><th class="text-right">{{ __('Actions') }}</th></tr></thead>
+                <tbody>
+                    @forelse($list as $cdn)
+                        <tr>
+                            <td class="align-middle"><code>{{ $cdn->slug }}</code></td>
+                            <td class="align-middle"><strong>{{ $cdn->name }}</strong></td>
+                            <td class="align-middle">
+                                 @if($show_m3u8_links && $url_cdn && ! $donwload)
+                                    <a href="{{ route('cdn-playslit', $cdn->slug) }}" class="btn btn-sm btn-outline-secondary" target="_blank">{{ __('Playlist') }}</a>
+                                 @elseif($show_m3u8_links && $url_cdn && $donwload)
+                                    <a href="{{ route('cdn-playslit', $cdn->slug) }}" class="btn btn-sm btn-outline-secondary">{{ __('Download') }}</a>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="align-middle text-right text-nowrap">
+                                <a href="{{ route('show_channel_cdn', $cdn->id) }}" class="btn btn-sm btn-outline-primary">{{ __('edit') }}</a>
+                                @if($cdn->canDelete())
+                                    <form action="{{ route('delete_channel_cdn', $cdn->id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Delete this CDN?') }}')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">{{ __('delete') }}</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="text-center text-muted py-4">{{ __('No CDNs registered yet.') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+        @if($list->hasPages())<div class="mt-4">{{ $list->links('pagination::bootstrap-4') }}</div>@endif
     </div>
 </div>
 @endsection

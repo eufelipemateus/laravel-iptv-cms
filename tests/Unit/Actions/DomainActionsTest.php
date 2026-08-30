@@ -34,8 +34,8 @@ use App\Models\CustomerPlan;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -115,9 +115,9 @@ class DomainActionsTest extends TestCase
             'iptv_channel_id' => $channel->id,
             'url_stream' => 'https://example.test/updated.m3u8',
         ]);
-        $invoice = StoreCustomerInvoceAction::run($customer->id, ['duedate_at' => '2026-06-15']);
+        $invoice = StoreCustomerInvoceAction::run($customer, ['duedate_at' => '2026-06-15']);
         Date::setTestNow('2026-06-20 12:00:00');
-        CancelCustomerInvoceAction::run($invoice);
+        CancelCustomerInvoceAction::run($customer, $invoice);
 
         $this->assertDatabaseHas('iptv_cdns', ['id' => $cdn->id, 'slug' => 'updated']);
         $this->assertDatabaseHas('iptv_channel_groups', ['id' => $group->id, 'name' => 'Live Sports']);

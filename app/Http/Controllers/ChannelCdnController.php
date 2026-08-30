@@ -3,23 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ChannelCdns\DeleteChannelCdnAction;
+use App\Actions\ChannelCdns\GetChannelCdnListDataAction;
 use App\Actions\ChannelCdns\StoreChannelCdnAction;
 use App\Actions\ChannelCdns\UpdateChannelCdnAction;
-use App\Http\Requests\DeleteChannelCdnRequest;
 use App\Http\Requests\StoreChannelCdnRequest;
 use App\Http\Requests\UpdateChannelCdnRequest;
 use App\Models\ChannelCdn;
-use App\Models\IPTVConfig;
-use App\Services\OperationModeService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ChannelCdnController extends Controller
 {
-    public function __construct(private readonly OperationModeService $operationModeService)
-    {
-        // //$this->middleware('auth');
-    }
-
     /**
      * Create a new controller instance.
      *
@@ -30,11 +24,10 @@ class ChannelCdnController extends Controller
     /**
      * Show new channewl page.
      *
-     * @return view -> IPTV:chanel
+     * @return View -> IPTV:chanel
      */
-    public function new()
+    public function new(): View
     {
-        // $data["Groupslist"] = IPTVChannelGroup::get();
         return view('channel_cdn');
     }
 
@@ -42,13 +35,12 @@ class ChannelCdnController extends Controller
      * Show page from channel with id.
      *
      * @param  $id  - channewl id
-     * @return view -> IPTV:chanel
+     * @return View -> IPTV:chanel
      */
-    public function show($id)
+    public function show(ChannelCdn $channelCdn): View
     {
-        $data['cdn'] = ChannelCdn::findOrFail($id);
+        $data['cdn'] = $channelCdn;
 
-        // $data["Groupslist"] = IPTVChannelGroup::get();
         return view('channel_cdn', $data);
     }
 
@@ -70,11 +62,9 @@ class ChannelCdnController extends Controller
      * @param id from channel
      * @return redirect -> list_channels
      */
-    public function update($id, UpdateChannelCdnRequest $request): RedirectResponse
+    public function update(ChannelCdn $channelCdn, UpdateChannelCdnRequest $request): RedirectResponse
     {
-        $cdn = ChannelCdn::findOrFail($id);
-
-        UpdateChannelCdnAction::run($cdn, $request->validated());
+        UpdateChannelCdnAction::run($channelCdn, $request->validated());
 
         return redirect()->route('list_channel_cdn');
     }
@@ -85,9 +75,9 @@ class ChannelCdnController extends Controller
      * @param id from channel
      * @return redirect -> list_channel
      */
-    public function delete(DeleteChannelCdnRequest $request): RedirectResponse
+    public function delete(ChannelCdn $channelCdn): RedirectResponse
     {
-        DeleteChannelCdnAction::run(ChannelCdn::findOrFail($request->id()));
+        DeleteChannelCdnAction::run($channelCdn);
 
         return redirect()->route('list_channel_cdn');
     }
@@ -95,17 +85,11 @@ class ChannelCdnController extends Controller
     /**
      * Return a channel List from database.
      *
-     * @return view -> IPTV::channel_list
+     * @return View -> IPTV::channel_list
      */
-    public function list()
+    public function list(): View
     {
 
-        $data['list'] = ChannelCdn::all();
-
-        $data['url_cdn'] = IPTVConfig::get('URL_CDN');
-        $data['donwload'] = IPTVConfig::get('DOWNLOAD_FILE');
-        $data['show_m3u8_links'] = $this->operationModeService->isM3u8();
-
-        return view('channel_cdn_list', $data);
+        return view('channel_cdn_list', GetChannelCdnListDataAction::run());
     }
 }

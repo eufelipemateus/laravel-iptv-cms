@@ -36,7 +36,7 @@ class UpdateCustomerRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('iptv_customers', 'username')->ignore($this->route('id')),
+                Rule::unique('iptv_customers', 'username')->ignore($this->route('customer')),
             ],
             'iptv_plan_id' => [
                 'required',
