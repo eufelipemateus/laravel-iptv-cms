@@ -21,7 +21,7 @@
     },
     {
         "title": "EPG",
-        "enabled_when": "modules.epg.enabled",
+        "enabled_when": ["modules.epg.enabled", "auth.user.is_admin"],
         "menus": [
             {
                 "name": "EPG Sources",

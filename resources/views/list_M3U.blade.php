@@ -10,7 +10,8 @@
 @foreach($list as $Channel)
 @php
     $hasMapping = !empty($Channel->epg_channel_id);
-    $mappingIsPublished = $hasMapping
+    $mappingIsPublished = !empty($epg_url)
+        && $hasMapping
         && (bool) $Channel->epg_is_active
         && (bool) $Channel->epg_source_enabled
         && !empty($Channel->active_sync_generation);

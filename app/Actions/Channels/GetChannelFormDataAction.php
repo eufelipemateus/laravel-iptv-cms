@@ -20,7 +20,7 @@ class GetChannelFormDataAction
         $data = [
             'Groupslist' => ChannelGroup::all(),
             'radio_stream' => IPTVConfig::get('RADIO_STREAM'),
-            'EpgSources' => config('modules.epg.enabled', true)
+            'EpgSources' => config('modules.epg.enabled', false)
                 ? EpgSource::query()->where('enabled', true)->orderBy('name')->get()
                 : collect(),
         ];

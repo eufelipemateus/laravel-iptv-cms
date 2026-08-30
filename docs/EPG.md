@@ -6,18 +6,27 @@ The EPG module imports external XMLTV guides, maps stable guide channel IDs to l
 
 ```env
 MODULE_EPG_ENABLED=true
+
 EPG_QUEUE_CONNECTION=database
 EPG_QUEUE=epg
+EPG_JOB_TIMEOUT=1800
+EPG_SYNC_LOCK_SECONDS=3600
 DATABASE_QUEUE_RETRY_AFTER=2100
+EPG_ERROR_RETRY_MINUTES=15
+
 EPG_REQUEST_TIMEOUT=15
 EPG_CONNECT_TIMEOUT=5
 EPG_MAX_REDIRECTS=3
-EPG_SYNC_LOCK_SECONDS=1800
+
 EPG_MAX_DOWNLOAD_BYTES=52428800
 EPG_MAX_UNCOMPRESSED_BYTES=52428800
 EPG_MAX_PROGRAMMES_PER_IMPORT=500000
+
 EPG_RETENTION_DAYS=7
 EPG_DEFAULT_TIMEZONE=UTC
+
+EPG_HTTP_CACHE_SECONDS=300
+EPG_RATE_LIMIT_PER_MINUTE=30
 ```
 
 Then run `php artisan config:clear` and `php artisan migrate`. The migration creates the database-backed `jobs` table used by EPG. When disabled, EPG admin screens are hidden, XMLTV endpoints return 404, synchronization does no work, and playlists contain no EPG metadata. Fresh installations keep EPG disabled unless it is selected interactively or `php artisan install --enable-epg` is used; `--disable-epg` explicitly disables it.
@@ -40,7 +49,7 @@ php artisan schedule:work
 php artisan queue:work database --queue=epg --timeout=1800 --tries=3
 ```
 
-EPG jobs explicitly use `EPG_QUEUE_CONNECTION` and `EPG_QUEUE`, so clicking **Sync now** never performs the import inside the HTTP request even when the application's global `QUEUE_CONNECTION` is `sync`. Keep `DATABASE_QUEUE_RETRY_AFTER` greater than the worker/job timeout. Jobs retry with increasing delays, are unique per source, and use a second cache lock to prevent concurrent imports for `EPG_SYNC_LOCK_SECONDS`.
+EPG jobs explicitly use `EPG_QUEUE_CONNECTION` and `EPG_QUEUE`, so clicking **Sync now** never performs the import inside the HTTP request even when the application's global `QUEUE_CONNECTION` is `sync`. `EPG_JOB_TIMEOUT` is the maximum job runtime. Keep `DATABASE_QUEUE_RETRY_AFTER` greater than that timeout, and keep `EPG_SYNC_LOCK_SECONDS` longer than `DATABASE_QUEUE_RETRY_AFTER` so uniqueness and the secondary cache lock cover execution and queue retry margins. Jobs retry with increasing delays; after a failed synchronization, `EPG_ERROR_RETRY_MINUTES` controls the shorter scheduler retry interval.
 
 Every successful import creates a new programme generation. XMLReader processes the document as a stream and programmes are written in small batches. The new generation is exposed only after the entire document succeeds; missing programmes are then reconciled and the previous generation is removed. A failed import is discarded without replacing the last valid guide. `EPG_RETENTION_DAYS` controls how far expired programmes remain eligible for output and pruning.
 
@@ -52,10 +61,10 @@ The source-provided `external_id` remains unchanged in the database. Exported XM
 
 ## XMLTV endpoints
 
-- `GET /epg.xml` streams every EPG channel mapped to a live channel.
-- `GET /client/epg/{slug}.xml` reuses private-playlist HTTP Basic authentication and includes only channels in the customer's main or additional plans for the matching CDN.
+- `GET /epg.xml` streams every EPG channel mapped to a live channel and uses public HTTP caching.
+- `GET /client/epg/{slug}.xml` reuses private-playlist HTTP Basic authentication, includes only channels in the customer's main or additional plans for the matching CDN, and uses private HTTP caching with `Vary: Authorization`.
 
-Both return `application/xml; charset=utf-8`. Inactive, expired, revoked, indebted, or otherwise unauthorized customers are rejected by the existing customer middleware. VOD is intentionally outside the initial EPG scope.
+Both return `application/xml; charset=utf-8`, an ETag, and a cache TTL controlled by `EPG_HTTP_CACHE_SECONDS`. Conditional requests can return `304 Not Modified` without serializing the XMLTV. `EPG_RATE_LIMIT_PER_MINUTE` limits repeated XMLTV requests. Inactive, expired, revoked, indebted, or otherwise unauthorized customers are rejected by the existing customer middleware. VOD is intentionally outside the initial EPG scope.
 
 ## Security and limits
 

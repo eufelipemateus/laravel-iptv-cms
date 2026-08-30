@@ -11,6 +11,7 @@ use App\Models\EpgProgramme;
 use App\Models\EpgSource;
 use App\Models\User;
 use App\Services\Epg\XmltvGenerator;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -92,13 +93,22 @@ class EpgModuleTest extends TestCase
 
     public function test_disabled_module_returns_404_and_keeps_playlist_without_epg_metadata(): void
     {
-        config(['modules.epg.enabled' => false]);
-        $this->get(route('epg.public'))->assertNotFound();
         $this->enablePublicCdn();
         $cdn = ChannelCdn::factory()->create();
-        $this->makePlayableChannel($cdn);
-        $response = $this->get(route('cdn-playslit', $cdn->slug));
-        $response->assertOk()->assertDontSee('url-tvg=', false);
+        $epg = $this->epgChannel('module-toggle', 'Module Toggle');
+        $channel = $this->makePlayableChannel($cdn, null, ['epg_channel_id' => $epg->id]);
+
+        $this->get(route('cdn-playslit', $cdn->slug))
+            ->assertSee('tvg-id="'.$epg->xmltvId().'"', false);
+        config(['modules.epg.enabled' => false]);
+        $this->get(route('epg.public'))->assertNotFound();
+        $playlist = $this->get(route('cdn-playslit', $cdn->slug));
+        $playlist->assertOk()->assertDontSee('url-tvg=', false)->assertDontSee('tvg-id="'.$epg->xmltvId().'"', false);
+        $this->assertSame($epg->id, $channel->fresh()->epg_channel_id);
+
+        config(['modules.epg.enabled' => true]);
+        $this->get(route('cdn-playslit', $cdn->slug))
+            ->assertSee('tvg-id="'.$epg->xmltvId().'"', false);
     }
 
     public function test_duplicate_external_ids_are_unique_and_consistent_across_xmltv_and_m3u(): void
@@ -170,6 +180,72 @@ class EpgModuleTest extends TestCase
         $generator->shouldNotReceive('stream');
         $this->app->instance(XmltvGenerator::class, $generator);
         $this->withHeader('If-None-Match', $etag)->get(route('epg.public'))->assertStatus(304);
+    }
+
+    public function test_public_etag_tracks_representation_state_config_and_time_bucket(): void
+    {
+        CarbonImmutable::setTestNow('2026-08-30 12:00:00 UTC');
+        config(['modules.epg.http_cache_seconds' => 300]);
+        $epg = $this->epgChannel('etag', 'ETag Channel');
+        $cdn = ChannelCdn::factory()->create();
+        $channel = $this->makePlayableChannel($cdn, null, ['epg_channel_id' => $epg->id]);
+        try {
+            $etag = $this->get(route('epg.public'))->headers->get('ETag');
+            $epg->source->update(['active_sync_generation' => '00000000-0000-4000-8000-000000000002']);
+            $generationEtag = $this->get(route('epg.public'))->headers->get('ETag');
+            $this->assertNotSame($etag, $generationEtag);
+
+            $epg->update(['is_active' => false]);
+            $publicationEtag = $this->get(route('epg.public'))->headers->get('ETag');
+            $this->assertNotSame($generationEtag, $publicationEtag);
+
+            $channel->update(['epg_channel_id' => null]);
+            $mappingEtag = $this->get(route('epg.public'))->headers->get('ETag');
+            $this->assertNotSame($publicationEtag, $mappingEtag);
+
+            config(['modules.epg.default_timezone' => 'America/Sao_Paulo']);
+            $timezoneEtag = $this->get(route('epg.public'))->headers->get('ETag');
+            $this->assertNotSame($mappingEtag, $timezoneEtag);
+
+            config(['modules.epg.retention_days' => 14]);
+            $retentionEtag = $this->get(route('epg.public'))->headers->get('ETag');
+            $this->assertNotSame($timezoneEtag, $retentionEtag);
+
+            CarbonImmutable::setTestNow(now()->addSeconds(300));
+            $this->assertNotSame($retentionEtag, $this->get(route('epg.public'))->headers->get('ETag'));
+        } finally {
+            CarbonImmutable::setTestNow();
+        }
+    }
+
+    public function test_private_xmltv_cache_is_private_isolated_and_supports_conditional_requests(): void
+    {
+        $cdn = ChannelCdn::factory()->create(['slug' => 'private-cache']);
+        $plan = CustomerPlan::factory()->active()->create();
+        $first = Customer::factory()->active()->create(['iptv_plan_id' => $plan->id, 'iptv_cdn_id' => $cdn->id]);
+        $second = Customer::factory()->active()->create(['iptv_plan_id' => $plan->id, 'iptv_cdn_id' => $cdn->id]);
+        $epg = $this->epgChannel('private-cache', 'Private Cache');
+        $this->makePlayableChannel($cdn, $plan, ['epg_channel_id' => $epg->id]);
+        $url = route('epg.customer', $cdn->slug);
+        [$firstId, $firstSecret] = explode('.', $first->issueAuthToken(), 2);
+        [$secondId, $secondSecret] = explode('.', $second->issueAuthToken(), 2);
+
+        $firstResponse = $this->withBasicAuth($firstId, $firstSecret)->get($url);
+        $firstCacheControl = (string) $firstResponse->headers->get('Cache-Control');
+        $firstEtag = $firstResponse->headers->get('ETag');
+        $this->assertStringContainsString('private', $firstCacheControl);
+        $this->assertStringNotContainsString('public', $firstCacheControl);
+        $this->assertStringContainsString('Authorization', (string) $firstResponse->headers->get('Vary'));
+        $this->assertNotNull($firstEtag);
+
+        $secondEtag = $this->withBasicAuth($secondId, $secondSecret)->get($url)->headers->get('ETag');
+        $this->assertNotSame($firstEtag, $secondEtag);
+
+        $generator = Mockery::mock(XmltvGenerator::class);
+        $generator->shouldNotReceive('stream');
+        $this->app->instance(XmltvGenerator::class, $generator);
+        $this->withBasicAuth($firstId, $firstSecret)->withHeader('If-None-Match', $firstEtag)
+            ->get($url)->assertStatus(304);
     }
 
     public function test_public_xmltv_has_a_specific_rate_limit(): void

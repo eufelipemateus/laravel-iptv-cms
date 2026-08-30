@@ -14,7 +14,7 @@ class EpgXmlController extends Controller
     {
         $response = response()->stream(fn () => $generator->stream(), 200, ['Content-Type' => 'application/xml; charset=utf-8']);
 
-        return $cache->apply($request, $response);
+        return $cache->applyPublic($request, $response);
     }
 
     public function customer(CustomerChannelsM3URequest $request, XmltvGenerator $generator, EpgHttpCache $cache)
@@ -25,6 +25,6 @@ class EpgXmlController extends Controller
 
         $response = response()->stream(fn () => $generator->stream($ids), 200, ['Content-Type' => 'application/xml; charset=utf-8']);
 
-        return $cache->apply($request, $response, $ids);
+        return $cache->applyPrivate($request, $response, $customer, $request->slug(), $ids);
     }
 }

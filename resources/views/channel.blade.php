@@ -105,7 +105,7 @@
 								</select>
 							</div>
 						</div>
-                        @if(config('modules.epg.enabled', true))
+                        @if(config('modules.epg.enabled', false))
                         <hr>
                         <h5>EPG</h5>
                         <div class="form-group">
@@ -236,7 +236,7 @@
 </div>
 @endsection
 
-@if(config('modules.epg.enabled', true))
+@if(config('modules.epg.enabled', false))
 @section('script')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
