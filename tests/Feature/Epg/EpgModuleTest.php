@@ -29,6 +29,18 @@ class EpgModuleTest extends TestCase
         config(['modules.epg.enabled' => true]);
     }
 
+    public function test_epg_source_enabled_control_renders_as_a_bootstrap_four_switch(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->get(route('epg.sources.create'))
+            ->assertOk()
+            ->assertSee('custom-control custom-switch mb-3', false)
+            ->assertSee('class="custom-control-input" type="checkbox" name="enabled" value="1" id="enabled" checked', false)
+            ->assertSee('type="hidden" name="enabled" value="0"', false);
+    }
+
     public function test_mapped_channel_adds_xmltv_metadata_to_public_playlist(): void
     {
         $this->enablePublicCdn();
