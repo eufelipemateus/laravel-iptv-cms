@@ -83,7 +83,7 @@
 
     "AUTH_LOGIN_TITLE": "Entrar",
     "AUTH_LOGIN_HEADING": "Acessar painel IPTV",
-    "AUTH_STORE_MODE_LABEL": "Modo Store:",
+    "AUTH_STORE_MODE_LABEL": "Credenciais de demonstração",
     "AUTH_STORE_MODE_CREDENTIALS": "use o usuario :email e senha :password.",
     "AUTH_EMAIL": "E-mail",
     "AUTH_PASSWORD": "Senha",
