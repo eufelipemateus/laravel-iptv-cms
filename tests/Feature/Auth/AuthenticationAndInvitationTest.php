@@ -16,6 +16,26 @@ class AuthenticationAndInvitationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_login_and_user_boolean_controls_render_as_switches(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('custom-control custom-switch small', false)
+            ->assertSee('class="custom-control-input" name="remember" value="1" type="checkbox"', false);
+
+        $admin = User::factory()->create(['is_admin' => true]);
+        $user = User::factory()->create(['is_admin' => false, 'active' => true]);
+
+        $this->actingAs($admin)->get(route('users.invite'))
+            ->assertOk()
+            ->assertSee('custom-control custom-switch mb-4', false);
+
+        $this->get(route('users.edit', $user))
+            ->assertOk()
+            ->assertSee('custom-control custom-switch mb-4', false)
+            ->assertSee('id="active" class="custom-control-input"', false);
+    }
+
     public function test_admin_user_can_log_in_and_access_dashboard(): void
     {
         $user = User::factory()->create(['is_admin' => true, 'password' => Hash::make('password')]);

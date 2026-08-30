@@ -2,29 +2,6 @@
 
 @section('style')
 <style>
-/*
-.form-group input[type="checkbox"] {
-    display: none;
-}
-
-.form-group input[type="checkbox"] + .btn-group > label span {
-    width: 20px;
-}
-
-.form-group input[type="checkbox"] + .btn-group > label span:first-child {
-    display: none;
-}
-.form-group input[type="checkbox"] + .btn-group > label span:last-child {
-    display: inline-block;
-}
-
-.form-group input[type="checkbox"]:checked + .btn-group > label span:first-child {
-    display: inline-block;
-}
-.form-group input[type="checkbox"]:checked + .btn-group > label span:last-child {
-    display: none;
-}*/
-
 .row{
     margin: 1% 0;
 }
@@ -107,9 +84,9 @@
 						</div>
                         @if($radio_stream )
 						<div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="flexSwitchCheckDefault"  value='1'  name="radio" @if(@$Channel->radio) checked @endif>
-                                <label class="form-check-label" for="flexSwitchCheckDefault">{{ __('is Radio?') }}</label>
+							<div class="custom-control custom-switch">
+								<input class="custom-control-input" type="checkbox" id="flexSwitchCheckDefault" value="1" name="radio" @if(@$Channel->radio) checked @endif>
+								<label class="custom-control-label" for="flexSwitchCheckDefault">{{ __('is Radio?') }}</label>
                             </div>
                         </div>
                         @endif

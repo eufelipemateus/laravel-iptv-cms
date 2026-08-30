@@ -64,17 +64,17 @@
 
 
                         <div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="active"  value='1'  name="active" @if(@$Plan->active) checked @endif>
-                                <label class="form-check-label" for="active">{{ __('Plan Active?') }}<label>
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input" type="checkbox" id="active" value="1" name="active" @if(@$Plan->active) checked @endif>
+                                <label class="custom-control-label" for="active">{{ __('Plan Active?') }}</label>
                             </div>
                         </div>
 
 
                         <div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="additional"  value='1'  name="additional" @if(@$Plan->additional) checked @endif>
-                                <label class="form-check-label" for="additional">{{ __('Is additional?') }}<label>
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input" type="checkbox" id="additional" value="1" name="additional" @if(@$Plan->additional) checked @endif>
+                                <label class="custom-control-label" for="additional">{{ __('Is additional?') }}</label>
                             </div>
                         </div>
 
