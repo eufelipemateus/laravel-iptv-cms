@@ -16,11 +16,11 @@ class AuthenticationAndInvitationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_and_user_boolean_controls_render_as_switches(): void
+    public function test_login_and_user_boolean_controls_render_with_expected_styles(): void
     {
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('custom-control custom-switch small', false)
+            ->assertSee('custom-control custom-checkbox small', false)
             ->assertSee('class="custom-control-input" name="remember" value="1" type="checkbox"', false);
 
         $admin = User::factory()->create(['is_admin' => true]);
