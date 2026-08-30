@@ -32,7 +32,7 @@ use App\Http\Controllers\VideoVodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
-Route::get('epg.xml', [EpgXmlController::class, 'public'])->middleware(['api', 'epg.enabled'])->name('epg.public');
+Route::get('epg.xml', [EpgXmlController::class, 'public'])->middleware(['api', 'epg.enabled', 'throttle:epg'])->name('epg.public');
 Route::middleware(['guest'])->group(function () {
     Route::get('login', [AuthController::class, 'create'])->name('login');
     Route::post('login', [AuthController::class, 'store'])->middleware('throttle:web')->name('login.store');
@@ -139,7 +139,7 @@ if (config('modules.customer.enabled', true)) {
 }
 
 Route::get('client/epg/{slug}.xml', [EpgXmlController::class, 'customer'])
-    ->middleware(['api', 'customer.enabled', 'epg.enabled', 'client'])
+    ->middleware(['api', 'customer.enabled', 'epg.enabled', 'client', 'throttle:epg-customer'])
     ->name('epg.customer');
 
 Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web', 'epg.enabled'])

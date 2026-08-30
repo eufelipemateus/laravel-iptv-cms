@@ -18,7 +18,10 @@ class XmltvGenerator
         $writer->startElement('tv');
         $writer->writeAttribute('generator-info-name', 'Laravel IPTV CMS');
 
-        $query = EpgChannel::query()->whereHas('channels')->whereHas('source', fn ($query) => $query->whereNotNull('active_sync_generation'));
+        $query = EpgChannel::query()
+            ->where('is_active', true)
+            ->whereHas('channels')
+            ->whereHas('source', fn ($query) => $query->where('enabled', true)->whereNotNull('active_sync_generation'));
         if ($iptvChannelIds !== null) {
             $query->whereHas('channels', fn ($query) => $query->whereIn('iptv_channels.id', $iptvChannelIds));
         }
@@ -42,6 +45,8 @@ class XmltvGenerator
             ->select('epg_programmes.*', 'epg_channels.epg_source_id', 'epg_channels.external_id as channel_external_id')
             ->join('epg_channels', 'epg_channels.id', '=', 'epg_programmes.epg_channel_id')
             ->join('epg_sources', 'epg_sources.id', '=', 'epg_channels.epg_source_id')
+            ->where('epg_channels.is_active', true)
+            ->where('epg_sources.enabled', true)
             ->whereColumn('epg_programmes.sync_generation', 'epg_sources.active_sync_generation')
             ->where('epg_programmes.end_at', '>=', now()->subDays((int) config('modules.epg.retention_days', 7)))
             ->whereHas('channel.channels');

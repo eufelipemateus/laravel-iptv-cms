@@ -15,12 +15,13 @@ class SyncEpgSource implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $timeout = 1800;
+    public int $timeout;
 
     public int $tries = 3;
 
     public function __construct(public EpgSource $source)
     {
+        $this->timeout = (int) config('modules.epg.job_timeout', 1800);
         $this->onConnection((string) config('modules.epg.queue_connection', 'database'));
         $this->onQueue((string) config('modules.epg.queue', 'epg'));
     }
@@ -38,7 +39,7 @@ class SyncEpgSource implements ShouldBeUnique, ShouldQueue
 
     public function uniqueFor(): int
     {
-        return (int) config('modules.epg.sync_lock_seconds', 1800);
+        return (int) config('modules.epg.sync_lock_seconds', 3600);
     }
 
     public function handle(EpgSyncService $sync): void

@@ -64,6 +64,17 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
         });
 
+        RateLimiter::for('epg', function (Request $request) {
+            return Limit::perMinute((int) config('modules.epg.rate_limit_per_minute', 30))->by($request->ip());
+        });
+
+        RateLimiter::for('epg-customer', function (Request $request) {
+            $customerId = $request->attributes->get('customer')?->getKey() ?? 'guest';
+
+            return Limit::perMinute((int) config('modules.epg.rate_limit_per_minute', 30))
+                ->by($customerId.'|'.$request->ip());
+        });
+
         RateLimiter::for('web', function (Request $request) {
             return Limit::perMinute(120)->by($request->ip());
         });

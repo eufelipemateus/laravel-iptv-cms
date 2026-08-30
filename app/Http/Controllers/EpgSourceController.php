@@ -69,7 +69,7 @@ class EpgSourceController extends Controller
 
     public function channels(Request $request)
     {
-        $query = EpgChannel::with('source')->orderBy('display_name');
+        $query = EpgChannel::with('source')->orderByDesc('is_active')->orderBy('display_name');
         if ($request->filled('source_id')) {
             $query->where('epg_source_id', $request->integer('source_id'));
         }
@@ -95,6 +95,7 @@ class EpgSourceController extends Controller
         $request->validate(['source_id' => ['required', 'integer', 'exists:epg_sources,id'], 'q' => ['nullable', 'string', 'max:100']]);
 
         return EpgChannel::where('epg_source_id', $request->integer('source_id'))
+            ->where('is_active', true)
             ->when($request->filled('q'), fn ($q) => $q->where(fn ($q) => $q->where('display_name', 'like', '%'.$request->string('q').'%')->orWhere('external_id', 'like', '%'.$request->string('q').'%')))
             ->orderBy('display_name')->limit(50)->get(['id', 'external_id', 'display_name']);
     }

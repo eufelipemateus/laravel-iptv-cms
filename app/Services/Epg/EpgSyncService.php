@@ -24,7 +24,7 @@ class EpgSyncService
             throw new EpgImportException('The EPG source is disabled.');
         }
 
-        $lock = Cache::lock('epg:sync:'.$source->id, (int) config('modules.epg.sync_lock_seconds', 1800));
+        $lock = Cache::lock('epg:sync:'.$source->id, (int) config('modules.epg.sync_lock_seconds', 3600));
         if (! $lock->get()) {
             throw new EpgImportException('This EPG source is already being synchronized.');
         }

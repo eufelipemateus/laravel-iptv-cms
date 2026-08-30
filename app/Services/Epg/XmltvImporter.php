@@ -26,11 +26,17 @@ class XmltvImporter
         $generation = (string) Str::uuid();
 
         try {
-            $channels = $this->importChannels($source, $xmlPath);
+            $channels = $this->importChannels($source, $xmlPath, $generation);
             $channelMap = EpgChannel::query()->where('epg_source_id', $source->id)->pluck('id', 'external_id')->all();
             $programmes = $this->importProgrammes($source, $xmlPath, $channelMap, $generation);
 
             DB::transaction(function () use ($source, $generation): void {
+                EpgChannel::query()->where('epg_source_id', $source->id)->update(['is_active' => false]);
+                EpgChannel::query()
+                    ->where('epg_source_id', $source->id)
+                    ->where('pending_sync_generation', $generation)
+                    ->update(['is_active' => true]);
+                EpgChannel::query()->where('epg_source_id', $source->id)->update(['pending_sync_generation' => null]);
                 $source->forceFill(['active_sync_generation' => $generation])->save();
                 EpgProgramme::query()
                     ->whereHas('channel', fn ($query) => $query->where('epg_source_id', $source->id))
@@ -41,6 +47,10 @@ class XmltvImporter
             return compact('channels', 'programmes');
         } catch (Throwable $exception) {
             EpgProgramme::query()->where('sync_generation', $generation)->delete();
+            EpgChannel::query()
+                ->where('epg_source_id', $source->id)
+                ->where('pending_sync_generation', $generation)
+                ->update(['pending_sync_generation' => null]);
             throw $exception;
         } finally {
             if ($xmlPath !== $path) {
@@ -49,14 +59,14 @@ class XmltvImporter
         }
     }
 
-    private function importChannels(EpgSource $source, string $path): int
+    private function importChannels(EpgSource $source, string $path, string $generation): int
     {
         $reader = $this->openReader($path);
         $count = 0;
         try {
-            $this->walk($reader, function (XMLReader $reader) use ($source, &$count): void {
+            $this->walk($reader, function (XMLReader $reader) use ($source, $generation, &$count): void {
                 if ($reader->name === 'channel') {
-                    $this->importChannel($source, $reader->readOuterXml());
+                    $this->importChannel($source, $reader->readOuterXml(), $generation);
                     $count++;
                 }
             });
@@ -143,7 +153,7 @@ class XmltvImporter
         }
     }
 
-    private function importChannel(EpgSource $source, string $xml): void
+    private function importChannel(EpgSource $source, string $xml, string $generation): void
     {
         $node = $this->element($xml);
         $externalId = trim((string) $node['id']);
@@ -160,6 +170,11 @@ class XmltvImporter
                 'icon_url' => isset($node->icon) ? trim((string) $node->icon['src']) ?: null : null,
                 'language' => isset($names[0]) ? trim((string) $names[0]['lang']) ?: null : null,
                 'metadata' => ['display_names' => array_values(array_filter(array_map('trim', array_map('strval', iterator_to_array($names)))))],
+                'is_active' => EpgChannel::query()
+                    ->where('epg_source_id', $source->id)
+                    ->where('external_id', $externalId)
+                    ->value('is_active') ?? false,
+                'pending_sync_generation' => $generation,
             ],
         );
     }

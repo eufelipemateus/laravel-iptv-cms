@@ -109,11 +109,42 @@ class EpgSyncServiceTest extends TestCase
         }
     }
 
+    public function test_job_timeout_lock_and_retry_after_have_safe_configured_margins(): void
+    {
+        config(['modules.epg.job_timeout' => 1200, 'modules.epg.sync_lock_seconds' => 2400]);
+        $job = new SyncEpgSource($this->source());
+        $this->assertSame(1200, $job->timeout);
+        $this->assertSame(2400, $job->uniqueFor());
+        $this->assertGreaterThan($job->timeout, config('queue.connections.database.retry_after'));
+        $this->assertGreaterThan(config('queue.connections.database.retry_after'), $job->uniqueFor());
+    }
+
+    public function test_due_sources_use_refresh_interval_after_success_and_short_retry_after_failure(): void
+    {
+        config(['modules.epg.error_retry_minutes' => 15]);
+        $never = $this->source(['name' => 'Never']);
+        $successDue = $this->source(['name' => 'Success due', 'last_sync_at' => now()->subMinutes(61), 'last_success_at' => now()->subMinutes(61)]);
+        $successWaiting = $this->source(['name' => 'Success waiting', 'last_sync_at' => now()->subMinutes(59), 'last_success_at' => now()->subMinutes(59)]);
+        $failureDue = $this->source(['name' => 'Failure due', 'last_sync_at' => now()->subMinutes(16), 'last_error_at' => now()->subMinutes(16)]);
+        $failureWaiting = $this->source(['name' => 'Failure waiting', 'last_sync_at' => now()->subMinutes(14), 'last_error_at' => now()->subMinutes(14)]);
+        $disabled = $this->source(['name' => 'Disabled', 'enabled' => false]);
+        $dueIds = EpgSource::due()->modelKeys();
+        $this->assertContains($never->id, $dueIds);
+        $this->assertContains($successDue->id, $dueIds);
+        $this->assertNotContains($successWaiting->id, $dueIds);
+        $this->assertContains($failureDue->id, $dueIds);
+        $this->assertNotContains($failureWaiting->id, $dueIds);
+        $this->assertNotContains($disabled->id, $dueIds);
+    }
+
     private function source(array $attributes = []): EpgSource
     {
-        return EpgSource::create(array_merge([
+        $source = EpgSource::create(array_merge([
             'name' => 'Guide', 'url' => 'https://example.com/guide.xml', 'enabled' => true,
             'format' => 'xmltv', 'timezone' => 'UTC', 'refresh_interval' => 60,
         ], $attributes));
+        $source->forceFill($attributes)->save();
+
+        return $source;
     }
 }

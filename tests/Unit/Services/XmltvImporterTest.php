@@ -120,6 +120,33 @@ XML;
         }
     }
 
+    public function test_channels_become_stale_and_can_be_reactivated(): void
+    {
+        $source = $this->source();
+        $this->importXml($source, '<tv><channel id="kept"><display-name>Kept</display-name></channel><channel id="removed"><display-name>Removed</display-name></channel></tv>');
+        $removed = EpgChannel::where('external_id', 'removed')->firstOrFail();
+        $this->assertTrue($removed->is_active);
+        $this->importXml($source, '<tv><channel id="kept"><display-name>Kept</display-name></channel></tv>');
+        $this->assertFalse($removed->fresh()->is_active);
+        $this->importXml($source, '<tv><channel id="kept"><display-name>Kept</display-name></channel><channel id="removed"><display-name>Returned</display-name></channel></tv>');
+        $this->assertTrue($removed->fresh()->is_active);
+        $this->assertSame('Returned', $removed->fresh()->display_name);
+    }
+
+    public function test_failed_import_does_not_change_channel_publication_state(): void
+    {
+        $source = $this->source();
+        $this->importXml($source, '<tv><channel id="active"><display-name>Active</display-name></channel></tv>');
+        config(['modules.epg.max_programmes_per_import' => 0]);
+        try {
+            $this->importXml($source, '<tv><channel id="new"><display-name>New</display-name></channel><programme channel="new"><title>Overflow</title></programme></tv>');
+            $this->fail('The import should fail.');
+        } catch (EpgImportException) {
+            $this->assertTrue(EpgChannel::where('external_id', 'active')->firstOrFail()->is_active);
+            $this->assertFalse(EpgChannel::where('external_id', 'new')->firstOrFail()->is_active);
+        }
+    }
+
     public function test_rejects_empty_wrong_root_and_excess_programmes(): void
     {
         foreach (['', '<guide/>'] as $xml) {

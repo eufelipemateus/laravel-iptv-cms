@@ -32,13 +32,18 @@ class EpgSource extends Model
 
     public function scopeDue($query)
     {
-        return $query->where('enabled', true)->where(function ($query): void {
-            $query->whereNull('last_sync_at')->orWhereRaw(
-                'last_sync_at <= ?',
-                [now()->subMinutes(1)->toDateTimeString()],
-            );
-        })->get()->filter(fn (self $source): bool => $source->last_sync_at === null
-            || $source->last_sync_at->addMinutes($source->refresh_interval)->isPast()
-        );
+        return $query->where('enabled', true)->get()->filter(function (self $source): bool {
+            if ($source->last_sync_at === null) {
+                return true;
+            }
+
+            $failed = $source->last_error_at !== null
+                && ($source->last_success_at === null || $source->last_error_at->greaterThan($source->last_success_at));
+            $minutes = $failed
+                ? (int) config('modules.epg.error_retry_minutes', 15)
+                : $source->refresh_interval;
+
+            return $source->last_sync_at->addMinutes($minutes)->isPast();
+        });
     }
 }

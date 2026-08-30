@@ -11,9 +11,9 @@ class EpgChannel extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['epg_source_id', 'external_id', 'name', 'display_name', 'icon_url', 'language', 'country', 'metadata'];
+    protected $fillable = ['epg_source_id', 'external_id', 'name', 'display_name', 'icon_url', 'language', 'country', 'metadata', 'is_active', 'pending_sync_generation'];
 
-    protected $casts = ['metadata' => 'array'];
+    protected $casts = ['metadata' => 'array', 'is_active' => 'boolean'];
 
     public function xmltvId(): string
     {
