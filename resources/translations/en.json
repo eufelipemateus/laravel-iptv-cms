@@ -15,7 +15,7 @@
 
     "AUTH_LOGIN_TITLE": "Sign in",
     "AUTH_LOGIN_HEADING": "Access IPTV panel",
-    "AUTH_STORE_MODE_LABEL": "Store Mode:",
+    "AUTH_STORE_MODE_LABEL": "Demo credentials",
     "AUTH_STORE_MODE_CREDENTIALS": "use the user :email and password :password.",
     "AUTH_EMAIL": "E-mail",
     "AUTH_PASSWORD": "Password",
