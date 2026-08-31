@@ -34,6 +34,29 @@ This project includes a simple VOD module for uploading, listing and playing vid
 
 See [docs/VOD.md](docs/VOD.md) for environment variables, storage disks, and API routes.
 
+## Operation mode
+
+The platform supports one exclusive distribution mode at a time:
+
+- `m3u8`: traditional playlist distribution (`/public/m3u8/*`, `/client/m3u8/*`).
+- `dtv3`: TV 3.0 distribution (`/api/v1/tv/*`, `/tv3/*`).
+
+Default mode for existing installations is `m3u8`.
+
+Mode is configured in the admin panel (`IPTV Config`) and persisted through the same `IPTVConfig` source of truth.
+
+When mode changes:
+
+- only one mode remains active;
+- routes and exclusive UI of the inactive mode return `404`;
+- caches are invalidated;
+- no channel, customer, stream, playlist, device or program data is deleted.
+
+## Extra
+
+- To add new locale compatibility you need contribute to [iptv-core](https://github.com/eufelipemateus/laravel-iptv-core/blob/main/src/Helpes/Locale.php) first.
+
+- [Telegram Group to discussion about sugestion,Feature and etc.](https://t.me/laravel_iptv)
 
 ## License
 

@@ -262,7 +262,7 @@
 		</div>
     </div>
 
-    @if(isset($Customer))
+    @if(isset($Customer) && $show_m3u8_features)
     <div class="row row-line">
         <div class="col-md-12">
             <div class="card">
@@ -295,7 +295,9 @@
             </div>
         </div>
 	</div>
+    @endif
 
+    @if(isset($Customer))
     <div class="row row-line">
         <div class="col-md-12">
             <div class="card">

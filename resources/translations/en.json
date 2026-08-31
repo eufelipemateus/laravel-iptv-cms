@@ -10,6 +10,13 @@
     "BSINESS_EMAIL": "E-mail",
     "BSINESS_TAX_NO": "Tax number",
 
+    "OPERATION_MODE_LABEL": "Operation mode",
+    "OPERATION_MODE_M3U8": "Traditional IPTV - M3U/M3U8",
+    "OPERATION_MODE_DTV3": "TV 3.0 - DTV3",
+    "OPERATION_MODE_DESCRIPTION": "Only one mode can stay active. When mode changes, routes, screens, and exclusive features of the other mode are disabled. No channel, customer, stream, or configuration data is deleted.",
+    "OPERATION_MODE_CONFIRMATION": "Confirm operation mode change? This takes effect immediately and disables exclusive features from the previous mode.",
+    "MODE_CHANGE_CONFIRMATION_REQUIRED": "Confirm mode change before saving.",
+
     "SHOWROOM_MODE_TITLE": "Showroom Mode",
     "SHOWROOM_MODE_MESSAGE": "The system is in showroom mode. Data is automatically reset every 12 hours.",
 

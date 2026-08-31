@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureCustomerModuleIsEnabled;
 use App\Http\Middleware\CustomerMiddleware;
+use App\Http\Middleware\EnsureOperationMode;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureVodModuleIsEnabled;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(App\Http\Middleware\BlockWhenInstalling::class);
+        $middleware->append(EnsureOperationMode::class);
 
         $middleware->alias([
             'iptv_locale' => IPTVLocaleMiddleware::class,
@@ -29,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'vod.enabled' => EnsureVodModuleIsEnabled::class,
             'customer.enabled' => EnsureCustomerModuleIsEnabled::class,
+            'operation-mode' => EnsureOperationMode::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -74,7 +74,7 @@ Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:we
 // Channel Routes
 Route::group([
     'prefix' => 'public/m3u8',
-    'middleware' => ['api', 'public_cdn'],
+    'middleware' => ['api', 'operation-mode:m3u8', 'public_cdn'],
 ],
     function () {
         Route::get('/{slug}', [ChannelListM3UController::class, 'show'])->name('cdn-playslit');
@@ -128,7 +128,7 @@ Route::group([
 if (config('modules.customer.enabled', true)) {
     Route::group([
         'prefix' => 'client/m3u8',
-        'middleware' => ['api', 'client'],
+        'middleware' => ['api', 'operation-mode:m3u8', 'client'],
     ],
         function () {
             Route::get('/{slug}', [CustomerChannelsM3UController::class, 'show'])->name('client-playlist');

@@ -19,9 +19,9 @@
                             <td class="align-middle"><code>{{ $cdn->slug }}</code></td>
                             <td class="align-middle"><strong>{{ $cdn->name }}</strong></td>
                             <td class="align-middle">
-                                @if($url_cdn && ! $donwload)
+                                 @if($show_m3u8_links && $url_cdn && ! $donwload)
                                     <a href="{{ route('cdn-playslit', $cdn->slug) }}" class="btn btn-sm btn-outline-secondary" target="_blank">{{ __('Playlist') }}</a>
-                                @elseif($url_cdn && $donwload)
+                                 @elseif($show_m3u8_links && $url_cdn && $donwload)
                                     <a href="{{ route('cdn-playslit', $cdn->slug) }}" class="btn btn-sm btn-outline-secondary">{{ __('Download') }}</a>
                                 @else
                                     <span class="text-muted">—</span>

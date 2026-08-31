@@ -78,6 +78,13 @@
     "Tax Number": "CNPJ/CPF",
     "Phone": "Telefone",
 
+    "OPERATION_MODE_LABEL": "Modo de operacao",
+    "OPERATION_MODE_M3U8": "IPTV tradicional - M3U/M3U8",
+    "OPERATION_MODE_DTV3": "TV 3.0 - DTV3",
+    "OPERATION_MODE_DESCRIPTION": "Somente um modo pode permanecer ativo. Ao alterar o modo, as rotas, telas e funcionalidades exclusivas do outro modo serao desativadas. Nenhum canal, cliente, stream ou configuracao sera apagado.",
+    "OPERATION_MODE_CONFIRMATION": "Confirma a alteracao do modo de operacao? Essa mudanca entra em vigor imediatamente e desativa as funcionalidades exclusivas do modo anterior.",
+    "MODE_CHANGE_CONFIRMATION_REQUIRED": "Confirme a alteracao do modo para salvar.",
+
     "SHOWROOM_MODE_TITLE": "Modo Mostruario",
     "SHOWROOM_MODE_MESSAGE": "O sistema esta em modo mostruario. Os dados serao restaurados automaticamente a cada 12 horas.",
 

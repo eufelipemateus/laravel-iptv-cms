@@ -3,9 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Channels\GetPublicPlaylistDataAction;
+use App\Services\OperationModeService;
 
 class ChannelListM3UController extends Controller
 {
+    public function __construct(private readonly OperationModeService $operationModeService)
+    {
+    }
+
     /**
      *  This fucntion return file M3U to list to player
      *
@@ -13,6 +18,10 @@ class ChannelListM3UController extends Controller
      */
     public function show(string $slug)
     {
+        if (! $this->operationModeService->isM3u8()) {
+            abort(404);
+        }
+
         $data = GetPublicPlaylistDataAction::run($slug);
 
         $response = response()->view('list_M3U', $data, 200);

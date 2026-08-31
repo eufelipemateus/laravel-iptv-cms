@@ -45,7 +45,7 @@ class CrudFlowTest extends TestCase
         $this->get(route('dashboard'))->assertOk()->assertViewIs('dashboard');
         $this->get(route('config'))->assertOk()->assertViewIs('config');
 
-        $this->post(route('config_save'), ['CURRENT_LOCALE' => 'en'])
+        $this->post(route('config_save'), ['CURRENT_LOCALE' => 'en', 'mode' => 'm3u8'])
             ->assertRedirect(route('config'));
         $this->assertDatabaseHas('iptv_configs', [
             'name' => 'CURRENT_LOCALE',
