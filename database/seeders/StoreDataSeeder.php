@@ -27,7 +27,6 @@ class StoreDataSeeder extends Seeder
     {
         $channelLogo = $this->readLogoAsBase64DataUri();
 
-
         User::updateOrCreate(
             ['email' => 'common.user@store.test'],
             [
@@ -38,7 +37,6 @@ class StoreDataSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-
 
         User::updateOrCreate(
             ['email' => User::STORE_DEMO_EMAIL],
@@ -274,7 +272,7 @@ class StoreDataSeeder extends Seeder
 
         if ($this->command) {
             $this->command->info('StoreDataSeeder executed.');
-            $this->command->line('Demo: ' . User::STORE_DEMO_EMAIL . ' / ' . User::STORE_DEMO_PASSWORD);
+            $this->command->line('Demo: '.User::STORE_DEMO_EMAIL.' / '.User::STORE_DEMO_PASSWORD);
         }
     }
 

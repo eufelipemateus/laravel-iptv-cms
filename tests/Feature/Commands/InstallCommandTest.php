@@ -70,6 +70,7 @@ class InstallCommandTest extends TestCase
             'DB_PASSWORD=',
             'MODULE_CUSTOMER_ENABLED=false',
             'MODULE_VOD_ENABLED=false',
+            'MODULE_EPG_ENABLED=false',
             '',
         ]));
 
@@ -137,12 +138,16 @@ class InstallCommandTest extends TestCase
             ->expectsQuestion('Database password', '')
             ->expectsChoice(
                 'Select modules to enable (use keyboard arrows and Enter)',
-                'customer,vod',
+                'customer,vod,epg',
                 [
                     'none' => 'None',
                     'customer' => 'Customer',
                     'vod' => 'VOD',
                     'customer,vod' => 'Customer + VOD',
+                    'customer,epg' => 'Customer + EPG',
+                    'vod,epg' => 'VOD + EPG',
+                    'epg' => 'EPG',
+                    'customer,vod,epg' => 'Customer + VOD + EPG',
                 ],
             )
             ->expectsQuestion('Administrator name', 'Installation Admin')
@@ -163,6 +168,7 @@ class InstallCommandTest extends TestCase
             ->expectsOutput('admin@example.com')
             ->expectsOutput('✓ Customer')
             ->expectsOutput('✓ VOD')
+            ->expectsOutput('✓ EPG')
             ->expectsOutput('Your IPTV CMS is ready.')
             ->assertSuccessful();
 
@@ -176,6 +182,7 @@ class InstallCommandTest extends TestCase
         $this->assertSame('admin@example.com', $administrator->email);
         $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="true"');
         $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
+        $this->assertEnvContains('MODULE_EPG_ENABLED="true"');
         $this->assertEnvContains('APP_KEY='.$applicationKey);
         $this->assertEnvContains('APP_ENV="store"');
     }
@@ -189,6 +196,7 @@ class InstallCommandTest extends TestCase
         $applicationKey = (string) config('app.key');
         $this->setEnvironmentValue('MODULE_CUSTOMER_ENABLED', 'false');
         $this->setEnvironmentValue('MODULE_VOD_ENABLED', 'false');
+        $this->setEnvironmentValue('MODULE_EPG_ENABLED', 'false');
 
         $this->expectMigrationAfterDatabaseConfiguration();
 
@@ -203,6 +211,7 @@ class InstallCommandTest extends TestCase
             '--admin-email' => 'unused@example.com',
             '--admin-password' => 'a-secure-password',
             '--enable-vod' => true,
+            '--enable-epg' => true,
         ])
             ->expectsOutput('Administrator user already configured.')
             ->expectsOutput('Installation completed successfully!')
@@ -215,6 +224,7 @@ class InstallCommandTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $administrator->id]);
         $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="false"');
         $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
+        $this->assertEnvContains('MODULE_EPG_ENABLED="true"');
         $this->assertEnvContains('APP_KEY='.$applicationKey);
     }
 
@@ -223,6 +233,7 @@ class InstallCommandTest extends TestCase
         User::factory()->create(['is_admin' => true, 'active' => true]);
         $this->setEnvironmentValue('MODULE_CUSTOMER_ENABLED', 'true');
         $this->setEnvironmentValue('MODULE_VOD_ENABLED', 'true');
+        $this->setEnvironmentValue('MODULE_EPG_ENABLED', 'true');
         $this->expectMigrationAfterDatabaseConfiguration();
 
         $this->installerWithRequiredOptions()
@@ -231,6 +242,7 @@ class InstallCommandTest extends TestCase
 
         $this->assertEnvContains('MODULE_CUSTOMER_ENABLED="true"');
         $this->assertEnvContains('MODULE_VOD_ENABLED="true"');
+        $this->assertEnvContains('MODULE_EPG_ENABLED="true"');
     }
 
     public function test_contradictory_module_options_fail_before_installation_starts(): void
@@ -430,6 +442,7 @@ class InstallCommandTest extends TestCase
             'DB_PASSWORD',
             'MODULE_CUSTOMER_ENABLED',
             'MODULE_VOD_ENABLED',
+            'MODULE_EPG_ENABLED',
         ];
     }
 }

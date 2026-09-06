@@ -22,6 +22,7 @@ class Channel extends Model
         'name',
         'logo',
         'radio',
+        'epg_channel_id',
     ];
 
     protected $table = 'iptv_channels';
@@ -32,6 +33,11 @@ class Channel extends Model
     public function group()
     {
         return $this->belongsTo('App\Models\ChannelGroup', 'group_id');
+    }
+
+    public function epgChannel()
+    {
+        return $this->belongsTo(EpgChannel::class);
     }
 
     /**
@@ -46,13 +52,22 @@ class Channel extends Model
             ->join('iptv_urls', 'iptv_urls.iptv_cdn_id', '=', 'iptv_cdns.id')
             ->join('iptv_channels', 'iptv_channels.id', '=', 'iptv_urls.iptv_channel_id')
             ->join('iptv_channel_groups', 'iptv_channel_groups.id', '=', 'iptv_channels.group_id')
+            ->leftJoin('epg_channels', 'epg_channels.id', '=', 'iptv_channels.epg_channel_id')
+            ->leftJoin('epg_sources', 'epg_sources.id', '=', 'epg_channels.epg_source_id')
             ->select(
+                DB::raw('iptv_channels.id as channel_id'),
                 'iptv_channels.number',
                 'iptv_channels.name',
                 'iptv_channels.logo',
                 'iptv_channels.radio',
                 DB::raw('iptv_channel_groups.name as group_name'),
-                'iptv_urls.url_stream'
+                'iptv_urls.url_stream',
+                'iptv_channels.epg_channel_id',
+                'epg_channels.epg_source_id',
+                DB::raw('epg_channels.external_id as epg_external_id'),
+                DB::raw('epg_channels.is_active as epg_is_active'),
+                DB::raw('epg_sources.enabled as epg_source_enabled'),
+                'epg_sources.active_sync_generation'
             )
             ->where('iptv_cdns.slug', $cdn_slug)
             ->groupBy(
@@ -63,6 +78,13 @@ class Channel extends Model
                 'iptv_channels.radio',
                 'iptv_channel_groups.name',
                 'iptv_urls.url_stream',
+                'iptv_channels.id',
+                'iptv_channels.epg_channel_id',
+                'epg_channels.epg_source_id',
+                'epg_channels.external_id',
+                'epg_channels.is_active',
+                'epg_sources.enabled',
+                'epg_sources.active_sync_generation',
             )
             ->orderBy(
                 'iptv_channels.number'
@@ -115,13 +137,22 @@ class Channel extends Model
             ->join('iptv_channel_groups', 'iptv_channels.group_id', '=', 'iptv_channel_groups.id')
             ->join('iptv_plans', 'iptv_channel_groups.iptv_plan_id', '=', 'iptv_plans.id')
             ->join('iptv_customers', 'iptv_plans.id', '=', 'iptv_customers.iptv_plan_id')
+            ->leftJoin('epg_channels', 'epg_channels.id', '=', 'iptv_channels.epg_channel_id')
+            ->leftJoin('epg_sources', 'epg_sources.id', '=', 'epg_channels.epg_source_id')
             ->select(
+                DB::raw('iptv_channels.id as channel_id'),
                 'iptv_channels.number',
                 'iptv_channels.name',
                 'iptv_channels.logo',
                 'iptv_channels.radio',
                 DB::raw('iptv_channel_groups.name as group_name'),
-                'iptv_urls.url_stream'
+                'iptv_urls.url_stream',
+                'iptv_channels.epg_channel_id',
+                'epg_channels.epg_source_id',
+                DB::raw('epg_channels.external_id as epg_external_id'),
+                DB::raw('epg_channels.is_active as epg_is_active'),
+                DB::raw('epg_sources.enabled as epg_source_enabled'),
+                'epg_sources.active_sync_generation'
             )
             ->where('iptv_cdns.slug', $cdn_slug)
             ->where('iptv_customers.id', $customer_id)
@@ -133,6 +164,13 @@ class Channel extends Model
                 'iptv_channels.radio',
                 'iptv_channel_groups.name',
                 'iptv_urls.url_stream',
+                'iptv_channels.id',
+                'iptv_channels.epg_channel_id',
+                'epg_channels.epg_source_id',
+                'epg_channels.external_id',
+                'epg_channels.is_active',
+                'epg_sources.enabled',
+                'epg_sources.active_sync_generation',
             )
             ->orderBy(
                 'iptv_channels.number'
@@ -144,13 +182,22 @@ class Channel extends Model
             ->join('iptv_channel_groups', 'iptv_channels.group_id', '=', 'iptv_channel_groups.id')
             ->join('iptv_plans', 'iptv_channel_groups.iptv_plan_id', '=', 'iptv_plans.id')
             ->join('iptv_customer_plan_additionals', 'iptv_plans.id', '=', 'iptv_customer_plan_additionals.iptv_plans_id')
+            ->leftJoin('epg_channels', 'epg_channels.id', '=', 'iptv_channels.epg_channel_id')
+            ->leftJoin('epg_sources', 'epg_sources.id', '=', 'epg_channels.epg_source_id')
             ->select(
+                DB::raw('iptv_channels.id as channel_id'),
                 'iptv_channels.number',
                 'iptv_channels.name',
                 'iptv_channels.logo',
                 'iptv_channels.radio',
                 DB::raw('iptv_channel_groups.name as group_name'),
-                'iptv_urls.url_stream'
+                'iptv_urls.url_stream',
+                'iptv_channels.epg_channel_id',
+                'epg_channels.epg_source_id',
+                DB::raw('epg_channels.external_id as epg_external_id'),
+                DB::raw('epg_channels.is_active as epg_is_active'),
+                DB::raw('epg_sources.enabled as epg_source_enabled'),
+                'epg_sources.active_sync_generation'
             )
             ->where('iptv_cdns.slug', $cdn_slug)
             ->where('iptv_customer_plan_additionals.iptv_customer_id', $customer_id)
@@ -162,6 +209,13 @@ class Channel extends Model
                 'iptv_channels.radio',
                 'iptv_channel_groups.name',
                 'iptv_urls.url_stream',
+                'iptv_channels.id',
+                'iptv_channels.epg_channel_id',
+                'epg_channels.epg_source_id',
+                'epg_channels.external_id',
+                'epg_channels.is_active',
+                'epg_sources.enabled',
+                'epg_sources.active_sync_generation',
             )
             ->orderBy(
                 'iptv_channels.number'
