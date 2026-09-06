@@ -39,7 +39,9 @@ class InstallCommand extends Command
         {--enable-customer : Enable the customer module}
         {--disable-customer : Disable the customer module}
         {--enable-vod : Enable the VOD module}
-        {--disable-vod : Disable the VOD module}';
+        {--disable-vod : Disable the VOD module}
+        {--enable-epg : Enable the EPG module}
+        {--disable-epg : Disable the EPG module}';
 
     /**
      * The console command description.
@@ -850,6 +852,7 @@ class InstallCommand extends Command
         $optionalModules = [
             'customer' => 'Customer',
             'vod' => 'VOD',
+            'epg' => 'EPG',
         ];
 
         $defaultModules = [];
@@ -862,11 +865,16 @@ class InstallCommand extends Command
             $defaultModules[] = 'vod';
         }
 
+        if ((bool) env('MODULE_EPG_ENABLED', false)) {
+            $defaultModules[] = 'epg';
+        }
+
         $selectedModules = $this->selectOptionalModules($optionalModules, $defaultModules);
 
         $saved = $this->persistEnvValues([
             'MODULE_CUSTOMER_ENABLED' => in_array('customer', $selectedModules, true) ? 'true' : 'false',
             'MODULE_VOD_ENABLED' => in_array('vod', $selectedModules, true) ? 'true' : 'false',
+            'MODULE_EPG_ENABLED' => in_array('epg', $selectedModules, true) ? 'true' : 'false',
         ]);
 
         if (! $saved) {
@@ -887,7 +895,7 @@ class InstallCommand extends Command
 
     private function validateModuleOptions(): bool
     {
-        foreach (['customer', 'vod'] as $module) {
+        foreach (['customer', 'vod', 'epg'] as $module) {
             if ($this->option('enable-'.$module) && $this->option('disable-'.$module)) {
                 $this->error(sprintf(
                     'Options --enable-%s and --disable-%s cannot be used together.',
@@ -912,16 +920,12 @@ class InstallCommand extends Command
         if (! $this->input->isInteractive()) {
             $selectedModules = $defaultModules;
 
-            if ((bool) $this->option('enable-customer')) {
-                $selectedModules[] = 'customer';
-            } elseif ((bool) $this->option('disable-customer')) {
-                $selectedModules = array_values(array_diff($selectedModules, ['customer']));
-            }
-
-            if ((bool) $this->option('enable-vod')) {
-                $selectedModules[] = 'vod';
-            } elseif ((bool) $this->option('disable-vod')) {
-                $selectedModules = array_values(array_diff($selectedModules, ['vod']));
+            foreach (array_keys($optionalModules) as $module) {
+                if ((bool) $this->option('enable-'.$module)) {
+                    $selectedModules[] = $module;
+                } elseif ((bool) $this->option('disable-'.$module)) {
+                    $selectedModules = array_values(array_diff($selectedModules, [$module]));
+                }
             }
 
             return array_values(array_unique($selectedModules));
@@ -932,6 +936,10 @@ class InstallCommand extends Command
             'customer' => 'Customer',
             'vod' => 'VOD',
             'customer,vod' => 'Customer + VOD',
+            'customer,epg' => 'Customer + EPG',
+            'vod,epg' => 'VOD + EPG',
+            'epg' => 'EPG',
+            'customer,vod,epg' => 'Customer + VOD + EPG',
         ];
 
         $defaultPreset = $this->buildModulePresetDefault($defaultModules);
@@ -942,12 +950,7 @@ class InstallCommand extends Command
             $defaultPreset,
         );
 
-        return match ($selectedPreset) {
-            'customer' => ['customer'],
-            'vod' => ['vod'],
-            'customer,vod' => ['customer', 'vod'],
-            default => [],
-        };
+        return $selectedPreset === 'none' ? [] : explode(',', $selectedPreset);
     }
 
     /**
@@ -955,21 +958,8 @@ class InstallCommand extends Command
      */
     private function buildModulePresetDefault(array $defaultModules): string
     {
-        $hasCustomer = in_array('customer', $defaultModules, true);
-        $hasVod = in_array('vod', $defaultModules, true);
+        $preset = array_values(array_intersect(['customer', 'vod', 'epg'], $defaultModules));
 
-        if ($hasCustomer && $hasVod) {
-            return 'customer,vod';
-        }
-
-        if ($hasCustomer) {
-            return 'customer';
-        }
-
-        if ($hasVod) {
-            return 'vod';
-        }
-
-        return 'none';
+        return $preset === [] ? 'none' : implode(',', $preset);
     }
 }

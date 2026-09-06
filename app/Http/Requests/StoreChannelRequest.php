@@ -22,6 +22,7 @@ class StoreChannelRequest extends FormRequest
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'group_id' => ['required', 'integer', 'exists:iptv_channel_groups,id'],
             'radio' => ['sometimes', 'boolean'],
+            'epg_channel_id' => ['nullable', 'integer', 'exists:epg_channels,id'],
         ];
     }
 }

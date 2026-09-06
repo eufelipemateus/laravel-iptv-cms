@@ -59,7 +59,7 @@ return new class extends Migration
             Schema::table('iptv_customers', function (Blueprint $table) {
                 try {
                     $table->dropUnique('iptv_customers_auth_token_id_unique');
-                } catch (\Throwable $exception) {
+                } catch (Throwable $exception) {
                     // Index may not exist or may already be removed.
                 }
             });

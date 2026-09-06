@@ -16,7 +16,6 @@ class CustomerPlanGroupController extends Controller
     {
         $data = $request->validated();
 
-
         AddChannelGroupToCustomerPlanAction::run($customerPlan, (int) $data['iptv_group_id']);
 
         return redirect()->route('show_customer_plan', ['customerPlan' => $customerPlan]);

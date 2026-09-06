@@ -30,6 +30,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('store:reset-demo-data')
             ->cron('0 */12 * * *')
             ->withoutOverlapping();
+
+        $schedule->command('epg:sync-due')->everyMinute()->withoutOverlapping();
+        $schedule->command('epg:prune')->dailyAt('03:30')->withoutOverlapping();
     }
 
     /**
