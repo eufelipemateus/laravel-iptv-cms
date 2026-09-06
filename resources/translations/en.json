@@ -94,6 +94,8 @@
     "AUDIT_ALREADY_RESTORED": "Restored",
     "AUDIT_RESTORED": "Data restored successfully.",
     "AUDIT_RESTORE_INVALID": "This audit entry cannot be restored.",
+    "AUDIT_RESTORE_CONFLICT": "This record was changed after this audit entry and cannot be restored automatically.",
+    "AUDIT_RESTORE_FAILED": "The restore could not be completed because of the current data constraints.",
     "AUDIT_RECORD_NOT_FOUND": "The original record was not found.",
     "AUDIT_RECORD_ALREADY_EXISTS": "A record with this identifier already exists.",
     "AUDIT_DETAILS": "Audit details",

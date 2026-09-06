@@ -162,6 +162,8 @@
     "AUDIT_ALREADY_RESTORED": "Restaurado",
     "AUDIT_RESTORED": "Dados restaurados com sucesso.",
     "AUDIT_RESTORE_INVALID": "Este registro de auditoria nao pode ser restaurado.",
+    "AUDIT_RESTORE_CONFLICT": "Este registro foi alterado apos esta entrada de auditoria e nao pode ser restaurado automaticamente.",
+    "AUDIT_RESTORE_FAILED": "A restauracao nao pode ser concluida devido as restricoes atuais dos dados.",
     "AUDIT_RECORD_NOT_FOUND": "O registro original nao foi encontrado.",
     "AUDIT_RECORD_ALREADY_EXISTS": "Ja existe um registro com este identificador.",
     "AUDIT_DETAILS": "Detalhes da auditoria",

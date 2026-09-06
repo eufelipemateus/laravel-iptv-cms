@@ -14,6 +14,7 @@ use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
@@ -259,6 +260,7 @@ class AuditLogTest extends TestCase
 
         $this->actingAs($user)->get(route('audit.index'))->assertForbidden();
         $this->actingAs($user)->get(route('audit.show', $audit))->assertForbidden();
+        $this->actingAs($user)->post(route('audit.restore', $audit))->assertForbidden();
     }
 
     public function test_updated_model_can_be_restored_exactly_once(): void
@@ -268,6 +270,7 @@ class AuditLogTest extends TestCase
 
         $group->update(['name' => 'Changed']);
         $audit = $this->latestAudit('updated');
+        $auditCount = AuditLog::query()->count();
 
         $this->post(route('audit.restore', $audit))->assertRedirect();
 
@@ -277,6 +280,7 @@ class AuditLogTest extends TestCase
             'restored_from_id' => $audit->id,
             'user_id' => $admin->id,
         ]);
+        $this->assertSame($auditCount + 1, AuditLog::query()->count());
         $this->assertSame(1, AuditLog::query()->where('restored_from_id', $audit->id)->count());
         $restoration = AuditLog::query()->where('restored_from_id', $audit->id)->firstOrFail();
 
@@ -336,6 +340,8 @@ class AuditLogTest extends TestCase
             'event' => 'updated',
             'auditable_type' => ChannelGroup::class,
             'auditable_id' => '999999',
+            'old_values' => ['name' => 'Original'],
+            'new_values' => ['name' => 'Changed'],
         ]);
         $restoredAudit = $this->createAudit([
             'event' => 'restored',
@@ -376,26 +382,207 @@ class AuditLogTest extends TestCase
     public function test_restore_never_changes_sensitive_attributes_excluded_from_audit(): void
     {
         $this->actingAsAdmin();
-        $originalPassword = Hash::make('original-password');
-        $currentPassword = Hash::make('current-password');
-        $user = User::factory()->create([
+        $customer = Customer::factory()->create([
             'name' => 'Original name',
-            'password' => $originalPassword,
         ]);
+        $currentTokenId = (string) Str::ulid();
+        $currentTokenHash = Hash::make('current-token');
 
-        $user->forceFill([
+        $customer->forceFill([
             'name' => 'Changed name',
-            'password' => $currentPassword,
+            'auth_token_id' => $currentTokenId,
+            'auth_token_hash' => $currentTokenHash,
         ])->save();
-        $audit = $this->latestAudit('updated');
+        $audit = AuditLog::query()
+            ->where('event', 'updated')
+            ->where('auditable_type', Customer::class)
+            ->where('auditable_id', (string) $customer->id)
+            ->latest('id')
+            ->firstOrFail();
 
-        $this->assertArrayNotHasKey('password', $audit->old_values);
-        $this->assertArrayNotHasKey('password', $audit->new_values);
+        $this->assertArrayNotHasKey('auth_token_id', $audit->old_values);
+        $this->assertArrayNotHasKey('auth_token_hash', $audit->old_values);
+        $this->assertArrayNotHasKey('auth_token_id', $audit->new_values);
+        $this->assertArrayNotHasKey('auth_token_hash', $audit->new_values);
 
         $this->post(route('audit.restore', $audit))->assertRedirect();
 
-        $this->assertSame('Original name', $user->fresh()->name);
-        $this->assertSame($currentPassword, $user->fresh()->password);
+        $customer->refresh();
+        $this->assertSame('Original name', $customer->name);
+        $this->assertSame($currentTokenId, $customer->auth_token_id);
+        $this->assertSame($currentTokenHash, $customer->auth_token_hash);
+    }
+
+    public function test_audited_user_is_not_restorable_from_the_ui_or_direct_post(): void
+    {
+        $this->actingAsAdmin();
+        $user = User::factory()->create([
+            'password' => Hash::make('secret-password'),
+        ]);
+        $audit = AuditLog::query()
+            ->where('event', 'created')
+            ->where('auditable_type', User::class)
+            ->where('auditable_id', (string) $user->id)
+            ->firstOrFail();
+
+        $this->assertArrayNotHasKey('password', $audit->new_values);
+        $this->get(route('audit.show', $audit))
+            ->assertOk()
+            ->assertDontSee(route('audit.restore', $audit), false);
+
+        $this->post(route('audit.restore', $audit))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $audit->id]);
+    }
+
+    public function test_invalid_snapshot_is_not_offered_for_restore(): void
+    {
+        $this->actingAsAdmin();
+        $audit = $this->createAudit([
+            'event' => 'updated',
+            'auditable_type' => ChannelGroup::class,
+            'old_values' => [],
+            'new_values' => [],
+        ]);
+
+        $this->get(route('audit.show', $audit))
+            ->assertOk()
+            ->assertDontSee(route('audit.restore', $audit), false);
+        $this->post(route('audit.restore', $audit))
+            ->assertSessionHasErrors('restore');
+    }
+
+    public function test_deleted_snapshot_must_contain_the_original_primary_key(): void
+    {
+        $this->actingAsAdmin();
+        $audit = $this->createAudit([
+            'event' => 'deleted',
+            'auditable_type' => ChannelGroup::class,
+            'auditable_id' => '10',
+            'old_values' => ['name' => 'Missing identifier'],
+            'new_values' => null,
+        ]);
+
+        $this->get(route('audit.show', $audit))
+            ->assertOk()
+            ->assertDontSee(route('audit.restore', $audit), false);
+        $this->post(route('audit.restore', $audit))
+            ->assertSessionHasErrors('restore');
+    }
+
+    public function test_snapshot_comparison_normalizes_boolean_database_values(): void
+    {
+        $this->actingAsAdmin();
+        $channel = Channel::factory()->create(['radio' => false]);
+        $channel->update(['radio' => true]);
+        $audit = AuditLog::query()
+            ->where('event', 'updated')
+            ->where('auditable_type', Channel::class)
+            ->where('auditable_id', (string) $channel->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->post(route('audit.restore', $audit))->assertRedirect();
+
+        $this->assertFalse((bool) $channel->fresh()->radio);
+    }
+
+    public function test_update_restore_is_blocked_after_a_later_change(): void
+    {
+        $this->actingAsAdmin();
+        $group = ChannelGroup::factory()->create(['name' => 'Original']);
+        $group->update(['name' => 'Changed']);
+        $source = $this->latestAudit('updated');
+        $group->update(['name' => 'Later']);
+
+        $this->post(route('audit.restore', $source))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertSame('Later', $group->fresh()->name);
+        $this->assertNull($source->fresh()->restored_at);
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
+    }
+
+    public function test_created_restore_is_blocked_after_a_later_audited_change(): void
+    {
+        $this->actingAsAdmin();
+        $group = ChannelGroup::factory()->create(['name' => 'Original']);
+        $source = AuditLog::query()
+            ->where('event', 'created')
+            ->where('auditable_type', ChannelGroup::class)
+            ->where('auditable_id', (string) $group->id)
+            ->firstOrFail();
+        $group->update(['name' => 'Changed']);
+
+        $this->post(route('audit.restore', $source))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertDatabaseHas('iptv_channel_groups', [
+            'id' => $group->id,
+            'name' => 'Changed',
+        ]);
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
+    }
+
+    public function test_created_restore_constraint_failure_is_controlled_and_transactional(): void
+    {
+        $this->actingAsAdmin();
+        $group = ChannelGroup::factory()->create();
+        $source = AuditLog::query()
+            ->where('event', 'created')
+            ->where('auditable_type', ChannelGroup::class)
+            ->where('auditable_id', (string) $group->id)
+            ->firstOrFail();
+        Channel::factory()->create(['group_id' => $group->id]);
+
+        $this->post(route('audit.restore', $source))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertDatabaseHas('iptv_channel_groups', ['id' => $group->id]);
+        $this->assertNull($source->fresh()->restored_at);
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
+    }
+
+    public function test_deleted_restore_is_blocked_when_the_original_id_exists(): void
+    {
+        $this->actingAsAdmin();
+        $group = ChannelGroup::factory()->create();
+        $groupId = $group->id;
+        $group->delete();
+        $source = AuditLog::query()
+            ->where('event', 'deleted')
+            ->where('auditable_type', ChannelGroup::class)
+            ->where('auditable_id', (string) $groupId)
+            ->firstOrFail();
+        ChannelGroup::factory()->create(['id' => $groupId]);
+
+        $this->post(route('audit.restore', $source))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
+    }
+
+    public function test_deleted_restore_with_invalid_foreign_key_is_controlled_and_rolled_back(): void
+    {
+        $this->actingAsAdmin();
+        $group = ChannelGroup::factory()->create();
+        $channel = Channel::factory()->create(['group_id' => $group->id]);
+        $channel->delete();
+        $source = AuditLog::query()
+            ->where('event', 'deleted')
+            ->where('auditable_type', Channel::class)
+            ->where('auditable_id', (string) $channel->id)
+            ->firstOrFail();
+        $group->delete();
+
+        $this->post(route('audit.restore', $source))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertDatabaseMissing('iptv_channels', ['id' => $channel->id]);
+        $this->assertNull($source->fresh()->restored_at);
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
     }
 
     public function test_large_request_metadata_is_truncated_and_can_be_persisted(): void

@@ -69,7 +69,6 @@
                         <th>{{ __('AUDIT_EVENT') }}</th>
                         <th>{{ __('AUDIT_RESOURCE') }}</th>
                         <th>{{ __('AUDIT_CHANGES') }}</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -82,20 +81,10 @@
                             <td>
                                 <a href="{{ route('audit.show', $audit) }}">{{ __('AUDIT_VIEW_CHANGES') }}</a>
                             </td>
-                            <td class="text-right">
-                                @if($audit->event !== 'restored' && ! $audit->restored_at)
-                                    <form method="POST" action="{{ route('audit.restore', $audit) }}" onsubmit="return confirm('{{ __('AUDIT_RESTORE_CONFIRM') }}')">
-                                        @csrf
-                                        <button class="btn btn-sm btn-outline-warning" type="submit">{{ __('AUDIT_RESTORE') }}</button>
-                                    </form>
-                                @elseif($audit->restored_at)
-                                    <span class="badge badge-success">{{ __('AUDIT_ALREADY_RESTORED') }}</span>
-                                @endif
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">{{ __('AUDIT_EMPTY') }}</td>
+                            <td colspan="5" class="text-center text-muted">{{ __('AUDIT_EMPTY') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

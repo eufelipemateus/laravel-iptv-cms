@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AuditRestoreException;
 use App\Http\Requests\AuditLogIndexRequest;
 use App\Models\AuditLog;
 use App\Services\Audit\AuditRestoreService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
-use RuntimeException;
 
 class AuditLogController extends Controller
 {
@@ -46,18 +46,19 @@ class AuditLogController extends Controller
         return view('audit.index', compact('audits', 'filters', 'auditableModels'));
     }
 
-    public function show(AuditLog $auditLog): View
+    public function show(AuditLog $auditLog, AuditRestoreService $service): View
     {
         $auditLog->load(['user:id,name', 'restoredFrom:id,event', 'restoration:id,restored_from_id']);
+        $canRestore = $service->canRestore($auditLog);
 
-        return view('audit.show', compact('auditLog'));
+        return view('audit.show', compact('auditLog', 'canRestore'));
     }
 
     public function restore(AuditLog $auditLog, AuditRestoreService $service): RedirectResponse
     {
         try {
             $service->restore($auditLog);
-        } catch (RuntimeException $exception) {
+        } catch (AuditRestoreException $exception) {
             return back()->withErrors(['restore' => $exception->getMessage()]);
         }
 

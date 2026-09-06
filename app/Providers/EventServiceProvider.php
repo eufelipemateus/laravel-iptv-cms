@@ -7,7 +7,6 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Schema;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -24,10 +23,6 @@ class EventServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (app()->runningInConsole() && ! Schema::hasTable('audit_logs')) {
-            return;
-        }
-
         $this->registerAuditObservers();
     }
 

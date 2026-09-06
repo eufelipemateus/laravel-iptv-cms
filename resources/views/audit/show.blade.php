@@ -59,7 +59,7 @@
             </p>
         @endif
 
-        @if($auditLog->event !== 'restored' && ! $auditLog->restored_at)
+        @if($canRestore)
             <form method="POST" action="{{ route('audit.restore', $auditLog) }}" onsubmit="return confirm('{{ __('AUDIT_RESTORE_CONFIRM') }}')">
                 @csrf
                 <button class="btn btn-outline-warning" type="submit">{{ __('AUDIT_RESTORE') }}</button>
