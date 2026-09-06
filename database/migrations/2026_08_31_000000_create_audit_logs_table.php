@@ -16,15 +16,18 @@ return new class extends Migration
             $table->string('auditable_id');
             $table->json('old_values')->nullable();
             $table->json('new_values')->nullable();
-            $table->string('url')->nullable();
+            $table->text('url')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->foreignId('restored_from_id')->nullable()->constrained('audit_logs')->nullOnDelete();
+            $table->foreignId('restored_from_id')->nullable()->unique()->constrained('audit_logs')->nullOnDelete();
             $table->timestamp('restored_at')->nullable();
             $table->timestamps();
 
             $table->index(['auditable_type', 'auditable_id']);
-            $table->index(['event', 'created_at']);
+            $table->index(['created_at', 'id']);
+            $table->index(['user_id', 'id']);
+            $table->index(['event', 'id']);
+            $table->index(['auditable_type', 'id']);
         });
     }
 

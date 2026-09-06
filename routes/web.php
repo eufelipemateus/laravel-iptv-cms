@@ -75,6 +75,7 @@ Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:we
 
 Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'])->prefix('audit')->group(function () {
     Route::get('/', [AuditLogController::class, 'index'])->name('audit.index');
+    Route::get('{auditLog}', [AuditLogController::class, 'show'])->name('audit.show');
     Route::post('{auditLog}/restore', [AuditLogController::class, 'restore'])->name('audit.restore');
 });
 // Channel Routes

@@ -2,23 +2,12 @@
 
 namespace App\Providers;
 
-use App\Models\Channel;
-use App\Models\ChannelCdn;
-use App\Models\ChannelGroup;
-use App\Models\ChannelUrl;
-use App\Models\Customer;
-use App\Models\CustomerCdn;
-use App\Models\CustomerInvoce;
-use App\Models\CustomerPlan;
-use App\Models\IPTVConfig;
-use App\Models\IPTVTaxVat;
-use App\Models\IPTVVodVideo;
-use App\Models\User;
 use App\Observers\AuditObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -33,19 +22,25 @@ class EventServiceProvider extends ServiceProvider
         ],
     ];
 
-    /**
-     * Register any events for your application.
-     *
-     * @return void
-     */
-    public function boot()
+    public function boot(): void
     {
-        foreach ([
-            Channel::class, ChannelCdn::class, ChannelGroup::class, ChannelUrl::class,
-            Customer::class, CustomerCdn::class, CustomerInvoce::class, CustomerPlan::class,
-            IPTVConfig::class, IPTVTaxVat::class, IPTVVodVideo::class, User::class,
-        ] as $model) {
+        if (app()->runningInConsole() && ! Schema::hasTable('audit_logs')) {
+            return;
+        }
+
+        $this->registerAuditObservers();
+    }
+
+    private function registerAuditObservers(): void
+    {
+        foreach ($this->auditableModels() as $model) {
             $model::observe(AuditObserver::class);
         }
+    }
+
+    /** @return array<class-string<Model>> */
+    private function auditableModels(): array
+    {
+        return config('audit.models', []);
     }
 }

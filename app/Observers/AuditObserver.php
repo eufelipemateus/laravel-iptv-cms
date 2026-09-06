@@ -3,14 +3,12 @@
 namespace App\Observers;
 
 use App\Models\AuditLog;
+use App\Services\Audit\AuditPayloadSanitizer;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
 
 class AuditObserver
 {
-    private const HIDDEN_ATTRIBUTES = [
-        'password', 'remember_token', 'invitation_token', 'api_token', 'access_token',
-    ];
+    public function __construct(private readonly AuditPayloadSanitizer $sanitizer) {}
 
     public function created(Model $model): void
     {
@@ -41,32 +39,22 @@ class AuditObserver
 
     private function record(Model $model, string $event, ?array $old, ?array $new): void
     {
-        // Some legacy migrations create models before this table itself exists.
-        if (app()->runningInConsole() && ! Schema::hasTable('audit_logs')) {
+        $request = app()->runningInConsole() ? null : request();
+        $old = $this->sanitizer->values($model, $old);
+        $new = $this->sanitizer->values($model, $new);
+
+        if ($event === 'updated' && $old === [] && $new === []) {
             return;
         }
-
-        $request = app()->runningInConsole() ? null : request();
 
         AuditLog::query()->create([
             'user_id' => auth()->id(),
             'event' => $event,
             'auditable_type' => $model::class,
             'auditable_id' => (string) $model->getKey(),
-            'old_values' => $this->withoutSecrets($old),
-            'new_values' => $this->withoutSecrets($new),
-            'url' => $request?->fullUrl(),
-            'ip_address' => $request?->ip(),
-            'user_agent' => $request?->userAgent(),
+            'old_values' => $old,
+            'new_values' => $new,
+            ...$this->sanitizer->requestMetadata($request),
         ]);
-    }
-
-    private function withoutSecrets(?array $values): ?array
-    {
-        if ($values === null) {
-            return null;
-        }
-
-        return array_diff_key($values, array_flip(self::HIDDEN_ATTRIBUTES));
     }
 }
