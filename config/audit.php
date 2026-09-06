@@ -50,7 +50,6 @@ return [
         'invitation_token',
         'api_token',
         'access_token',
-        'auth_token_id',
         'auth_token_hash',
     ],
 ];
