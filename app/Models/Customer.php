@@ -96,7 +96,7 @@ class Customer extends Model
     {
         $this->forceFill([
             'auth_token_last_used_at' => $usedAt ?? now(),
-        ])->save();
+        ])->saveQuietly();
     }
 
     /**
