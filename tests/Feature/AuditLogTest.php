@@ -57,7 +57,7 @@ class AuditLogTest extends TestCase
         $this->assertSame($auditCount, AuditLog::query()->count());
     }
 
-    public function test_observer_ignores_updates_containing_only_hidden_attributes(): void
+    public function test_observer_records_auth_token_rotation_when_non_hidden_fields_change(): void
     {
         $this->actingAsAdmin();
         $customer = Customer::factory()->create();
@@ -65,7 +65,11 @@ class AuditLogTest extends TestCase
 
         $customer->issueAuthToken();
 
-        $this->assertSame($auditCount, AuditLog::query()->count());
+        $latestAudit = AuditLog::query()->latest('id')->firstOrFail();
+
+        $this->assertSame($auditCount + 1, AuditLog::query()->count());
+        $this->assertArrayHasKey('auth_token_id', $latestAudit->new_values);
+        $this->assertArrayNotHasKey('auth_token_hash', $latestAudit->new_values);
     }
 
     public function test_observer_excludes_configured_and_model_hidden_attributes(): void
@@ -379,12 +383,13 @@ class AuditLogTest extends TestCase
         $this->assertSame(1, AuditLog::query()->where('restored_from_id', $source->id)->count());
     }
 
-    public function test_restore_never_changes_sensitive_attributes_excluded_from_audit(): void
+    public function test_restore_only_reverts_audited_fields_and_keeps_secret_token_hash(): void
     {
         $this->actingAsAdmin();
         $customer = Customer::factory()->create([
             'name' => 'Original name',
         ]);
+        $originalTokenId = $customer->auth_token_id;
         $currentTokenId = (string) Str::ulid();
         $currentTokenHash = Hash::make('current-token');
 
@@ -400,16 +405,16 @@ class AuditLogTest extends TestCase
             ->latest('id')
             ->firstOrFail();
 
-        $this->assertArrayNotHasKey('auth_token_id', $audit->old_values);
+        $this->assertArrayHasKey('auth_token_id', $audit->old_values);
         $this->assertArrayNotHasKey('auth_token_hash', $audit->old_values);
-        $this->assertArrayNotHasKey('auth_token_id', $audit->new_values);
+        $this->assertArrayHasKey('auth_token_id', $audit->new_values);
         $this->assertArrayNotHasKey('auth_token_hash', $audit->new_values);
 
         $this->post(route('audit.restore', $audit))->assertRedirect();
 
         $customer->refresh();
         $this->assertSame('Original name', $customer->name);
-        $this->assertSame($currentTokenId, $customer->auth_token_id);
+        $this->assertSame($originalTokenId, $customer->auth_token_id);
         $this->assertSame($currentTokenHash, $customer->auth_token_hash);
     }
 
