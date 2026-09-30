@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Playlists;
 
+use App\Models\AuditLog;
 use App\Models\ChannelCdn;
 use App\Models\IPTVVodVideo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,5 +93,17 @@ class PublicPlaylistTest extends TestCase
         $this->get(route('cdn-playslit', ['slug' => $cdn->slug]))
             ->assertOk()
             ->assertDontSee('Movie night', false);
+    }
+
+    public function test_requesting_public_playlist_does_not_create_audit_entries(): void
+    {
+        $this->enablePublicCdn();
+        $cdn = ChannelCdn::factory()->create(['slug' => 'read-only-cdn']);
+        $this->makePlayableChannel($cdn);
+        $auditCount = AuditLog::query()->count();
+
+        $this->get(route('cdn-playslit', ['slug' => $cdn->slug]))->assertOk();
+
+        $this->assertSame($auditCount, AuditLog::query()->count());
     }
 }

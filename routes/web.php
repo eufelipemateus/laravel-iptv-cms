@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChannelCdnController;
 /*
@@ -73,6 +74,12 @@ Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:we
     Route::get('{user}', [UserController::class, 'show'])->name('users.show');
     Route::get('{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('{user}', [UserController::class, 'update'])->name('users.update');
+});
+
+Route::middleware(['web', 'auth', 'active', 'admin', 'iptv_locale', 'throttle:web'])->prefix('audit')->group(function () {
+    Route::get('/', [AuditLogController::class, 'index'])->name('audit.index');
+    Route::get('{auditLog}', [AuditLogController::class, 'show'])->name('audit.show');
+    Route::post('{auditLog}/restore', [AuditLogController::class, 'restore'])->name('audit.restore');
 });
 // Channel Routes
 Route::group([

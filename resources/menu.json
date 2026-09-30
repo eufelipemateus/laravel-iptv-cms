@@ -82,6 +82,11 @@
                 "name": "Users",
                 "icon": "users",
                 "route": "list_user"
+            },
+            {
+                "name": "AUDIT_TITLE",
+                "icon": "history",
+                "route": "audit.index"
             }
         ]
     }

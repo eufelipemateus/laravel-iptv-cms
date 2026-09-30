@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Playlists;
 
+use App\Models\AuditLog;
 use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerPlan;
@@ -82,5 +83,24 @@ class PrivatePlaylistTest extends TestCase
             ->assertOk()
             ->assertSee('group-title="VOD",Customer movie', false)
             ->assertSee(route('api.vods.playback', ['id' => $vod->slug]), false);
+    }
+
+    public function test_requesting_customer_playlist_does_not_create_audit_entries(): void
+    {
+        $cdn = ChannelCdn::factory()->create(['slug' => 'read-only-customer-cdn']);
+        $plan = CustomerPlan::factory()->active()->create();
+        $customer = Customer::factory()->active()->create([
+            'iptv_plan_id' => $plan->id,
+            'iptv_cdn_id' => $cdn->id,
+        ]);
+        $this->makePlayableChannel($cdn, $plan);
+        [$tokenId, $tokenSecret] = $this->tokenCredentialsFor($customer);
+        $auditCount = AuditLog::query()->count();
+
+        $this->withBasicAuth($tokenId, $tokenSecret)
+            ->get(route('client-playlist', ['slug' => $cdn->slug]))
+            ->assertOk();
+
+        $this->assertSame($auditCount, AuditLog::query()->count());
     }
 }
