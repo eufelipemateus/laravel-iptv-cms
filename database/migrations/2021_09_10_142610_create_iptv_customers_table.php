@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('iptv_customers', function (Blueprint $table) {
             $table->id();
-            $table->string("name"); //Full user name
-            $table->string('username')->unique(); //system user name
-            $table->string("hash_acess");
+            $table->string('name'); // Full user name
+            $table->string('username')->unique(); // system user name
+            $table->string('hash_acess');
 
             $table->foreignId('iptv_plan_id')->constrained();
             $table->timestamps();

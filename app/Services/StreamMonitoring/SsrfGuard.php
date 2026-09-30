@@ -7,7 +7,7 @@ class SsrfGuard
     /**
      * Validate a target URL and every redirect hop before making monitoring requests.
      *
-     * @param array<int, string> $redirectChain
+     * @param  array<int, string>  $redirectChain
      */
     public function assertAllowed(string $url, array $redirectChain = []): void
     {
@@ -181,7 +181,7 @@ class SsrfGuard
 
             $maskLong = $maskBits === 0 ? 0 : (-1 << (32 - $maskBits));
 
-            return (($ipLong & $maskLong) === ($subnetLong & $maskLong));
+            return ($ipLong & $maskLong) === ($subnetLong & $maskLong);
         }
 
         return false;

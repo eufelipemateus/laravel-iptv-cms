@@ -2,6 +2,7 @@
 
 namespace App\Interfaces;
 
-Interface Dash{
+interface Dash
+{
     public static function view();
 }

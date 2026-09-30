@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('iptv_tax_vat', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
-            $table->string("porcent");
-            $table->boolean("active");
+            $table->string('name');
+            $table->string('porcent');
+            $table->boolean('active');
             $table->timestamps();
         });
     }

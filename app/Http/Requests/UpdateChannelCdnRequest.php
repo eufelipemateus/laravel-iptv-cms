@@ -22,7 +22,7 @@ class UpdateChannelCdnRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('iptv_cdns', 'slug')->ignore($this->route('id')),
+                Rule::unique('iptv_cdns', 'slug')->ignore($this->route('channelCdn')),
             ],
             'name' => ['required', 'string', 'max:90'],
         ];

@@ -29,6 +29,6 @@ return new class extends Migration
         //
         Schema::table('iptv_customers', function (Blueprint $table) {
             $table->dropColumn('active');
-       });
+        });
     }
 };

@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -15,14 +15,14 @@ return new class extends Migration
     {
         Schema::create('iptv_channels', function (Blueprint $table) {
             $table->increments('id');
-			$table->unsignedInteger('group_id');
-			$table->integer("number")->unique();
-			$table->string("name",60);
-			$table->text("logo",200)->nullable();
-			$table->boolean('radio')->default(false);
+            $table->unsignedInteger('group_id');
+            $table->integer('number')->unique();
+            $table->string('name', 60);
+            $table->text('logo', 200)->nullable();
+            $table->boolean('radio')->default(false);
             $table->timestamps();
 
-			$table->foreign('group_id')->references('id')->on('iptv_channel_groups');
+            $table->foreign('group_id')->references('id')->on('iptv_channel_groups');
         });
     }
 

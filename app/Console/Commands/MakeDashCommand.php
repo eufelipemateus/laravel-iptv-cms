@@ -27,7 +27,7 @@ class MakeDashCommand extends GeneratorCommand
      */
     protected $type = 'dash';
 
-     /**
+    /**
      * Get the console command arguments.
      *
      * @return array
@@ -42,21 +42,19 @@ class MakeDashCommand extends GeneratorCommand
     /**
      * Get the default namespace for the class.
      *
-     * @param string $rootNamespace
-     *
+     * @param  string  $rootNamespace
      * @return string
      */
-    public function getDefaultNamespace($rootnamespace){
-        return $rootnamespace . "\Dashs";
+    public function getDefaultNamespace($rootnamespace)
+    {
+        return $rootnamespace."\Dashs";
     }
 
     /**
      * Get the stub file for the generator.
-     *
-     * @return string
      */
-    protected function getStub():string
+    protected function getStub(): string
     {
-        return (__DIR__.'/../resources/stubs/DashStub.php');
+        return __DIR__.'/../resources/stubs/DashStub.php';
     }
 }

@@ -37,6 +37,6 @@ return new class extends Migration
             $table->dropColumn('phone');
             $table->dropColumn('email');
             $table->dropColumn('tax_no');
-       });
+        });
     }
 };

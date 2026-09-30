@@ -7,12 +7,21 @@ use App\Models\ChannelCdn;
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
 use App\Models\CustomerPlan;
+use App\Models\IPTVVodVideo;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class FormRequestValidationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+    }
 
     public function test_customer_creation_rejects_additional_or_inactive_plan_as_primary_and_invalid_email(): void
     {
@@ -64,7 +73,7 @@ class FormRequestValidationTest extends TestCase
         config()->set('stream_security.allowed_ports', [80, 443]);
         config()->set('stream_security.max_url_length', 120);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -72,7 +81,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -80,7 +89,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -88,7 +97,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -96,7 +105,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -104,7 +113,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -112,8 +121,8 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $veryLongUrl = 'https://example.test/' . str_repeat('a', 121);
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $veryLongUrl = 'https://example.test/'.str_repeat('a', 121);
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -121,7 +130,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -129,7 +138,7 @@ class FormRequestValidationTest extends TestCase
             ])
             ->assertSessionHasErrors(['url_stream']);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -146,7 +155,7 @@ class FormRequestValidationTest extends TestCase
         config()->set('stream_security.allowed_schemes', ['https', 'http', 'rtmp']);
         config()->set('stream_security.allowed_ports', [80, 443, 1935]);
 
-        $this->from(route('show_channel', ['id' => $channel->id]))
+        $this->from(route('show_channel', ['channel' => $channel]))
             ->post(route('create_channel_url'), [
                 'iptv_cdn_id' => $cdn->id,
                 'iptv_channel_id' => $channel->id,
@@ -161,28 +170,62 @@ class FormRequestValidationTest extends TestCase
         $customerB = Customer::factory()->active()->create();
         $invoiceB = CustomerInvoce::factory()->create(['iptv_customer_id' => $customerB->id]);
 
-        $this->from(route('show_customer', ['id' => $customerA->id]))
+        $this->from(route('show_customer', ['customer' => $customerA]))
             ->post(route('pay_customer_invoce', [
-                'customer_id' => $customerA->id,
-                'id' => $invoiceB->id,
+                'customer' => $customerA,
+                'customerInvoce' => $invoiceB,
             ]))
-            ->assertSessionHasErrors(['id']);
+            ->assertNotFound();
 
-        $this->from(route('show_customer', ['id' => $customerA->id]))
+        $this->from(route('show_customer', ['customer' => $customerA]))
             ->post(route('cancel_customer_invoce', [
-                'customer_id' => $customerA->id,
-                'id' => $invoiceB->id,
+                'customer' => $customerA,
+                'customerInvoce' => $invoiceB,
             ]))
-            ->assertSessionHasErrors(['id']);
+            ->assertNotFound();
     }
 
-    public function test_delete_requests_require_existing_route_id(): void
+    public function test_model_bound_delete_routes_return_not_found_for_unknown_models(): void
     {
-        $this->post(route('delete_channel', ['id' => 999999]))->assertSessionHasErrors(['id']);
-        $this->post(route('delete_channel_cdn', ['id' => 999999]))->assertSessionHasErrors(['id']);
-        $this->post(route('delete_channel_group', ['id' => 999999]))->assertSessionHasErrors(['id']);
-        $this->post(route('delete_customer_plan', ['id' => 999999]))->assertSessionHasErrors(['id']);
-        $this->post(route('delete_customer', ['id' => 999999]))->assertSessionHasErrors(['id']);
-        $this->post(route('delete_channel_url', ['id' => 999999]))->assertSessionHasErrors(['id']);
+        $this->post(route('delete_channel', ['channel' => 999999]))->assertNotFound();
+        $this->post(route('delete_channel_cdn', ['channelCdn' => 999999]))->assertNotFound();
+        $this->post(route('delete_channel_group', ['channelGroup' => 999999]))->assertNotFound();
+        $this->post(route('delete_customer_plan', ['customerPlan' => 999999]))->assertNotFound();
+        $this->post(route('delete_customer', ['customer' => 999999]))->assertNotFound();
+    }
+
+    public function test_channel_url_delete_request_requires_an_existing_route_id(): void
+    {
+        $this->post(route('delete_channel_url', ['channelUrl' => 999999]))->assertNotFound();
+    }
+
+    public function test_vod_requests_validate_required_file_and_mimetype_constraints(): void
+    {
+        config()->set('modules.vod.enabled', true);
+
+        $this->from(route('vods.new'))
+            ->post(route('vods.store'), [
+                'name' => 'Movie without file',
+                'description' => 'invalid payload',
+            ])
+            ->assertSessionHasErrors(['file']);
+
+        $this->from(route('vods.new'))
+            ->post(route('vods.store'), [
+                'name' => 'Movie with invalid mime',
+                'description' => 'invalid payload',
+                'file' => UploadedFile::fake()->create('invalid.txt', 1, 'text/plain'),
+            ])
+            ->assertSessionHasErrors(['file']);
+
+        $vod = IPTVVodVideo::create(['name' => 'Movie to update']);
+
+        $this->from(route('vods.edit', $vod->id))
+            ->post(route('vods.update', $vod->id), [
+                'name' => 'Updated title',
+                'description' => 'invalid update file',
+                'file' => UploadedFile::fake()->create('invalid.txt', 1, 'text/plain'),
+            ])
+            ->assertSessionHasErrors(['file']);
     }
 }

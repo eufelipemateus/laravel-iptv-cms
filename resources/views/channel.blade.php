@@ -2,29 +2,6 @@
 
 @section('style')
 <style>
-/*
-.form-group input[type="checkbox"] {
-    display: none;
-}
-
-.form-group input[type="checkbox"] + .btn-group > label span {
-    width: 20px;
-}
-
-.form-group input[type="checkbox"] + .btn-group > label span:first-child {
-    display: none;
-}
-.form-group input[type="checkbox"] + .btn-group > label span:last-child {
-    display: inline-block;
-}
-
-.form-group input[type="checkbox"]:checked + .btn-group > label span:first-child {
-    display: inline-block;
-}
-.form-group input[type="checkbox"]:checked + .btn-group > label span:last-child {
-    display: none;
-}*/
-
 .row{
     margin: 1% 0;
 }
@@ -105,11 +82,37 @@
 								</select>
 							</div>
 						</div>
+                        @if(config('modules.epg.enabled', false))
+                        <hr>
+                        <h5>EPG</h5>
+                        <div class="form-group">
+                            <label for="epg_source_id" class="col-md-4 control-label">EPG Source</label>
+                            <div class="col-md-6"><select id="epg_source_id" class="form-control">
+                                <option value="">No EPG</option>
+                                @foreach($EpgSources as $source)
+                                    <option value="{{ $source->id }}" @selected(optional($Channel->epgChannel ?? null)->epg_source_id === $source->id)>{{ $source->name }}</option>
+                                @endforeach
+                            </select></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="epg_search" class="col-md-4 control-label">Search EPG channel</label>
+                            <div class="col-md-6"><input id="epg_search" class="form-control" placeholder="Type a channel name or external ID"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="epg_channel_id" class="col-md-4 control-label">EPG Channel</label>
+                            <div class="col-md-6"><select id="epg_channel_id" name="epg_channel_id" class="form-control">
+                                <option value="">No EPG channel</option>
+                                @if(isset($Channel) && $Channel->epgChannel)
+                                    <option selected value="{{ $Channel->epgChannel->id }}">{{ $Channel->epgChannel->display_name }} ({{ $Channel->epgChannel->external_id }})</option>
+                                @endif
+                            </select></div>
+                        </div>
+                        @endif
                         @if($radio_stream )
 						<div class="form-group">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox"  id="flexSwitchCheckDefault"  value='1'  name="radio" @if(@$Channel->radio) checked @endif>
-                                <label class="form-check-label" for="flexSwitchCheckDefault">{{ __('is Radio?') }}</label>
+							<div class="custom-control custom-switch">
+								<input class="custom-control-input" type="checkbox" id="flexSwitchCheckDefault" value="1" name="radio" @if(@$Channel->radio) checked @endif>
+								<label class="custom-control-label" for="flexSwitchCheckDefault">{{ __('is Radio?') }}</label>
                             </div>
                         </div>
                         @endif
@@ -136,7 +139,7 @@
                 </div>
                 <div class="card-body">
                     @foreach ($urls as $url)
-                    <form class="form-vertical" role="form" method="POST" action="{{ route('update_channel_url',['id'=>$url->id], false)  }}" enctype="multipart/form-data">
+                    <form class="form-vertical" role="form" method="POST" action="{{ route('update_channel_url',['channelUrl'=>$url], false)  }}" enctype="multipart/form-data">
                     <input type="hidden" id="channel_id_{{$url->id}}" name="iptv_channel_id" value="{{$url->iptv_channel_id}}">
                     {{ csrf_field() }}
 
@@ -209,3 +212,31 @@
     @endif
 </div>
 @endsection
+
+@if(config('modules.epg.enabled', false))
+@section('script')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const source = document.getElementById('epg_source_id');
+    const search = document.getElementById('epg_search');
+    const channel = document.getElementById('epg_channel_id');
+    let timer;
+    async function loadChannels() {
+        const current = channel.value;
+        channel.innerHTML = '<option value="">No EPG channel</option>';
+        if (!source.value) return;
+        const url = new URL(@json(route('epg.channels.search')), window.location.origin);
+        url.searchParams.set('source_id', source.value);
+        if (search.value) url.searchParams.set('q', search.value);
+        const response = await fetch(url, {headers: {'Accept': 'application/json'}});
+        if (!response.ok) return;
+        for (const item of await response.json()) {
+            channel.add(new Option(`${item.display_name} (${item.external_id})`, item.id, false, String(item.id) === current));
+        }
+    }
+    source.addEventListener('change', loadChannels);
+    search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(loadChannels, 300); });
+});
+</script>
+@endsection
+@endif

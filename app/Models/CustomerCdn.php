@@ -4,11 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-use App\Models\ChannelCdn;
-use App\Models\Customer;
-
-class CustomerCdn extends ChannelCdn {
-
+class CustomerCdn extends ChannelCdn
+{
     /**
      * Costumers to CDN
      */
@@ -20,8 +17,8 @@ class CustomerCdn extends ChannelCdn {
     /**
      *  This function verify if cdn can be deleted
      */
-    public function canDelete(){
+    public function canDelete()
+    {
         return self::customers()->count() ? false : true;
     }
-
 }

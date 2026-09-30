@@ -4,10 +4,10 @@ namespace Tests\Feature\Middleware;
 
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
+use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use DateTimeInterface;
 use Tests\TestCase;
 
 class CustomerMiddlewareTest extends TestCase
@@ -79,7 +79,7 @@ class CustomerMiddlewareTest extends TestCase
         $customer = Customer::factory()->active()->create();
         [$tokenId, $tokenSecret] = $this->tokenCredentialsFor($customer);
 
-        $response = $this->get('/_testing/client-auth?user=' . $tokenId . '&pass=' . $tokenSecret);
+        $response = $this->get('/_testing/client-auth?user='.$tokenId.'&pass='.$tokenSecret);
 
         $response->assertUnauthorized();
     }

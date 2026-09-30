@@ -2,17 +2,17 @@
 
 namespace App\Helpers;
 
-class Dashboard {
-
+class Dashboard
+{
     private $dashs = [];
 
-
-    public function add($dash){
-        array_push($this->dashs,$dash);
+    public function add($dash)
+    {
+        array_push($this->dashs, $dash);
     }
 
-    public function view(){
-        return view('dash', ['dashs' =>  $this->dashs]);
+    public function view()
+    {
+        return view('dash', ['dashs' => $this->dashs]);
     }
-
 }

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         //
         Schema::table('iptv_customers', function (Blueprint $table) {
-            $table->enum('due_day', [5,10,15,20,25])->default(15);
+            $table->enum('due_day', [5, 10, 15, 20, 25])->default(15);
         });
     }
 
@@ -30,6 +30,6 @@ return new class extends Migration
 
         Schema::table('iptv_customers', function (Blueprint $table) {
             $table->dropColumn('due_day');
-       });
+        });
     }
 };

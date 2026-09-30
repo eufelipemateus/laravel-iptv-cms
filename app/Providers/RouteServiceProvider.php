@@ -17,7 +17,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/home';
+    public const HOME = '/dashboard';
 
     /**
      * The controller namespace for the application.
@@ -56,8 +56,23 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        RateLimiter::for('web', function (Request $request) {
+            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
+
+        RateLimiter::for('epg', function (Request $request) {
+            return Limit::perMinute((int) config('modules.epg.rate_limit_per_minute', 30))->by($request->ip());
+        });
+
+        RateLimiter::for('epg-customer', function (Request $request) {
+            $customerId = $request->attributes->get('customer')?->getKey() ?? 'guest';
+
+            return Limit::perMinute((int) config('modules.epg.rate_limit_per_minute', 30))
+                ->by($customerId.'|'.$request->ip());
         });
 
         RateLimiter::for('web', function (Request $request) {
