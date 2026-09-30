@@ -13,12 +13,27 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('iptv_customer_plan_additionals', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('iptv_customer_id')->constrained('iptv_customers');
-            $table->foreignId('iptv_plans_id')->constrained('iptv_plans');
-            $table->unique(['iptv_customer_id', 'iptv_plans_id']);
-        });
+        $tableName = 'iptv_customer_plan_additionals';
+        $columns = ['iptv_customer_id', 'iptv_plans_id'];
+        $indexName = 'iptv_customer_plan_additional_unique';
+
+        if (! Schema::hasTable($tableName)) {
+            Schema::create($tableName, function (Blueprint $table) use ($columns, $indexName) {
+                $table->id();
+                $table->foreignId('iptv_customer_id')->constrained('iptv_customers');
+                $table->foreignId('iptv_plans_id')->constrained('iptv_plans');
+                $table->unique($columns, $indexName);
+            });
+
+            return;
+        }
+
+        // MySQL may leave the table behind when adding the original index fails.
+        if (! Schema::hasIndex($tableName, $columns, 'unique')) {
+            Schema::table($tableName, function (Blueprint $table) use ($columns, $indexName) {
+                $table->unique($columns, $indexName);
+            });
+        }
     }
 
     /**
