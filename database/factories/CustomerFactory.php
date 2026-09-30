@@ -28,7 +28,7 @@ class CustomerFactory extends Factory
             'iptv_plan_id' => CustomerPlan::factory()->active(),
             'iptv_cdn_id' => ChannelCdn::factory(),
             'active' => true,
-            'due_day' => $this->faker->randomElement([5, 10, 15, 20, 25]),
+            'due_day' => $this->faker->randomElement(['5', '10', '15', '20', '25']),
             'industry' => $this->faker->companySuffix(),
             'address' => $this->faker->streetAddress(),
             'phone' => $this->faker->phoneNumber(),
