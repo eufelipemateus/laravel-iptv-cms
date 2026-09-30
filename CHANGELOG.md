@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/eufelipemateus/laravel-iptv-cms/compare/v0.0.12...v0.1.0) (2026-09-30)
+
+### Features
+
+- add VOD management with private uploads, file replacement, web playback, a paginated public catalog and playback API, and VOD entries in M3U playlists ([#36](https://github.com/eufelipemateus/laravel-iptv-cms/pull/36))
+- add login, logout, user invitations, profiles, and administrator-managed users, with active-user checks and safeguards for the store demo ([#40](https://github.com/eufelipemateus/laravel-iptv-cms/pull/40))
+- add `php artisan install` for interactive or non-interactive environment and database setup, migrations, application key generation, optional module selection, and initial administrator creation; run it when creating a project with Composer ([#37](https://github.com/eufelipemateus/laravel-iptv-cms/pull/37))
+- add an optional EPG module with XMLTV and gzip sources, queued and scheduled synchronization, channel mapping, programme retention, and public and customer-filtered XMLTV feeds linked from M3U playlists ([#44](https://github.com/eufelipemateus/laravel-iptv-cms/pull/44))
+- protect EPG imports with URL and size limits, safe XML parsing, and generation-based updates that keep the last valid guide after a failed sync; cache and rate-limit XMLTV feeds ([#44](https://github.com/eufelipemateus/laravel-iptv-cms/pull/44))
+- add an administrator audit log for model changes, with sensitive-data filtering and conflict-checked restoration of eligible records ([#47](https://github.com/eufelipemateus/laravel-iptv-cms/pull/47))
+
+### Changed
+
+- gate customer, VOD, and EPG routes, menus, dashboards, playlists, and background work according to their module settings ([#36](https://github.com/eufelipemateus/laravel-iptv-cms/pull/36), [#43](https://github.com/eufelipemateus/laravel-iptv-cms/pull/43), [#44](https://github.com/eufelipemateus/laravel-iptv-cms/pull/44))
+- move channel, CDN, customer, plan, invoice, and playlist data loading into actions and use route model binding and request validation across their controllers ([#26](https://github.com/eufelipemateus/laravel-iptv-cms/pull/26), [#42](https://github.com/eufelipemateus/laravel-iptv-cms/pull/42))
+- improve paginated administration lists, refresh the login page, and standardize boolean form controls as Bootstrap switches ([#41](https://github.com/eufelipemateus/laravel-iptv-cms/pull/41), [#45](https://github.com/eufelipemateus/laravel-iptv-cms/pull/45), [#46](https://github.com/eufelipemateus/laravel-iptv-cms/pull/46))
+
+### Bug Fixes
+
+- tighten validation and resource scoping for channel, customer, plan, and invoice operations ([#25](https://github.com/eufelipemateus/laravel-iptv-cms/pull/25), [#26](https://github.com/eufelipemateus/laravel-iptv-cms/pull/26), [#42](https://github.com/eufelipemateus/laravel-iptv-cms/pull/42))
+
+### Maintenance
+
+- add database migrations for VOD, user invitations, EPG, queue jobs, and audit logs, plus VOD and EPG setup guides and updated installation instructions ([#36](https://github.com/eufelipemateus/laravel-iptv-cms/pull/36), [#37](https://github.com/eufelipemateus/laravel-iptv-cms/pull/37), [#40](https://github.com/eufelipemateus/laravel-iptv-cms/pull/40), [#44](https://github.com/eufelipemateus/laravel-iptv-cms/pull/44), [#47](https://github.com/eufelipemateus/laravel-iptv-cms/pull/47))
+- expand automated coverage for CRUD flows, authentication, installation, VOD, EPG, audit logging, playlists, and module behavior ([#28](https://github.com/eufelipemateus/laravel-iptv-cms/pull/28), [#36](https://github.com/eufelipemateus/laravel-iptv-cms/pull/36), [#37](https://github.com/eufelipemateus/laravel-iptv-cms/pull/37), [#40](https://github.com/eufelipemateus/laravel-iptv-cms/pull/40), [#44](https://github.com/eufelipemateus/laravel-iptv-cms/pull/44), [#47](https://github.com/eufelipemateus/laravel-iptv-cms/pull/47))
+- enable VOD in the release workflow and run the CI suite through `php artisan test` ([#36](https://github.com/eufelipemateus/laravel-iptv-cms/pull/36), [#44](https://github.com/eufelipemateus/laravel-iptv-cms/pull/44))
+
 ## [0.0.12](https://github.com/eufelipemateus/laravel-iptv-cms/compare/2026.07.24+16...v0.0.12) (2026-08-10)
 
 ### Features
