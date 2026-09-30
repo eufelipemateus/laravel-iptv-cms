@@ -4,8 +4,11 @@ namespace Tests\Integration\Database;
 
 use App\Models\Customer;
 use App\Models\CustomerInvoce;
+use App\Models\CustomerPlan;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -52,6 +55,39 @@ class SchemaAndConstraintTest extends TestCase
             'auth_token_expires_at',
             'auth_token_revoked_at',
         ]));
+    }
+
+    public function test_additional_plan_unique_index_is_mysql_safe_and_recovers_a_partial_migration(): void
+    {
+        $tableName = 'iptv_customer_plan_additionals';
+        $columns = ['iptv_customer_id', 'iptv_plans_id'];
+        $index = collect(Schema::getIndexes($tableName))
+            ->first(fn (array $index) => $index['columns'] === $columns && $index['unique']);
+
+        $this->assertNotNull($index);
+        $this->assertLessThanOrEqual(64, strlen($index['name']));
+
+        $customer = Customer::factory()->create();
+        $plan = CustomerPlan::factory()->create();
+
+        Schema::drop($tableName);
+        Schema::create($tableName, function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('iptv_customer_id')->constrained('iptv_customers');
+            $table->foreignId('iptv_plans_id')->constrained('iptv_plans');
+        });
+
+        $row = ['iptv_customer_id' => $customer->id, 'iptv_plans_id' => $plan->id];
+        DB::table($tableName)->insert($row);
+
+        $migration = require database_path('migrations/2022_01_08_025029_create_iptv_customer_plan_additionals_table.php');
+        $migration->up();
+
+        $this->assertDatabaseHas($tableName, $row);
+        $this->assertTrue(Schema::hasIndex($tableName, $columns, 'unique'));
+
+        $this->expectException(QueryException::class);
+        DB::table($tableName)->insert($row);
     }
 
     public function test_different_customers_can_have_invoices_with_same_due_date(): void
