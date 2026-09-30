@@ -39,6 +39,11 @@ class Customer extends Model
         'auth_token_revoked_at' => 'datetime',
     ];
 
+    public function setDueDayAttribute($value): void
+    {
+        $this->attributes['due_day'] = $value === null ? null : (string) $value;
+    }
+
     protected $table = 'iptv_customers';
 
     public function getPersonalUrlAttribute()
