@@ -106,6 +106,10 @@ class AuditRestoreService
             throw new AuditRestoreException(__('AUDIT_RECORD_ALREADY_EXISTS'));
         }
 
+        if ($this->hasLaterAudit($source)) {
+            throw new AuditRestoreException(__('AUDIT_RESTORE_CONFLICT'));
+        }
+
         $restored = $model->newInstance();
         $restored->forceFill($source->old_values ?? []);
         $restored->saveQuietly();
@@ -135,7 +139,7 @@ class AuditRestoreService
         return AuditLog::query()
             ->where('auditable_type', $source->auditable_type)
             ->where('auditable_id', $source->auditable_id)
-            ->whereKey('>', $source->getKey())
+            ->where($source->getKeyName(), '>', $source->getKey())
             ->exists();
     }
 

@@ -42,6 +42,13 @@ return [
     'metadata' => [
         'max_url_length' => env('AUDIT_MAX_URL_LENGTH', 2048),
         'max_user_agent_length' => env('AUDIT_MAX_USER_AGENT_LENGTH', 1024),
+
+        'sensitive_url_parameters' => [
+            'token',
+            'password',
+            'secret',
+            'credential',
+        ],
     ],
 
     'hidden_attributes' => [

@@ -8,9 +8,11 @@ use App\Models\ChannelGroup;
 use App\Models\Customer;
 use App\Models\User;
 use App\Services\Audit\AuditPayloadSanitizer;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -569,6 +571,31 @@ class AuditLogTest extends TestCase
         $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
     }
 
+    public function test_deleted_restore_is_blocked_when_the_id_was_reused_and_deleted_again(): void
+    {
+        $this->actingAsAdmin();
+        $group = ChannelGroup::factory()->create();
+        $groupId = $group->id;
+        $group->delete();
+        $firstDeletedAudit = AuditLog::query()
+            ->where('event', 'deleted')
+            ->where('auditable_type', ChannelGroup::class)
+            ->where('auditable_id', (string) $groupId)
+            ->firstOrFail();
+
+        $reused = ChannelGroup::factory()->create(['id' => $groupId]);
+        $reused->delete();
+
+        $this->assertDatabaseMissing('iptv_channel_groups', ['id' => $groupId]);
+
+        $this->post(route('audit.restore', $firstDeletedAudit))
+            ->assertSessionHasErrors('restore');
+
+        $this->assertDatabaseMissing('iptv_channel_groups', ['id' => $groupId]);
+        $this->assertNull($firstDeletedAudit->fresh()->restored_at);
+        $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $firstDeletedAudit->id]);
+    }
+
     public function test_deleted_restore_with_invalid_foreign_key_is_controlled_and_rolled_back(): void
     {
         $this->actingAsAdmin();
@@ -588,6 +615,65 @@ class AuditLogTest extends TestCase
         $this->assertDatabaseMissing('iptv_channels', ['id' => $channel->id]);
         $this->assertNull($source->fresh()->restored_at);
         $this->assertDatabaseMissing('audit_logs', ['restored_from_id' => $source->id]);
+    }
+
+    public function test_accepting_invitation_does_not_leak_the_token_in_the_audit_log(): void
+    {
+        $this->forceNonConsoleRequestContext();
+        $this->withoutMiddleware(PreventRequestForgery::class);
+
+        $token = 'super-secret-invitation-token-value';
+        $user = User::factory()->create([
+            'invitation_token' => hash('sha256', $token),
+            'invitation_expires_at' => now()->addDays(7),
+        ]);
+        AuditLog::query()->delete();
+
+        $this->post(route('invitation.accept', $token), [
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])->assertRedirect(route('dashboard'));
+
+        $audit = AuditLog::query()
+            ->where('auditable_type', User::class)
+            ->where('auditable_id', (string) $user->id)
+            ->where('event', 'updated')
+            ->firstOrFail();
+
+        $this->assertStringNotContainsString($token, (string) $audit->url);
+        $this->assertStringContainsString('convite/{token}', (string) $audit->url);
+        $this->assertArrayNotHasKey('invitation_token', $audit->old_values ?? []);
+        $this->assertArrayNotHasKey('invitation_token', $audit->new_values ?? []);
+    }
+
+    public function test_request_metadata_keeps_non_sensitive_route_parameters_useful(): void
+    {
+        $route = new Route('GET', 'channel-groups/{channelGroup}', []);
+        $request = Request::create('https://example.test/channel-groups/42', 'GET');
+        $route->bind($request);
+        $request->setRouteResolver(fn () => $route);
+
+        $metadata = app(AuditPayloadSanitizer::class)->requestMetadata($request);
+
+        $this->assertSame('https://example.test/channel-groups/42', $metadata['url']);
+    }
+
+    public function test_request_metadata_masks_sensitive_route_and_query_parameters(): void
+    {
+        $route = new Route('POST', 'convite/{token}', []);
+        $request = Request::create(
+            'https://example.test/convite/plain-secret-token?api_token=abc123&foo=bar',
+            'POST',
+        );
+        $route->bind($request);
+        $request->setRouteResolver(fn () => $route);
+
+        $metadata = app(AuditPayloadSanitizer::class)->requestMetadata($request);
+
+        $this->assertStringNotContainsString('plain-secret-token', $metadata['url']);
+        $this->assertStringNotContainsString('abc123', $metadata['url']);
+        $this->assertStringContainsString('convite/{token}', $metadata['url']);
+        $this->assertStringContainsString('foo=bar', $metadata['url']);
     }
 
     public function test_large_request_metadata_is_truncated_and_can_be_persisted(): void
@@ -630,6 +716,19 @@ class AuditLogTest extends TestCase
     private function latestAudit(string $event): AuditLog
     {
         return AuditLog::query()->where('event', $event)->latest('id')->firstOrFail();
+    }
+
+    /**
+     * The audit observer skips request metadata while `app()->runningInConsole()`
+     * is true, which is always the case under the test runner. Flip the cached
+     * flag on this test's application instance so HTTP-simulated requests are
+     * treated like real web requests for audit metadata purposes.
+     */
+    private function forceNonConsoleRequestContext(): void
+    {
+        $property = new \ReflectionProperty($this->app, 'isRunningInConsole');
+        $property->setAccessible(true);
+        $property->setValue($this->app, false);
     }
 
     /**
